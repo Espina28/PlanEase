@@ -97,7 +97,7 @@ public class UserService {
         return userRepository.findById(userId).orElse(null);
     }
 
-    public UserEntity getUserBySchoolId(String email) {
+    public UserEntity getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 

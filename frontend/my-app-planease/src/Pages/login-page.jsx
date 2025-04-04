@@ -1,15 +1,59 @@
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
-import CustomInput from "../Components/CustomInput";
-import CustomButton from "../Components/CustomButton";
-import { FcGoogle } from "react-icons/fc"; // Google icon
-import { FaFacebook } from "react-icons/fa"; // Facebook icon
+"use client"
+
+import { useState } from "react"
+import { Eye, EyeOff } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
+import CustomInput from "../Components/CustomInput"
+import CustomButton from "../Components/CustomButton"
+import { FcGoogle } from "react-icons/fc" // Google icon
+import { FaFacebook } from "react-icons/fa" // Facebook icon
+import { useAuth } from "../Components/AuthProvider"
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const navigate = useNavigate()
+  const { loginAction } = useAuth()
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+  
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+  
+    setIsLoading(true);
+  
+    try {
+      const response = await loginAction({ email, password }, navigate);
+  
+      if (!response || response.error) {
+        throw new Error(response?.error || "Invalid credentials. Please try again.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+  
+      // Improved error handling
+      setError(
+        error?.response?.data?.message || 
+        error?.message || 
+        "Login failed. Please check your credentials."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = (provider) => {
+    // This would be implemented when social login is ready
+    console.log(`${provider} login clicked - functionality not implemented yet`)
+  }
 
   return (
     <div className="flex h-screen w-full">
@@ -43,22 +87,42 @@ export default function LoginPage() {
             <h1 className="text-2xl font-medium text-gray-700">
               Welcome to Event<span className="text-blue-500">Ease</span>!
             </h1>
+            <p className="mt-2 text-gray-600">Please sign in to continue</p>
           </div>
 
-          <div className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6">
             {/* Login Buttons Container */}
-            <div className="flex space-x-4">
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
               {/* Google Login Button (Styled) */}
-              <button className="flex items-center justify-center w-full h-12 border rounded-lg shadow-sm hover:shadow-md transition text-gray-700">
+              <button
+                type="button"
+                onClick={() => handleSocialLogin("Google")}
+                className="flex items-center justify-center w-full h-12 border rounded-lg shadow-sm hover:shadow-md transition text-gray-700"
+              >
                 <FcGoogle size={24} className="mr-2" />
-                Login with Google
+                <span className="hidden sm:inline">Login with Google</span>
+                <span className="sm:hidden">Google</span>
               </button>
-              
+
               {/* Facebook Login Button (Styled) */}
-              <button className="flex items-center justify-center w-full h-12 border rounded-lg shadow-sm hover:shadow-md transition text-gray-700">
-                <FaFacebook size={24} className="mr-2" />
-                Login with Facebook
+              <button
+                type="button"
+                onClick={() => handleSocialLogin("Facebook")}
+                className="flex items-center justify-center w-full h-12 border rounded-lg shadow-sm hover:shadow-md transition text-gray-700"
+              >
+                <FaFacebook size={24} className="mr-2 text-blue-600" />
+                <span className="hidden sm:inline">Login with Facebook</span>
+                <span className="sm:hidden">Facebook</span>
               </button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
             </div>
 
             {/* Email input */}
@@ -69,9 +133,11 @@ export default function LoginPage() {
               <CustomInput
                 id="email"
                 type="email"
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 hint="planease@gmail.com"
                 className="w-full"
+                required
               />
             </div>
 
@@ -88,6 +154,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   hint="Enter your password"
                   className="w-full"
+                  required
                 />
                 <button
                   type="button"
@@ -107,9 +174,16 @@ export default function LoginPage() {
               </Link>
             </div>
 
+            {/* Error message - Moved to appear above the login button */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <span className="block sm:inline">{error}</span>
+              </div>
+            )}
+
             {/* Login button */}
-            <CustomButton className="w-full h-12" fontSize="text-sm">
-              LOGIN
+            <CustomButton type="submit" className="w-full h-12" fontSize="text-sm" disabled={isLoading}>
+              {isLoading ? "LOGGING IN..." : "LOGIN"}
             </CustomButton>
 
             {/* Sign up link */}
@@ -119,9 +193,10 @@ export default function LoginPage() {
                 Sign up
               </Link>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>
-  );
+  )
 }
+

@@ -152,7 +152,7 @@ public class UserController {
 
             if(isAuthenticated){
 
-                UserEntity user = userService.getUserBySchoolId(loginRequest.getEmail());
+                UserEntity user = userService.getUserByEmail(loginRequest.getEmail());
 
                 Authentication authentication = new UsernamePasswordAuthenticationToken(user,null,null);
 

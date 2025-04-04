@@ -21,20 +21,37 @@ public class UserEntity {
 
     private String password;
 
+    private String phoneNumber;
+
+    private String region;
+
+    private String province;
+
+    private String cityAndMul;
+
+    private String barangay;
+
     private String role;
 
     private String profilePicture;
 
     private Boolean isGoogle;
 
+    private Boolean isFacebook;
+
     public UserEntity() {
     }
 
-    public UserEntity( String firstname, String lastname, String email, String password, String role) {
+    public UserEntity( String firstname, String lastname, String email, String password, String phoneNumber,String region ,String province ,String cityAndMul ,String barangay, String role) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.email = email;
         this.password = password;
+        this.phoneNumber = phoneNumber;
+        this.region = region;
+        this.province = province;
+        this.cityAndMul = cityAndMul;
+        this.barangay = barangay;
         this.role = role;
     }
 
@@ -101,6 +118,56 @@ public class UserEntity {
     public void setIsGoogle(Boolean isGoogle) {
         this.isGoogle = isGoogle;
     }
+
+    public Boolean getIsFacebook() {
+        return isFacebook;
+    }
+
+    public void setIsFacebook(Boolean isFacebook) {
+        this.isFacebook = isFacebook;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCityAndMul() {
+        return cityAndMul;
+    }
+
+    public void setCityAndMul(String cityAndMul) {
+        this.cityAndMul = cityAndMul;
+    }
+
+    public String getBarangay() {
+        return barangay;
+    }
+
+    public void setBarangay(String barangay) {
+        this.barangay = barangay;
+    }
+
+    
 
     
 
