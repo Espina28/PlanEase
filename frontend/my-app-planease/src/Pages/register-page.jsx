@@ -238,6 +238,9 @@ export default function SignUpPage() {
         cityAndMul: selectedCityMunicipalityName,
         barangay: selectedBarangayName,
         role: "USER",
+        profilePicture: null,
+        isGoogle: false,
+        isFacebook: false,
       })
 
       if (response.status === 201 || response.status === 200) {

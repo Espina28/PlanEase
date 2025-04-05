@@ -42,7 +42,8 @@ public class UserEntity {
     public UserEntity() {
     }
 
-    public UserEntity( String firstname, String lastname, String email, String password, String phoneNumber,String region ,String province ,String cityAndMul ,String barangay, String role) {
+    public UserEntity( String firstname, String lastname, String email, String password, String phoneNumber,String region ,String province ,
+    String cityAndMul ,String barangay, String role, String profilePicture, Boolean isGoogle, Boolean isFacebook) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.email = email;
@@ -53,6 +54,9 @@ public class UserEntity {
         this.cityAndMul = cityAndMul;
         this.barangay = barangay;
         this.role = role;
+        this.profilePicture = profilePicture;
+        this.isGoogle = isGoogle;
+        this.isFacebook = isFacebook;
     }
 
     public int getUserId() {

@@ -18,6 +18,7 @@ public class CloudinaryService {
     }
 
     // Upload image and return URL
+    @SuppressWarnings("rawtypes")
     public String uploadImage(MultipartFile file, String folder) throws IOException {
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
             ObjectUtils.asMap("folder", folder));
@@ -25,6 +26,7 @@ public class CloudinaryService {
         return uploadResult.get("secure_url").toString(); // Cloudinary image URL
     }
 
+    @SuppressWarnings("rawtypes")
     public void deleteImage(String publicId) {
         String nPublicId = extractPublicId(publicId);
         try {

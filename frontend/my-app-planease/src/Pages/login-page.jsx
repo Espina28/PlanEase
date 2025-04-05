@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import CustomInput from "../Components/CustomInput"
 import CustomButton from "../Components/CustomButton"
 import { FcGoogle } from "react-icons/fc" // Google icon
 import { FaFacebook } from "react-icons/fa" // Facebook icon
+import axios from "axios"; // Make sure axios is imported
+
 import { useAuth } from "../Components/AuthProvider"
 
 export default function LoginPage() {
@@ -15,6 +17,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+
+  const clientId = "1018156473391-pqrb7r3gl54f7sqeqng31h9mctab3hhs.apps.googleusercontent.com";
+  // console.log('Google Client ID:', clientId); // Debug logging
 
   const navigate = useNavigate()
   const { loginAction } = useAuth()
@@ -50,9 +55,122 @@ export default function LoginPage() {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    // This would be implemented when social login is ready
-    console.log(`${provider} login clicked - functionality not implemented yet`)
+  const [googleApiReady, setGoogleApiReady] = useState(false)
+  const [googleApiLoading, setGoogleApiLoading] = useState(true)
+
+  // Load Google Identity Services script
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      setGoogleApiReady(true)
+      setGoogleApiLoading(false)
+    }
+    script.onerror = () => {
+      console.error('Google Identity Services script failed to load')
+      setGoogleApiLoading(false)
+      setError('Failed to load Google login service')
+    }
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
+  }, [])
+
+  const handleSocialLogin = async(provider) => {
+    if (provider === "Google") {
+      try {
+        if (googleApiLoading) {
+          setError('Google login is still loading, please wait')
+          return
+        }
+        if (!googleApiReady || !window.google) {
+          setError('Google login is not available right now')
+          return
+        }
+
+        setError("")
+        setIsLoading(true)
+
+        // Initialize Google Identity Services
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'profile email',
+          callback: async (response) => {
+            if (response.error) {
+              console.error('Google login error:', response.error)
+              setError('Google login failed')
+              setIsLoading(false)
+              return
+            }
+
+            try {
+              // Get user profile using the access token
+              const profileResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: {
+                  Authorization: `Bearer ${response.access_token}`
+                }
+              })
+              const profile = await profileResponse.json()
+              console.log(profile)
+
+              // Check if user exists in the database
+              const checkUserResponse = await axios.get("http://localhost:8080/user/check-user", {
+                params: { email: profile.email },
+              });
+
+              if (checkUserResponse.data.exists) {
+                const credentials = {
+                  email: profile.email,
+                  password: profile.sub, // Use Google ID as temporary password
+                };
+                await loginAction(credentials, navigate);
+              } else {
+                const registrationData = {
+                  firstname: profile.given_name,
+                  lastname: profile.family_name,
+                  email: profile.email,
+                  password: profile.sub,
+                  phoneNumber: null,
+                  region: null,
+                  province: null,
+                  cityAndMul: null,
+                  barangay: null,
+                  role: "USER",
+                  profilePicture: profile.picture,
+                  isGoogle: true,
+                  isFacebook: false,
+                };
+                await axios.post("http://localhost:8080/user/register", registrationData);
+                const loginCredentials = {
+                  email: profile.email,
+                  password: profile.sub,
+                };
+                await loginAction(loginCredentials, navigate);
+              }
+              window.dispatchEvent(new Event("storage"));
+            } catch (err) {
+              console.error("Login/registration error:", err);
+              setError("An error occurred during login.");
+            } finally {
+              setIsLoading(false);
+            }
+          }
+        });
+
+        client.requestAccessToken();
+      } catch (err) {
+        console.error("Google login error:", err);
+        setIsLoading(false);
+        setError("An error occurred during login.");
+      }
+    }
+    if (provider === "Facebook") {
+      console.log("Facebook login clicked - functionality not implemented yet")
+    }
   }
 
   return (
