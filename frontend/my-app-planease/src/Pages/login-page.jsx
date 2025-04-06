@@ -18,8 +18,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const clientId = "1018156473391-pqrb7r3gl54f7sqeqng31h9mctab3hhs.apps.googleusercontent.com";
-  // console.log('Google Client ID:', clientId); // Debug logging
+  const clientGoogleId = "1018156473391-pqrb7r3gl54f7sqeqng31h9mctab3hhs.apps.googleusercontent.com";
+  const clientFacebookId = "687472957271649";
 
   const navigate = useNavigate()
   const { loginAction } = useAuth()
@@ -57,6 +57,8 @@ export default function LoginPage() {
 
   const [googleApiReady, setGoogleApiReady] = useState(false)
   const [googleApiLoading, setGoogleApiLoading] = useState(true)
+  const [facebookApiReady, setFacebookApiReady] = useState(false)
+  const [facebookApiLoading, setFacebookApiLoading] = useState(true)
 
   // Load Google Identity Services script
   useEffect(() => {
@@ -72,6 +74,43 @@ export default function LoginPage() {
       console.error('Google Identity Services script failed to load')
       setGoogleApiLoading(false)
       setError('Failed to load Google login service')
+    }
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
+  }, [])
+
+  // Load Facebook SDK script
+  useEffect(() => {
+    if (document.getElementById('facebook-jssdk')) {
+      setFacebookApiLoading(false)
+      setFacebookApiReady(true)
+      return
+    }
+
+    const script = document.createElement('script')
+    script.id = 'facebook-jssdk'
+    script.src = 'https://connect.facebook.net/en_US/sdk.js'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId: clientFacebookId,
+          cookie: true,
+          xfbml: true,
+          version: 'v18.0'
+        })
+        setFacebookApiReady(true)
+        setFacebookApiLoading(false)
+      }
+    }
+    script.onerror = () => {
+      console.error('Facebook SDK failed to load')
+      setFacebookApiLoading(false)
+      setError('Failed to load Facebook login service')
     }
     document.body.appendChild(script)
 
@@ -97,7 +136,7 @@ export default function LoginPage() {
 
         // Initialize Google Identity Services
         const client = google.accounts.oauth2.initTokenClient({
-          client_id: clientId,
+          client_id: clientGoogleId,
           scope: 'profile email',
           callback: async (response) => {
             if (response.error) {
@@ -169,7 +208,81 @@ export default function LoginPage() {
       }
     }
     if (provider === "Facebook") {
-      console.log("Facebook login clicked - functionality not implemented yet")
+      try {
+        if (facebookApiLoading) {
+          setError('Facebook login is still loading, please wait')
+          return
+        }
+        if (!facebookApiReady || !window.FB) {
+          setError('Facebook login is not available right now')
+          return
+        }
+
+        setError("")
+        setIsLoading(true)
+
+        FB.login(function(response) {
+          if (response.authResponse) {
+            // Explicitly set redirect URI for development
+            const redirectUri = window.location.origin;
+            console.log('Using redirect URI:', redirectUri);
+            
+            FB.api('/me', {fields: 'id,name,email,picture'}, async (profile) => {
+              try {
+                // Check if user exists in the database
+                const checkUserResponse = await axios.get("http://localhost:8080/user/check-user", {
+                  params: { email: profile.email },
+                });
+
+                if (checkUserResponse.data.exists) {
+                  const credentials = {
+                    email: profile.email,
+                    password: profile.id, // Use Facebook ID as temporary password
+                  };
+                  await loginAction(credentials, navigate);
+                } else {
+                  const names = profile.name.split(' ');
+                  const registrationData = {
+                    firstname: names[0],
+                    lastname: names.length > 1 ? names[1] : '',
+                    email: profile.email,
+                    password: profile.id,
+                    phoneNumber: null,
+                    region: null,
+                    province: null,
+                    cityAndMul: null,
+                    barangay: null,
+                    role: "USER",
+                    profilePicture: profile.picture?.data?.url || null,
+                    isGoogle: false,
+                    isFacebook: true,
+                  };
+                  await axios.post("http://localhost:8080/user/register", registrationData);
+                  const loginCredentials = {
+                    email: profile.email,
+                    password: profile.id,
+                  };
+                  await loginAction(loginCredentials, navigate);
+                }
+                window.dispatchEvent(new Event("storage"));
+              } catch (err) {
+                console.error("Login/registration error:", err);
+                setError("An error occurred during login.");
+              } finally {
+                setIsLoading(false);
+              }
+            });
+          } else {
+            console.error('User cancelled login or did not fully authorize.');
+            setError('Facebook login was cancelled');
+            setIsLoading(false);
+          }
+        }, {scope: 'email,public_profile'});
+      } catch (err) {
+        console.error("Facebook login error:", err);
+        setIsLoading(false);
+        setError("An error occurred during login.");
+      }
     }
   }
 
