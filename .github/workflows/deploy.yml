@@ -20,7 +20,8 @@ jobs:
 
       - name: Install dependencies and build
         working-directory: frontend/my-app-planease
-        run: |
+        run: |  
+          rm -rf node_modules package-lock.json
           npm install
           npm run build
 
