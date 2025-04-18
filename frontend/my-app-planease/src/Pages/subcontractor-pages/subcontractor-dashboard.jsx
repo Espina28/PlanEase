@@ -286,114 +286,150 @@ const SubcontractorDashboard = () => {
 
       {/* Upload Modal */}
       <Modal open={open} onClose={handleClose}>
-        <Box sx={{ ...style, position: 'relative' }}>
-          <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 8, right: 8 }}>
-            <CloseIcon />
-          </IconButton>
-          <Stack spacing={2}>
-            <Typography variant="h6" fontWeight={600}>Create post</Typography>
-            <Divider />
-            <TextField label="Title" fullWidth value={title} onChange={(e) => setTitle(e.target.value)} />
-            <TextField
-              label="Description"
-              multiline
-              rows={4}
-              fullWidth
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <Box
-              ref={dropRef}
-              onClick={() => document.getElementById('upload-image-button').click()}
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 600,
+      bgcolor: '#fff',
+      borderRadius: '12px',
+      boxShadow: 24,
+      p: 4,
+    }}
+  >
+    {/* Header */}
+    <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Typography variant="h6" fontWeight={600}>Add Showcase</Typography>
+      <IconButton onClick={handleClose}>
+        <CloseIcon />
+      </IconButton>
+    </Box>
+
+    {/* Form Fields */}
+    <Stack spacing={2}>
+      <Box>
+        <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Header</Typography>
+        <TextField
+          fullWidth
+          placeholder="About Us"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </Box>
+
+      <Box>
+        <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Body</Typography>
+        <TextField
+          placeholder="Hi..."
+          fullWidth
+          multiline
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </Box>
+
+      {/* Upload Section */}
+      <Box
+        ref={dropRef}
+        onClick={() => document.getElementById('upload-image-button').click()}
+        sx={{
+          border: '2px dashed #ccc',
+          borderRadius: '12px',
+          padding: '32px',
+          textAlign: 'center',
+          backgroundColor: '#fafafa',
+          cursor: 'pointer',
+          '&:hover': {
+            backgroundColor: '#f0f0f0',
+          },
+        }}
+      >
+        <CloudUploadIcon sx={{ color: '#90a4ae', fontSize: 40 }} />
+        <Typography mt={1} fontSize="0.9rem">
+          <span style={{ color: '#1976d2', cursor: 'pointer', textDecoration: 'underline' }}>
+            Click here
+          </span>{' '}
+          to upload or drop media here
+        </Typography>
+        <input
+          accept="image/*"
+          type="file"
+          multiple
+          onChange={handleImageChange}
+          style={{ display: 'none' }}
+          id="upload-image-button"
+        />
+      </Box>
+
+      {/* Preview Section */}
+      {selectedImage.length > 0 && (
+        <ImageList cols={3} gap={8}>
+          {selectedImage.slice(0, 3).map((item, index) => (
+            <ImageListItem key={index} sx={{ position: 'relative' }}>
+              <img
+                src={item.image}
+                alt={item.title}
+                style={{
+                  borderRadius: '12px',
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'cover',
+                }}
+              />
+              <IconButton
+                size="small"
+                onClick={() => handleRemoveImage(index)}
+                sx={{
+                  position: 'absolute',
+                  top: 4,
+                  right: 4,
+                  backgroundColor: '#fff',
+                  boxShadow: 1,
+                }}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </ImageListItem>
+          ))}
+          {selectedImage.length > 3 && (
+            <ImageListItem
+              onClick={() => setEditMediaOpen(true)}
               sx={{
-                border: '2px dashed #ccc',
-                borderRadius: '12px',
-                padding: '32px',
-                textAlign: 'center',
-                color: '#666',
-                cursor: 'pointer',
-                backgroundColor: theme.palette.grey[50],
-                '&:hover': { backgroundColor: theme.palette.grey[100] },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#e0e0e0',
+                borderRadius: '8px',
               }}
             >
-              <CloudUploadIcon fontSize="large" sx={{ color: '#90a4ae' }} />
-              <Typography variant="body1" mt={1}>
-                Drop file(s) here or <span style={{ color: '#1976d2', textDecoration: 'underline' }}>browse to upload</span>
+              <Typography fontWeight="bold" color="primary">
+                +{selectedImage.length - 3} more
               </Typography>
-              <input
-                accept="image/*"
-                type="file"
-                multiple
-                onChange={handleImageChange}
-                style={{ display: 'none' }}
-                id="upload-image-button"
-              />
-            </Box>
-            {selectedImage.length > 0 && (
-              <Box>
-                <ImageList cols={3} gap={8}>
-                  {selectedImage.slice(0, 3).map((item, index) => (
-                    <ImageListItem key={index} sx={{ position: 'relative' }}>
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        loading="lazy"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '160px',
-                          objectFit: 'contain',
-                          borderRadius: '12px',
-                          display: 'block',
-                          margin: '0 auto',
-                        }}
-                      />
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveImage(index)}
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          backgroundColor: 'rgba(255,255,255,0.8)',
-                          zIndex: 10,
-                        }}
-                      >
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    </ImageListItem>
-                  ))}
-                  {selectedImage.length > 3 && (
-                    <ImageListItem
-                      onClick={() => setEditMediaOpen(true)}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: '#e0e0e0',
-                        borderRadius: '8px',
-                      }}
-                    >
-                      <Typography fontWeight="bold" color="primary">
-                        +{selectedImage.length - 3} more
-                      </Typography>
-                    </ImageListItem>
-                  )}
-                </ImageList>
-              </Box>
-            )}
-            <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-              <Button variant="text" onClick={() => setEditMediaOpen(true)}>
-                Edit All
-              </Button>
-              <Button
-              disabled={!title || !description || selectedImage.length === 0} 
-              variant="contained" onClick={handleSubmit}>
-                Submit
-              </Button>
-            </Box>
-          </Stack>
-        </Box>
-      </Modal>
+            </ImageListItem>
+          )}
+        </ImageList>
+      )}
+
+      {/* Actions */}
+      <Box mt={2} display="flex" justifyContent="flex-end" gap={2}>
+        <Button variant="outlined" onClick={() => setEditMediaOpen(true)}>
+          Edit All
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={!title || !description || selectedImage.length === 0}
+        >
+          Add
+        </Button>
+      </Box>
+    </Stack>
+  </Box>
+</Modal>
+
 
       {/* Fullscreen Edit Modal */}
       <Modal open={editMediaOpen} onClose={() => setEditMediaOpen(false)}>
