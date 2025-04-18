@@ -385,7 +385,9 @@ const SubcontractorDashboard = () => {
               <Button variant="text" onClick={() => setEditMediaOpen(true)}>
                 Edit All
               </Button>
-              <Button variant="contained" onClick={handleSubmit}>
+              <Button
+              disabled={!title || !description || selectedImage.length === 0} 
+              variant="contained" onClick={handleSubmit}>
                 Submit
               </Button>
             </Box>
