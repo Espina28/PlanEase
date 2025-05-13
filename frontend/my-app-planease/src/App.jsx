@@ -28,14 +28,14 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/subcontractor/dashboard" element={
-            <SubContractorProtectedRoute>
+            // <SubContractorProtectedRoute>
                 <SubcontractorDashboard />
-            </SubContractorProtectedRoute>
+            // </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/transactions" element={
-            <SubContractorProtectedRoute>
+            // <SubContractorProtectedRoute>
                 <SubcontractorBookings />
-            </SubContractorProtectedRoute>
+            // </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/login" element={<SubcontractorLogin />
         } />

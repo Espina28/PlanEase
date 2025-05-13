@@ -618,7 +618,7 @@ const SubcontractorDashboard = () => {
                     <Button
                         variant="contained"
                         onClick={handleSubmit}
-                        disabled={!title || !description || selectedImage.length === 0}
+                        disabled={!title || !description && selectedImage.length === 0 || selectVideo == null}
                     >
                         Add
                     </Button>
