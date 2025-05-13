@@ -39,15 +39,15 @@ public class TokenService {
                             .issuedAt(now)
                             .expiresAt(now.plus(1,ChronoUnit.HOURS))
                             .claim("scope", scope)
-                            .claim("schoolId", email)  
-                            .claim("role", role)          
+                            .claim("email", email)
+                            .claim("role", role)
                             .build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
-        public String extractSchoolId(String token) {
+        public String extractEmail(String token) {
         try {
             Jwt decodedJwt = jwtDecoder.decode(token);
-            return decodedJwt.getClaim("schoolId"); 
+            return decodedJwt.getClaim("email");
         } catch (JwtException e) {
             throw new RuntimeException("Invalid token: " + e.getMessage());
         }

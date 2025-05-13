@@ -22,8 +22,12 @@ export const AuthProvider = ({ children }) => {
                 setToken(token);
     
                 // Redirect user based on role
-                if (role === "USER") {
+                if (role === "User") {
                     navigate("/home"); 
+                }else if (role === "Admin"){
+                    navigate("/admin/subcontractors"); 
+                }else if(role === "SubContractor"){
+                    navigate("/subcontractor/dashboard")
                 }
                 return;
             }

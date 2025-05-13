@@ -92,7 +92,7 @@ public class UserController {
         }
 
         String token = authHeader.substring(7);
-        String schoolId = tokenService.extractSchoolId(token);
+        String schoolId = tokenService.extractEmail(token);
 
         return ResponseEntity.ok(Collections.singletonMap("schoolId", schoolId));
     }
@@ -107,7 +107,7 @@ public class UserController {
             // Extract the actual token (remove "Bearer " prefix)
             token = token.substring(7);
     
-            String schoolId = tokenService.extractSchoolId(token);
+            String schoolId = tokenService.extractEmail(token);
             if (schoolId == null || schoolId.isEmpty()) {
                 return ResponseEntity.status(401).body("Invalid token: schoolId missing");
             }

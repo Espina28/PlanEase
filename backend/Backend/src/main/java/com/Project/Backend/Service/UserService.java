@@ -47,7 +47,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    
     public String getUserProfileImage(String email) {
         UserEntity user = userRepository.findByEmail(email);
         return user.getProfilePicture();

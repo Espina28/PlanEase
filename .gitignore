@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# Environment files
+.env
+>>>>>>> 211c146505f8d0fa8f91e09214019e121f42470f
 # Logs
 logs/
 *.log

@@ -237,13 +237,20 @@ export default function SignUpPage() {
         province: selectedProvinceName,
         cityAndMul: selectedCityMunicipalityName,
         barangay: selectedBarangayName,
-        role: "USER",
+        role: "User",
         profilePicture: null,
         isGoogle: false,
         isFacebook: false,
       })
 
       if (response.status === 201 || response.status === 200) {
+        // After successful user registration, also create regular user entity
+        try {
+          await axios.post("http://localhost:8080/regularuser/create", response.data);
+        } catch (error) {
+          console.error("Regular user creation error:", error);
+          // Optionally handle error, but do not block navigation
+        }
         alert("Registration Successful! Redirecting to login...")
         navigate("/login")
       }
