@@ -25,7 +25,9 @@ function App() {
               <Footer/>
             </>
             } />
+
           <Route path="/login" element={<LoginPage />} />
+
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/subcontractor/dashboard" element={
             <SubContractorProtectedRoute>
