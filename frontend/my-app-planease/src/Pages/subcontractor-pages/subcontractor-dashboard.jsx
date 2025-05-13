@@ -164,10 +164,15 @@ const SubcontractorDashboard = () => {
         handleClose();
     };
 
+    const handleVideoChange = (event) => {
+        console.log("submitting video");
+        setSelectedVideo(event.target.files[0]);
+    }
 
 
 
     const handleImageChange = (event) => {
+
         setSelectedImageLenght(event.target.files.length);
         
         if(event.target.files.length + selectedImageLenght > MAX_IMAGE_COUNT){
@@ -459,10 +464,44 @@ const SubcontractorDashboard = () => {
                 </Box>
 
                 {/* Upload Section */}
-                {error && selectedImageLenght > MAX_IMAGE_COUNT ? (
+                {error ? (
                     <Typography color="error" fontSize="0.9rem" mb={1}>
-                        Only 5 images can be uploaded
+                        {error}
                     </Typography>
+                ) : selectVideo ? (
+                    <Box
+                        sx={{
+                            position: 'relative',
+                            border: '2px solid #ccc',
+                            borderRadius: '12px',
+                            padding: '32px',
+                            textAlign: 'center',
+                            backgroundColor: '#fafafa',
+                        }}
+                    >
+                        <video
+                            controls
+                            src={URL.createObjectURL(selectVideo)}
+                            style={{
+                                width: '100%',
+                                height: 'auto',
+                                borderRadius: '12px',
+                            }}
+                        />
+                        <IconButton
+                            size="small"
+                            onClick={() => setSelectedVideo(null)}
+                            sx={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                backgroundColor: '#fff',
+                                boxShadow: 1,
+                            }}
+                        >
+                            <CloseIcon fontSize="small"/>
+                        </IconButton>
+                    </Box>
                 ) : (
                     <Box
                         ref={dropRef}
@@ -484,13 +523,21 @@ const SubcontractorDashboard = () => {
                             <span style={{color: '#1976d2', cursor: 'pointer', textDecoration: 'underline'}}>
                                 Click here
                             </span>{' '}
-                            to upload or drop media here
+                            to Upload Images
                         </Typography>
                         <input
-                            accept="image/*,video/*"
+                            accept="image/*"
                             type="file"
                             multiple
-                            onChange={(event) => handleImageChange(event)}
+                            onChange={(event) => {
+                                const file = event.target.files[0];
+                                if (file && file.type.startsWith("video/")) {
+                                    setSelectedVideo(file);
+                                } else {
+                                    handleImageChange(event);
+                                }
+                                event.target.value = null;
+                            }}
                             style={{display: 'none'}}
                             id="upload-image-button"
                         />
@@ -547,18 +594,35 @@ const SubcontractorDashboard = () => {
             )}
 
             {/* Actions */}
-            <Box mt={2} display="flex" justifyContent="flex-end" gap={2}>
-              <Button variant="outlined" onClick={() => setEditMediaOpen(true)}>
-                Edit All
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={!title || !description || selectedImage.length === 0}
-              >
-                Add
-              </Button>
-            </Box>
+                <Box mt={2} display="flex" justifyContent="flex-end" gap={2}>
+                    <Button
+                        variant="contained"
+                        component="label" // Added component label for proper usage
+                        disabled={selectedImage.length != 0}
+                    >
+                        Add Video
+                        <input
+                            accept="video/*" // Fixed to accept video files instead of images
+                            type="file"
+                            onChange={(event) => handleVideoChange(event)} // Ensure handleVideoChange method exists and handles video files appropriately
+                            style={{display: 'none'}}
+                            id="upload-video-button" // Updated ID for better clarity and avoid conflict
+                        />
+                    </Button>
+                    <Button variant="outlined"
+                            onClick={() => setEditMediaOpen(true)}
+                            disabled={selectedImage.length === 0}
+                    >
+                        Edit All
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleSubmit}
+                        disabled={!title || !description || selectedImage.length === 0}
+                    >
+                        Add
+                    </Button>
+                </Box>
           </Stack>
         </Box>
       </Modal>
