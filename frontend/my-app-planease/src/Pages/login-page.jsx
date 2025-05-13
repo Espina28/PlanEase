@@ -154,7 +154,7 @@ export default function LoginPage() {
                 }
               })
               const profile = await profileResponse.json()
-              console.log(profile)
+              // console.log(profile)
 
               // Check if user exists in the database
               const checkUserResponse = await axios.get("http://localhost:8080/user/check-user", {
@@ -178,12 +178,17 @@ export default function LoginPage() {
                   province: null,
                   cityAndMul: null,
                   barangay: null,
-                  role: "USER",
+                  role: "User",
                   profilePicture: profile.picture,
                   isGoogle: true,
                   isFacebook: false,
                 };
-                await axios.post("http://localhost:8080/user/register", registrationData);
+                const registerResponse = await axios.post("http://localhost:8080/user/register", registrationData);
+                try {
+                  await axios.post("http://localhost:8080/regularuser/create", { userId: registerResponse.data.userId });
+                } catch (error) {
+                  console.error("Regular user creation error:", error);
+                }
                 const loginCredentials = {
                   email: profile.email,
                   password: profile.sub,
@@ -242,27 +247,32 @@ export default function LoginPage() {
                   await loginAction(credentials, navigate);
                 } else {
                   const names = profile.name.split(' ');
-                  const registrationData = {
-                    firstname: names[0],
-                    lastname: names.length > 1 ? names[1] : '',
-                    email: profile.email,
-                    password: profile.id,
-                    phoneNumber: null,
-                    region: null,
-                    province: null,
-                    cityAndMul: null,
-                    barangay: null,
-                    role: "USER",
-                    profilePicture: profile.picture?.data?.url || null,
-                    isGoogle: false,
-                    isFacebook: true,
-                  };
-                  await axios.post("http://localhost:8080/user/register", registrationData);
-                  const loginCredentials = {
-                    email: profile.email,
-                    password: profile.id,
-                  };
-                  await loginAction(loginCredentials, navigate);
+                const registrationData = {
+                  firstname: names[0],
+                  lastname: names.length > 1 ? names[1] : '',
+                  email: profile.email,
+                  password: profile.id,
+                  phoneNumber: null,
+                  region: null,
+                  province: null,
+                  cityAndMul: null,
+                  barangay: null,
+                  role: "User",
+                  profilePicture: profile.picture?.data?.url || null,
+                  isGoogle: false,
+                  isFacebook: true,
+                };
+                const registerResponse = await axios.post("http://localhost:8080/user/register", registrationData);
+                try {
+                  await axios.post("http://localhost:8080/regularuser/create", { userId: registerResponse.data.userId });
+                } catch (error) {
+                  console.error("Regular user creation error:", error);
+                }
+                const loginCredentials = {
+                  email: profile.email,
+                  password: profile.id,
+                };
+                await loginAction(loginCredentials, navigate);
                 }
                 window.dispatchEvent(new Event("storage"));
               } catch (err) {
@@ -430,4 +440,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
