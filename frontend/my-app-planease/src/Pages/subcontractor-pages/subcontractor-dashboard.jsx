@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef,useEffect } from 'react';
 import Divider from '@mui/material/Divider';
 import Navbar from "../../Components/Navbar";
 import Typography from '@mui/material/Typography';
@@ -14,7 +14,15 @@ import { Box, IconButton, Modal, Stack, TextField, Button } from '@mui/material'
 import { useTheme } from '@mui/material/styles';
 
 const SubcontractorDashboard = () => {
+    
+  const MAX_IMAGE_COUNT = 5;
+  const MAX_VIDEO_COUNT = 1;
+  const [error,setError] = useState(null);
+  
+  const [selectVideo, setSelectedVideo] = useState(null);
+    
 
+    //this variable is for clicking the images in post
   const [activeGallery, setActiveGallery] = useState(null); // { images: [], index: 0 }
 
   const [isEditingAbout, setIsEditingAbout] = useState(false);
@@ -23,46 +31,165 @@ const SubcontractorDashboard = () => {
   const [open, setOpen] = useState(false);
   const [editMediaOpen, setEditMediaOpen] = useState(false);
 
+
   const [itemData, setItemData] = useState([]);
   const [selectedImage, setSelectedImage] = useState([]);
+  const [selectedImageLenght, setSelectedImageLenght] = useState(0);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+      setOpen(false);
+      setError(null);
+      setSelectedImage([]);
+  }
 
   const theme = useTheme();
   const dropRef = useRef(null);
 
   const handleRemoveImage = (indexToRemove) => {
     setSelectedImage((prev) => prev.filter((_, i) => i !== indexToRemove));
+    setError(null);
   };
 
-  const handleSubmit = () => {
-    const newItem = {
-      title,
-      description,
-      selectedImage: selectedImage.map((img) => ({
-        image: img.image,
-        title: img.title,
-      })),
+  useEffect(() => {
+      console.log("item data",itemData)
+      console.log("selected image",selectedImage)
+  },[selectedImage,itemData])
+
+    const resizeImage = (file, maxWidth = 1920, maxHeight = 1080) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                img.onload = () => {
+                    const originalWidth = img.width;
+                    const originalHeight = img.height;
+                    const originalSizeKB = file.size / 1024;
+
+                    // Check if resizing is needed
+                    if (originalWidth <= maxWidth && originalHeight <= maxHeight) {
+                        resolve({
+                            resizedFile: file,
+                            original: {
+                                width: originalWidth,
+                                height: originalHeight,
+                                sizeKB: originalSizeKB,
+                            },
+                            resized: {
+                                width: originalWidth,
+                                height: originalHeight,
+                                sizeKB: originalSizeKB,
+                            },
+                        });
+                        return;
+                    }
+
+                    // Calculate scaled dimensions
+                    const ratio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight);
+                    const newWidth = Math.round(originalWidth * ratio);
+                    const newHeight = Math.round(originalHeight * ratio);
+
+                    // Resize using canvas
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                    canvas.toBlob((blob) => {
+                        const resizedFile = new File([blob], file.name, { type: file.type });
+                        const resizedSizeKB = resizedFile.size / 1024;
+
+                        resolve({
+                            resizedFile,
+                            original: {
+                                width: originalWidth,
+                                height: originalHeight,
+                                sizeKB: originalSizeKB,
+                            },
+                            resized: {
+                                width: newWidth,
+                                height: newHeight,
+                                sizeKB: resizedSizeKB,
+                            },
+                        });
+                    }, file.type);
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        });
     };
-    setItemData((prev) => [...prev, newItem]);
-    setTitle('');
-    setDescription('');
-    setSelectedImage([]);
-    handleClose();
-  };
 
-  const handleImageChange = (event) => {
-    const files = event.target.files;
-    const imageArray = Array.from(files).map((file) => ({
-      title: file.name,
-      image: URL.createObjectURL(file),
-      file,
-    }));
-    setSelectedImage((prev) => [...prev, ...imageArray]);
-  };
+
+    const handleSubmit = async () => {
+        console.log("submitting file");
+
+        const resizedImages = await Promise.all(
+            selectedImage.map(async (img) => {
+                const { resizedFile, original, resized } = await resizeImage(img.file);
+
+                console.log(`Image: ${img.title}`);
+                console.log(`Original: ${original.width}x${original.height}, ${original.sizeKB.toFixed(2)} KB`);
+                console.log(`Resized:  ${resized.width}x${resized.height}, ${resized.sizeKB.toFixed(2)} KB`);
+
+                return {
+                    image: URL.createObjectURL(resizedFile),
+                    title: resizedFile.name,
+                    file: resizedFile,
+                    meta: { original, resized }, // optional: keep for later display or debug
+                };
+            })
+        );
+
+        const newItem = {
+            title,
+            description,
+            selectedImage: resizedImages.map((img) => ({
+                image: img.image,
+                title: img.title,
+                // meta: img.meta  <-- optional for UI feedback
+            })),
+        };
+
+        setItemData((prev) => [...prev, newItem]);
+        setTitle('');
+        setDescription('');
+        setSelectedImage([]);
+        handleClose();
+    };
+
+
+
+
+    const handleImageChange = (event) => {
+        setSelectedImageLenght(event.target.files.length);
+        
+        if(event.target.files.length + selectedImageLenght > MAX_IMAGE_COUNT){
+            setError("Only 5 images can be uploaded")
+        }
+
+        const files = Array.from(event.target.files);
+        const imagesOnly = files.filter(file => file.type.startsWith('image/'));
+
+        const remainingSlots = MAX_IMAGE_COUNT - selectedImage.length;
+        const acceptedImages = imagesOnly.slice(0, remainingSlots);
+        const imageArray = acceptedImages.map((file) => ({
+            title: file.name,
+            image: URL.createObjectURL(file),
+            file,
+        }));
+
+        setSelectedImage((prev) => [...prev, ...imageArray]);
+        event.target.value = null;
+    }
+
+
 
   const style = {
     position: 'absolute',
@@ -308,61 +435,67 @@ const SubcontractorDashboard = () => {
           </Box>
 
           {/* Form Fields */}
-          <Stack spacing={2}>
-            <Box>
-              <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Header</Typography>
-              <TextField
-                fullWidth
-                placeholder="About Us"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </Box>
+            <Stack spacing={2}>
+                <Box>
+                    <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Header</Typography>
+                    <TextField
+                        fullWidth
+                        placeholder="About Us"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                    />
+                </Box>
 
-            <Box>
-              <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Body</Typography>
-              <TextField
-                placeholder="Hi..."
-                fullWidth
-                multiline
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </Box>
+                <Box>
+                    <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Body</Typography>
+                    <TextField
+                        placeholder="Hi..."
+                        fullWidth
+                        multiline
+                        rows={3}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                    />
+                </Box>
 
-            {/* Upload Section */}
-            <Box
-              ref={dropRef}
-              onClick={() => document.getElementById('upload-image-button').click()}
-              sx={{
-                border: '2px dashed #ccc',
-                borderRadius: '12px',
-                padding: '32px',
-                textAlign: 'center',
-                backgroundColor: '#fafafa',
-                cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: '#f0f0f0',
-                },
-              }}
-            >
-              <CloudUploadIcon sx={{ color: '#90a4ae', fontSize: 40 }} />
-              <Typography mt={1} fontSize="0.9rem">
-                <span style={{ color: '#1976d2', cursor: 'pointer', textDecoration: 'underline' }}>
-                  Click here
-                </span>{' '}
-                to upload or drop media here
-              </Typography>
-              <input
-                accept="image/*"
-                type="file"
-                multiple
-                onChange={handleImageChange}
-                style={{ display: 'none' }}
-                id="upload-image-button"
-              />
-            </Box>
+                {/* Upload Section */}
+                {error && selectedImageLenght > MAX_IMAGE_COUNT ? (
+                    <Typography color="error" fontSize="0.9rem" mb={1}>
+                        Only 5 images can be uploaded
+                    </Typography>
+                ) : (
+                    <Box
+                        ref={dropRef}
+                        onClick={() => document.getElementById('upload-image-button')?.click()}
+                        sx={{
+                            border: '2px dashed #ccc',
+                            borderRadius: '12px',
+                            padding: '32px',
+                            textAlign: 'center',
+                            backgroundColor: '#fafafa',
+                            cursor: 'pointer',
+                            '&:hover': {
+                                backgroundColor: '#f0f0f0',
+                            },
+                        }}
+                    >
+                        <CloudUploadIcon sx={{color: '#90a4ae', fontSize: 40}}/>
+                        <Typography mt={1} fontSize="0.9rem">
+                            <span style={{color: '#1976d2', cursor: 'pointer', textDecoration: 'underline'}}>
+                                Click here
+                            </span>{' '}
+                            to upload or drop media here
+                        </Typography>
+                        <input
+                            accept="image/*,video/*"
+                            type="file"
+                            multiple
+                            onChange={(event) => handleImageChange(event)}
+                            style={{display: 'none'}}
+                            id="upload-image-button"
+                        />
+                    </Box>
+                )}
 
             {/* Preview Section */}
             {selectedImage.length > 0 && (
