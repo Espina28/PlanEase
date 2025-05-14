@@ -14,6 +14,9 @@ import SubcontractorCalendar from './Pages/subcontractor-pages/subcontractor-cal
 import AdminSubContractors from './Pages/admin-pages/admin-subcontractors'
 import AdminProtectedRoute from './Components/AdminProtectedRoute'
 import SubContractorProtectedRoute from './Components/SubContractorProtectedRoute'
+import InputDetailsPage from './Pages/inputdetails-page'
+import SelectServicePage from './Pages/selectservice-page'
+
 
 function App() {
   return (
@@ -28,9 +31,11 @@ function App() {
             } />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/book/inputdetails" element={<InputDetailsPage />} />
+          <Route path="/book/services" element={<SelectServicePage />} />
           <Route path="/subcontractor/dashboard" element={
             // <SubContractorProtectedRoute>
-                <SubcontractorDashboard />
+                <SubcontractorDashboard />  
             // </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/transactions" element={
