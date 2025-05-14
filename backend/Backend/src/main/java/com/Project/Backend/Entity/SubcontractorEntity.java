@@ -20,7 +20,7 @@ public class SubcontractorEntity {
 
     @OneToOne
     @JsonManagedReference(value = "subcontractor-offering-service")
-    private OfferingServiceEntity offeringServiceEntity;
+    private ServiceOfferingEntity serviceOfferingEntity;
 
     @OneToMany(mappedBy = "subcontractorEntity", fetch = FetchType.LAZY)
     @JsonManagedReference(value = "subcontractor-unavailable-dates")
@@ -28,9 +28,9 @@ public class SubcontractorEntity {
 
     public SubcontractorEntity() {}
 
-    public SubcontractorEntity(UserEntity user, OfferingServiceEntity offeringServiceEntity) {
+    public SubcontractorEntity(UserEntity user, ServiceOfferingEntity serviceOfferingEntity) {
         this.user = user;
-        this.offeringServiceEntity = offeringServiceEntity;
+        this.serviceOfferingEntity = serviceOfferingEntity;
     }
 
 
@@ -50,12 +50,12 @@ public class SubcontractorEntity {
         this.user = user;
     }
 
-    public OfferingServiceEntity getOfferingServiceEntity() {
-        return offeringServiceEntity;
+    public ServiceOfferingEntity getOfferingServiceEntity() {
+        return serviceOfferingEntity;
     }
 
-    public void setOfferingServiceEntity(OfferingServiceEntity offeringServiceEntity) {
-        this.offeringServiceEntity = offeringServiceEntity;
+    public void setOfferingServiceEntity(ServiceOfferingEntity serviceOfferingEntity) {
+        this.serviceOfferingEntity = serviceOfferingEntity;
     }
 
     public List<UnavailableDates> getUnavailableDates() {

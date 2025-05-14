@@ -7,8 +7,8 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "Service_Showcase")
-public class ServiceShowcaseEntity {
+@Table(name = "Showcase")
+public class ShowcaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,10 +20,10 @@ public class ServiceShowcaseEntity {
     @ManyToOne
     @JoinColumn(name = "offering_service_id")
     @JsonBackReference(value = "offering-service-showcase")
-    private OfferingServiceEntity offeringServiceEntity;
+    private ServiceOfferingEntity offeringServiceEntity;
 
     @OneToMany(mappedBy = "serviceShowcaseEntity", fetch = FetchType.LAZY)
     @JsonManagedReference(value = "showcase-files")
-    private List<ShowcaseFilesEntity> showcaseFilesEntity;
+    private List<ShowcaseMediaEntity> showcaseMediaEntity;
 
 }
