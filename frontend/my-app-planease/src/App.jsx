@@ -10,6 +10,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import SubcontractorBookings from './Pages/subcontractor-pages/subcontractor-bookings'
 import SubcontractorDashboard from './Pages/subcontractor-pages/subcontractor-dashboard'
 import SubcontractorLogin from './Pages/subcontractor-pages/subcontractor-login'
+import SubcontractorCalendar from './Pages/subcontractor-pages/subcontractor-calendar'
 import AdminSubContractors from './Pages/admin-pages/admin-subcontractors'
 import AdminProtectedRoute from './Components/AdminProtectedRoute'
 import SubContractorProtectedRoute from './Components/SubContractorProtectedRoute'
@@ -30,14 +31,19 @@ function App() {
 
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/subcontractor/dashboard" element={
-            <SubContractorProtectedRoute>
+            // <SubContractorProtectedRoute>
                 <SubcontractorDashboard />
-            </SubContractorProtectedRoute>
+            // </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/transactions" element={
-            <SubContractorProtectedRoute>
+            // <SubContractorProtectedRoute>
                 <SubcontractorBookings />
-            </SubContractorProtectedRoute>
+            // </SubContractorProtectedRoute>
+            } />
+          <Route path="/subcontractor/calendar" element={
+            // <SubContractorProtectedRoute>
+                <SubcontractorCalendar />
+            // </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/login" element={<SubcontractorLogin />
         } />

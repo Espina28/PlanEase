@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,16 +21,6 @@ public class SubcontractorController {
     @Autowired
     private SubcontractorService subcontractorService;
 
-@PostMapping("/create")
-public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {
-    SubcontractorEntity subcontractor = new SubcontractorEntity();
-    subcontractor.setUser(request.getUser());
-    subcontractor.setService(request.getService());
-    
-    SubcontractorEntity savedSubcontractor = subcontractorService.saveSubcontractor(subcontractor);
-    return ResponseEntity.ok(savedSubcontractor);
-}
-
     @GetMapping("/getall")
     public ResponseEntity<List<SubcontractorEntity>> getAllSubcontractors() {
         return ResponseEntity.ok(subcontractorService.getAllSubcontractors());
@@ -39,6 +30,31 @@ public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody Crea
     public ResponseEntity<SubcontractorEntity> getSubcontractorById(@PathVariable int id) {
         SubcontractorEntity subcontractor = subcontractorService.getSubcontractorById(id);
         return ResponseEntity.ok(subcontractor);
+    }
+
+    @GetMapping("/generate-PresignedUrl")
+    public ResponseEntity<?> generatePresignedURL(
+            @RequestParam("file_name") String fileName,
+            @RequestParam("user_name") String userName){
+        String uuidName = java.util.UUID.randomUUID() + "_" + fileName;
+
+        try{
+            String presignedURL = subcontractorService.generatePresignedUrl(userName,uuidName);
+            return ResponseEntity.ok(Map.of("presignedURL", presignedURL, "uuidName", uuidName));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+
+    @PostMapping("/create")
+    public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {
+        SubcontractorEntity subcontractor = new SubcontractorEntity();
+        subcontractor.setUser(request.getUser());
+        subcontractor.setService(request.getService());
+
+        SubcontractorEntity savedSubcontractor = subcontractorService.saveSubcontractor(subcontractor);
+        return ResponseEntity.ok(savedSubcontractor);
     }
 
     @DeleteMapping("/{id}")

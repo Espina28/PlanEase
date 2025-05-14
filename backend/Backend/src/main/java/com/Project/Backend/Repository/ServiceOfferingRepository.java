@@ -1,11 +1,9 @@
 package com.Project.Backend.Repository;
 
+import com.Project.Backend.Entity.ServiceOfferingEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.Project.Backend.Entity.SubcontractorEntity;
-
 @Repository
-public interface SubContractorRepository extends JpaRepository<SubcontractorEntity, Integer>{
-
+public interface ServiceOfferingRepository extends JpaRepository<ServiceOfferingEntity, Integer> {
 }

@@ -72,7 +72,10 @@ const Navbar = () => {
       >
         <FileText size={20} />
         Showcase
-      </NavLink>
+      </NavLink>\
+
+
+
     </nav>
   );
 
