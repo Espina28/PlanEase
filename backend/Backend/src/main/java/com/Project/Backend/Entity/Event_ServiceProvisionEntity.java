@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "event_service_provision")
 public class Event_ServiceProvisionEntity {
 
         @Id
