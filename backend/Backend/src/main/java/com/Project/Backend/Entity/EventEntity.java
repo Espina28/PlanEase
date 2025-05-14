@@ -15,14 +15,19 @@ public class EventEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    
     private int id;
-
-
     private String Event_name;
     private String Event_description;
     private boolean Event_isAvailable;
     private double Event_price;
 
+    public void setId(int id) {
+        this.id = id;
+    }
+    public int getId() {
+        return id;
+    }
 
     public void setName(String Event_name) {
         this.Event_name = Event_name;
