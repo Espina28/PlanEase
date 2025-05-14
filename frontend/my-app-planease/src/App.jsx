@@ -13,7 +13,6 @@ import SubcontractorLogin from './Pages/subcontractor-pages/subcontractor-login'
 import AdminSubContractors from './Pages/admin-pages/admin-subcontractors'
 import AdminProtectedRoute from './Components/AdminProtectedRoute'
 import SubContractorProtectedRoute from './Components/SubContractorProtectedRoute'
-import SubcontractorCalendar from './Pages/subcontractor-pages/subcontractor-calendar'
 
 function App() {
   return (

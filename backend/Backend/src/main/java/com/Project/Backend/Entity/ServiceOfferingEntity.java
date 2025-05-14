@@ -1,4 +1,5 @@
 package com.Project.Backend.Entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -6,8 +7,8 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "Offering_Service")
-public class OfferingServiceEntity {
+@Table(name = "Service_Offering")
+public class ServiceOfferingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,12 +19,12 @@ public class OfferingServiceEntity {
 
     @OneToOne
     @JoinColumn(name = "subcontractor_id")
-    @JsonIgnoreProperties("subcontractor-offering-service")
+    @JsonBackReference("subcontractor-service-offering")
     private SubcontractorEntity subcontractorEntity;
 
-    @OneToMany(mappedBy = "offeringServiceEntity", fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "offering-service-showcase")
-    private List<ServiceShowcaseEntity> serviceShowcaseEntity;
+    @OneToMany(mappedBy = "serviceOfferingEntity", fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "service-offering-showcase")
+    private List<ShowcaseEntity> showcaseEntity;
 
 
 }

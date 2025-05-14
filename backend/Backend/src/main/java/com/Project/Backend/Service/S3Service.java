@@ -20,14 +20,18 @@ public class S3Service {
     private S3Client s3;
 
     private S3Service() {
+        String accessKey = System.getenv("AWS_ACCESS_KEY");
+        String secretKey = System.getenv("AWS_ACCESS_SECRET_KEY");
+
+        if (accessKey == null || secretKey == null) {
+            throw new IllegalArgumentException("AWS credentials are not set in environment variables.");
+        }
+
         if (s3 == null) {
             s3 = S3Client.builder()
                     .region(Region.AP_SOUTHEAST_1)
                     .credentialsProvider(StaticCredentialsProvider.create(
-                            AwsBasicCredentials.create(
-                                    System.getenv("AWS_ACCESS_KEY"),
-                                    System.getenv("AWS_ACCESS_SECRET_KEY")
-                            )
+                            AwsBasicCredentials.create(accessKey, secretKey)
                     ))
                     .build();
         }
