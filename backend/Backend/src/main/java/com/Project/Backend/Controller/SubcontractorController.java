@@ -35,7 +35,7 @@ public class SubcontractorController {
     @GetMapping("/generate-PresignedUrl")
     public ResponseEntity<?> generatePresignedURL(
             @RequestParam("file_name") String fileName,
-            @RequestParam("UserName") String userName){
+            @RequestParam("user_name") String userName){
         String uuidName = java.util.UUID.randomUUID() + "_" + fileName;
 
         try{
@@ -45,6 +45,7 @@ public class SubcontractorController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
         }
     }
+
 
     @PostMapping("/create")
     public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {

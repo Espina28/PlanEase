@@ -13,6 +13,7 @@ import ChunkFileUploader from "../../Components/ChunkFileUploader.jsx";
 import '../../index.css';
 import { Box, IconButton, Modal, Stack, TextField, Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import axios from "axios";
 
 const SubcontractorDashboard = () => {
     
@@ -38,6 +39,8 @@ const SubcontractorDashboard = () => {
   const [selectedImageLenght, setSelectedImageLenght] = useState(0);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+
+  const [imageUrl, setImageUrl] = useState([]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -154,6 +157,49 @@ const SubcontractorDashboard = () => {
                     };
                 })
             );
+            console.log(resizedImages);
+            let urlImages = [];
+            for (const img of resizedImages) {
+                try {
+                    // API call to get a presigned URL
+                    const presignedResponse = await axios.get('http://localhost:8080/subcontractor/generate-PresignedUrl', {
+                        params: {
+                            file_name: img.file.name,
+                            user_name: "johndoe",
+                        },
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    console.log(presignedResponse.data);
+
+                    const presignedUrl = presignedResponse.data.presignedURL;
+                    const baseUrl = presignedUrl.split('?')[0];
+
+                    urlImages.push(baseUrl);
+
+                    // Upload the file to the presigned URL
+                    const uploadResponse = await axios.put(presignedUrl, img.file, {
+                        headers: {
+                            'Content-Type': img.file.type,
+                        },
+                    });
+
+                    console.log(`Successfully uploaded: ${img.title}`);
+
+                } catch (error) {
+                    console.error(`Error uploading ${img.title}:`, error);
+                }
+            }
+
+            if(imageUrl.length != 0){
+                axios.post('http://localhost:8080/subcontractor/upload-images', {},{
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+            }
+
 
             //call the endpoint and ask for presignedURL to POST in S3, then use the URL to save it in DB
             // axios.get()
@@ -185,6 +231,10 @@ const SubcontractorDashboard = () => {
     const handleVideoChange = (event) => {
         setSelectedVideo(event.target.files[0]);
     }
+
+    useEffect(()=>{
+        console.log(imageUrl);
+    },[imageUrl])
 
     const handleImageChange = (event) => {
 
