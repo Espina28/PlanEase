@@ -3,32 +3,44 @@ package com.Project.Backend.Service;
 import java.util.List;
 import java.util.Optional;
 
+import com.Project.Backend.Repository.SubContractorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.Project.Backend.Entity.SubcontractorEntity;
-import com.Project.Backend.Repository.SubContractorRepository;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 @Service
 public class SubcontractorService {
 
     @Autowired
-    private SubContractorRepository subcontractorRepository;
+    private SubContractorRepository subContractorRepository;
+
+    @Autowired
+    private S3Service s3Service;
 
     public SubcontractorEntity saveSubcontractor(SubcontractorEntity subcontractor) {
-        return subcontractorRepository.save(subcontractor);
+        return subContractorRepository.save(subcontractor);
     }
 
     public List<SubcontractorEntity> getAllSubcontractors() {
-        return subcontractorRepository.findAll();
+        return subContractorRepository.findAll();
     }
 
     public SubcontractorEntity getSubcontractorById(int id) {
-        Optional<SubcontractorEntity> result = subcontractorRepository.findById(id);
+        Optional<SubcontractorEntity> result = subContractorRepository.findById(id);
         return result.orElse(null);
     }
 
     public void deleteSubcontractor(int id) {
-        subcontractorRepository.deleteById(id);
+        subContractorRepository.deleteById(id);
+    }
+
+    public String generatePresignedUrl(String userName,String uuidName) {
+        try {
+            return s3Service.generatePresignedUploadUrl(userName+"/" ,uuidName);
+        }catch (SdkClientException e){
+            throw new RuntimeException("Error in creating presigned URL");
+        }
     }
 
 }

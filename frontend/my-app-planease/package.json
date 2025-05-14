@@ -23,7 +23,6 @@
     "browser-image-compression": "^2.0.2",
     "lucide-react": "^0.487.0",
     "moment": "^2.30.1",
-    "my-app-planease": "file:",
     "react": "^19.0.0",
     "react-big-calendar": "^1.18.0",
     "react-dom": "^19.0.0",
