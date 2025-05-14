@@ -13,6 +13,7 @@ import SubcontractorLogin from './Pages/subcontractor-pages/subcontractor-login'
 import AdminSubContractors from './Pages/admin-pages/admin-subcontractors'
 import AdminProtectedRoute from './Components/AdminProtectedRoute'
 import SubContractorProtectedRoute from './Components/SubContractorProtectedRoute'
+import SubcontractorCalendar from './Pages/subcontractor-pages/subcontractor-calendar'
 
 function App() {
   return (
@@ -28,14 +29,19 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/subcontractor/dashboard" element={
-            <SubContractorProtectedRoute>
+            // <SubContractorProtectedRoute>
                 <SubcontractorDashboard />
-            </SubContractorProtectedRoute>
+            // </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/transactions" element={
-            <SubContractorProtectedRoute>
+            // <SubContractorProtectedRoute>
                 <SubcontractorBookings />
-            </SubContractorProtectedRoute>
+            // </SubContractorProtectedRoute>
+            } />
+          <Route path="/subcontractor/calendar" element={
+            // <SubContractorProtectedRoute>
+                <SubcontractorCalendar />
+            // </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/login" element={<SubcontractorLogin />
         } />
