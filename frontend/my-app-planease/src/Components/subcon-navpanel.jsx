@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, CreditCard, FileText } from "lucide-react";
+import { LayoutDashboard, CreditCard, FileText , Calendar} from "lucide-react";
 
 const NavPanel = () => {
   return (
@@ -26,6 +26,18 @@ const NavPanel = () => {
         >
           <CreditCard size={20} />
           Transaction
+        </NavLink>
+
+{/* added a new section in sidepanel -ivan */}
+        <NavLink
+          to="/subcontractor/calendar"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-md transition 
+            ${isActive ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-blue-500"}`
+          }
+        >
+          <Calendar size={20} />
+          Calendar
         </NavLink>
 
         <NavLink

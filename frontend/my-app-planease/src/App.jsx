@@ -37,6 +37,11 @@ function App() {
                 <SubcontractorBookings />
             // </SubContractorProtectedRoute>
             } />
+          <Route path="/subcontractor/calendar" element={
+            // <SubContractorProtectedRoute>
+                <SubcontractorCalendar />
+            // </SubContractorProtectedRoute>
+            } />
           <Route path="/subcontractor/login" element={<SubcontractorLogin />
         } />
 
