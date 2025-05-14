@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Navbar from "../../Components/Navbar";
 import NavPanel from "../../Components/subcon-navpanel";
 import {
@@ -11,9 +11,21 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  FormControl
+  FormControl,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Chip
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import SearchIcon from "@mui/icons-material/Search";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import FilterListIcon from "@mui/icons-material/FilterList";
 
 const style = {
   position: 'absolute',
@@ -31,42 +43,154 @@ export default function SubcontractorBookings() {
   const [search, setSearch] = useState("");
   const [selectedRow, setSelectedRow] = useState(null);
   const [open, setOpen] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
+  const filterRef = useRef(null);
+  const bookingsPerPage = 10;
+  
   const handleOpen = (row) => {
     setSelectedRow(row);
     setOpen(true);
   };
+  
   const handleClose = () => setOpen(false);
-
-  const columns = [
-    { field: 'name', headerName: 'Name', flex: 1 },
-    { field: 'eventDate', headerName: 'Event Date', flex: 1 },
-    { field: 'amount', headerName: 'Amount', flex: 1 },
-    {
-      field: 'status',
-      headerName: 'Status',
-      flex: 1,
-      renderCell: (params) => {
-        const value = params.value;
-        let color = value === 'Success' ? 'green' : value === 'Cancelled' ? 'red' : 'black';
-        return <span style={{ color, fontWeight: 'bold' }}>{value}</span>;
+  
+  // Load mock data on component mount
+  useEffect(() => {
+    // Mock data based on the image
+    const mockBookings = [
+      { id: 1, name: "Nathaniel Salvoro", eventDate: "January 21 2025", amount: "₱50,000", status: "Success" },
+      { id: 2, name: "James Bonding", eventDate: "January 29 2025", amount: "₱50,000", status: "Cancelled" },
+      { id: 3, name: "Boy Abundant", eventDate: "February 5 2025", amount: "₱50,000", status: "Cancelled" },
+      { id: 4, name: "Christine Samsung", eventDate: "March 15 2025", amount: "₱50,000", status: "Success" },
+      { id: 5, name: "Jessica Sotto", eventDate: "March 24 2025", amount: "₱50,000", status: "Success" },
+      { id: 6, name: "Ed Cahugot", eventDate: "April 2 2025", amount: "₱50,000", status: "Cancelled" },
+      { id: 7, name: "Bustin Jieber", eventDate: "April 7 2025", amount: "₱50,000", status: "Pending" },
+      { id: 8, name: "Reblon James", eventDate: "April 27 2025", amount: "₱50,000", status: "Pending" },
+      { id: 9, name: "Will Smith", eventDate: "May 6 2025", amount: "₱50,000", status: "Pending" },
+      { id: 10, name: "Customer 10", eventDate: "May 15 2025", amount: "₱50,000", status: "Success" },
+      { id: 11, name: "Customer 11", eventDate: "May 22 2025", amount: "₱50,000", status: "Cancelled" },
+      { id: 12, name: "Customer 12", eventDate: "June 1 2025", amount: "₱50,000", status: "Success" },
+    ];
+    
+    setBookings(mockBookings);
+    
+    // TODO: Fetch actual booking data from the backend
+    // This should be implemented when the backend is ready
+    /*
+    fetch('/api/subcontractor/bookings', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth token if needed
+      },
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      setBookings(data);
+    })
+    .catch(error => {
+      console.error('Error fetching bookings:', error);
+    });
+    */
+  }, []);
+  
+  // Close filter menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setFilterMenuOpen(false);
       }
     }
-  ];
 
-  const row = Array.from({ length: 20 }, (_, index) => ({
-    id: index + 1,
-    name: `Customer ${index + 1}`,
-    eventDate: `March ${index + 1} 2025`,
-    amount: `₱${(50 + index) * 1000}`,
-    status: index % 2 === 0 ? "Success" : "Cancelled",
-    email: `customer${index + 1}@gmail.com`,
-    contact: `+63 900 000 ${String(index).padStart(4, "0")}`,
-    place: `Venue ${index + 1}`,
-    range: `09/${String(index + 1).padStart(2, "0")}/2021 - 09/${String(index + 1).padStart(2, "0")}/2021`,
-    note: `Note for event ${index + 1}`
-  }));
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [filterRef]);
+  
+  // Filter bookings based on search term and status filter
+  const filteredBookings = bookings.filter(booking => {
+    const matchesSearch = 
+      booking.name.toLowerCase().includes(search.toLowerCase()) ||
+      booking.eventDate.toLowerCase().includes(search.toLowerCase()) ||
+      booking.status.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesStatusFilter = statusFilter === "All" || booking.status === statusFilter;
+    
+    return matchesSearch && matchesStatusFilter;
+  });
+  
+  // Pagination logic
+  const indexOfLastBooking = currentPage * bookingsPerPage;
+  const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
+  const currentBookings = filteredBookings.slice(indexOfFirstBooking, indexOfLastBooking);
+  const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
+  
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  // Static pagination display logic
+  const getVisiblePageNumbers = () => {
+    // Always show 5 page numbers if possible
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages && startPage > 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    const visiblePages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      visiblePages.push(i);
+    }
+    
+    return visiblePages;
+  };
 
-  const filteredRows = row.filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
+  // Function to get status chip color
+  const getStatusChipColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'success':
+        return { bgcolor: '#d1f5d3', color: '#00a811' };
+      case 'cancelled':
+        return { bgcolor: '#ffd1d1', color: '#ff0000' };
+      case 'pending':
+        return { bgcolor: '#fff2d1', color: '#ffa500' };
+      default:
+        return { bgcolor: '#e0e0e0', color: '#000000' };
+    }
+  };
+  
+  // Mock data for the modal
+  const getSelectedRowDetails = (row) => {
+    return {
+      ...row,
+      email: `${row.name.split(' ')[0].toLowerCase()}@example.com`,
+      contact: `+63 900 000 ${String(row.id).padStart(4, "0")}`,
+      place: `Venue ${row.id}`,
+      range: row.eventDate,
+      note: `Note for event with ${row.name} scheduled on ${row.eventDate}.`
+    };
+  };
 
   return (
     <div className="h-screen grid grid-rows-[auto_1fr]">
@@ -76,31 +200,207 @@ export default function SubcontractorBookings() {
           <NavPanel />
         </div>
         <div className="flex flex-col direct rounded-lg gap-4 bg-gray-100 md:px-10 md:py-10">
-          <div className="flex justify-between items-center">
+          {/* Header with Search and Filter */}
+          <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl font-semibold">Booking History</h1>
-            <TextField
-              label="Search"
-              size="small"
-              variant="outlined"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+              <div ref={filterRef} className="relative">
+                <Button 
+                  variant="outlined" 
+                  endIcon={<FilterListIcon />}
+                  size="small"
+                  sx={{ borderRadius: '4px' }}
+                  onClick={() => setFilterMenuOpen(!filterMenuOpen)}
+                >
+                  {statusFilter === "All" ? "Filter" : statusFilter}
+                </Button>
+                {filterMenuOpen && (
+                  <div className="absolute z-10 mt-1 bg-white rounded-md shadow-lg py-1 w-36 border border-gray-200">
+                    <button 
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${statusFilter === "All" ? "font-bold text-blue-600" : ""}`}
+                      onClick={() => {
+                        setStatusFilter("All");
+                        setFilterMenuOpen(false);
+                      }}
+                    >
+                      All
+                    </button>
+                    <button 
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${statusFilter === "Success" ? "font-bold text-blue-600" : ""}`}
+                      onClick={() => {
+                        setStatusFilter("Success");
+                        setFilterMenuOpen(false);
+                      }}
+                    >
+                      Success
+                    </button>
+                    <button 
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${statusFilter === "Cancelled" ? "font-bold text-blue-600" : ""}`}
+                      onClick={() => {
+                        setStatusFilter("Cancelled");
+                        setFilterMenuOpen(false);
+                      }}
+                    >
+                      Cancelled
+                    </button>
+                    <button 
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${statusFilter === "Pending" ? "font-bold text-blue-600" : ""}`}
+                      onClick={() => {
+                        setStatusFilter("Pending");
+                        setFilterMenuOpen(false);
+                      }}
+                    >
+                      Pending
+                    </button>
+                  </div>
+                )}
+              </div>
+              <Paper
+                component="form"
+                sx={{ display: 'flex', alignItems: 'center', width: 250, borderRadius: '4px', pl: 1 }}
+              >
+                <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
+                <input
+                  className="flex-1 border-none outline-none py-2"
+                  placeholder="Search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </Paper>
+            </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <div className="min-w-[700px]">
-              <DataGrid
-                columns={columns}
-                rows={filteredRows}
-                pagination
-                pageSizeOptions={[5, 10, 25]}
-                initialState={{
-                  pagination: {
-                    paginationModel: { pageSize: 10, page: 0 },
-                  },
-                }}
-                onRowClick={(params) => handleOpen(params.row)}
-              />
+          {/* Booking Table */}
+          <TableContainer component={Paper} sx={{ boxShadow: 1, borderRadius: '8px' }}>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead sx={{ backgroundColor: '#f9fafb' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Event Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {currentBookings.map((booking) => (
+                  <TableRow 
+                    key={booking.id} 
+                    hover 
+                    onClick={() => handleOpen(getSelectedRowDetails(booking))}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <TableCell>{booking.name}</TableCell>
+                    <TableCell>{booking.eventDate}</TableCell>
+                    <TableCell>{booking.amount}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={booking.status} 
+                        size="small"
+                        sx={{ 
+                          backgroundColor: getStatusChipColor(booking.status).bgcolor,
+                          color: getStatusChipColor(booking.status).color,
+                          fontWeight: 500,
+                          borderRadius: '16px',
+                          minWidth: '80px'
+                        }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+          {/* Pagination */}
+          <div className="flex justify-center items-center mt-4">
+            <div className="flex items-center justify-between w-72">
+              {/* Left arrow - always visible */}
+              <IconButton 
+                disabled={currentPage === 1} 
+                onClick={handlePrevPage}
+                size="small"
+                sx={{ visibility: currentPage === 1 ? 'hidden' : 'visible', width: '30px', height: '30px' }}
+              >
+                <ArrowBackIcon fontSize="small" />
+              </IconButton>
+              
+              <div className="flex items-center justify-center flex-1">
+                {/* First page button if not in first few pages */}
+                {currentPage > 3 && (
+                  <>
+                    <Button 
+                      variant={currentPage === 1 ? "contained" : "text"}
+                      size="small"
+                      onClick={() => setCurrentPage(1)}
+                      sx={{ 
+                        minWidth: '30px', 
+                        height: '30px',
+                        borderRadius: '4px',
+                        backgroundColor: currentPage === 1 ? '#1976d2' : 'transparent',
+                        color: currentPage === 1 ? 'white' : 'inherit'
+                      }}
+                    >
+                      1
+                    </Button>
+                    {currentPage > 4 && (
+                      <span className="text-gray-500 mx-1">...</span>
+                    )}
+                  </>
+                )}
+                
+                {/* Visible page numbers */}
+                {getVisiblePageNumbers().map(number => (
+                  <Button 
+                    key={number}
+                    variant={currentPage === number ? "contained" : "text"}
+                    size="small"
+                    onClick={() => setCurrentPage(number)}
+                    sx={{ 
+                      minWidth: '30px', 
+                      height: '30px',
+                      borderRadius: '4px',
+                      backgroundColor: currentPage === number ? '#1976d2' : 'transparent',
+                      color: currentPage === number ? 'white' : 'inherit',
+                      mx: 0.5
+                    }}
+                  >
+                    {number}
+                  </Button>
+                ))}
+                
+                {/* Last page button if not in last few pages */}
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <>
+                    {currentPage < totalPages - 3 && (
+                      <span className="text-gray-500 mx-1">...</span>
+                    )}
+                    <Button 
+                      variant={currentPage === totalPages ? "contained" : "text"}
+                      size="small"
+                      onClick={() => setCurrentPage(totalPages)}
+                      sx={{ 
+                        minWidth: '30px', 
+                        height: '30px',
+                        borderRadius: '4px',
+                        backgroundColor: currentPage === totalPages ? '#1976d2' : 'transparent',
+                        color: currentPage === totalPages ? 'white' : 'inherit'
+                      }}
+                    >
+                      {totalPages}
+                    </Button>
+                  </>
+                )}
+              </div>
+              
+              {/* Right arrow - always visible */}
+              <IconButton 
+                disabled={currentPage === totalPages} 
+                onClick={handleNextPage}
+                size="small"
+                sx={{ visibility: currentPage === totalPages ? 'hidden' : 'visible', width: '30px', height: '30px' }}
+              >
+                <ArrowForwardIcon fontSize="small" />
+              </IconButton>
             </div>
           </div>
         </div>
