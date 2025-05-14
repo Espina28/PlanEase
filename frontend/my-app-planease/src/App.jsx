@@ -13,6 +13,9 @@ import SubcontractorLogin from './Pages/subcontractor-pages/subcontractor-login'
 import AdminSubContractors from './Pages/admin-pages/admin-subcontractors'
 import AdminProtectedRoute from './Components/AdminProtectedRoute'
 import SubContractorProtectedRoute from './Components/SubContractorProtectedRoute'
+import EventPage from './Pages/event-dashboard'
+import EventDetails from './Pages/event-details';
+
 
 function App() {
   return (
@@ -57,6 +60,26 @@ function App() {
               </>
             }
           />
+          <Route path="/event" element={
+              <>
+                <ProtectedRoute>
+                  <Navbar />
+                    <EventPage />
+                  <Footer />
+                </ProtectedRoute>
+              </>
+            }
+          />
+          <Route path="/event/:id" element={
+  <>
+    <ProtectedRoute>
+      <Navbar />
+        <EventDetails />
+      <Footer />
+    </ProtectedRoute>
+  </>
+} />
+
         </Routes>
     </BrowserRouter>
   </AuthProvider>
@@ -64,3 +87,4 @@ function App() {
 }
 
 export default App
+""
