@@ -7,7 +7,7 @@ import java.util.List;
 @Entity
 @Table(name = "Subcontractors")
 public class SubcontractorEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int subcontractor_Id;
@@ -74,5 +74,5 @@ public class SubcontractorEntity {
         this.service = service;
     }
 
-    
+
 }

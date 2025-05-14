@@ -46,7 +46,7 @@ public class UserService {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
- 
+
     public String getUserProfileImage(String email) {
         UserEntity user = userRepository.findByEmail(email);
         return user.getProfilePicture();

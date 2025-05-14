@@ -25,8 +25,8 @@ public class S3Service {
                     .region(Region.AP_SOUTHEAST_1)
                     .credentialsProvider(StaticCredentialsProvider.create(
                             AwsBasicCredentials.create(
-                                    "secert1",
-                                   "secert2"
+                                    "secret1",
+                                    "secret2"
                             )
                     ))
                     .build();
