@@ -19,7 +19,7 @@ public class SubcontractorEntity {
     private UserEntity user;
 
     @OneToOne
-    @JsonManagedReference(value = "subcontractor-offering-service")
+    @JsonManagedReference(value = "subcontractor-service-offering")
     private ServiceOfferingEntity serviceOfferingEntity;
 
     @OneToMany(mappedBy = "subcontractorEntity", fetch = FetchType.LAZY)

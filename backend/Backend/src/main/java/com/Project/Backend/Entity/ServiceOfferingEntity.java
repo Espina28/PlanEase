@@ -1,4 +1,5 @@
 package com.Project.Backend.Entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -18,11 +19,11 @@ public class ServiceOfferingEntity {
 
     @OneToOne
     @JoinColumn(name = "subcontractor_id")
-    @JsonIgnoreProperties("subcontractor-offering-service")
+    @JsonBackReference("subcontractor-service-offering")
     private SubcontractorEntity subcontractorEntity;
 
-    @OneToMany(mappedBy = "offeringServiceEntity", fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "offering-service-showcase")
+    @OneToMany(mappedBy = "serviceOfferingEntity", fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "service-offering-showcase")
     private List<ShowcaseEntity> showcaseEntity;
 
 

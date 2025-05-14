@@ -17,7 +17,7 @@ public class ShowcaseMediaEntity {
 
     @ManyToOne
     @JoinColumn(name = "showcase_id")
-    @JsonBackReference(value = "showcase-files")
+    @JsonBackReference(value = "showcaseMedia-entity")
     private ShowcaseEntity showcaseEntity;
 
 }
