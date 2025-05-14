@@ -1,12 +1,9 @@
 package com.Project.Backend.Entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 
-
+import java.util.List;
 
 
 @Entity
@@ -17,43 +14,61 @@ public class EventEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-
-    private String Event_name;
-    private String Event_description;
-    private boolean Event_isAvailable;
-    private double Event_price;
+    @OneToMany(mappedBy = "eventEntity")
+    @JsonIgnoreProperties("event-transaction")
+    private List<TransactionsEntity> transactionsEntity;
 
 
-    public void setName(String Event_name) {
-        this.Event_name = Event_name;
-    }
-    public String getName() {
-        return Event_name;
+    private String event_name;
+    private String event_description;
+    private boolean event_isAvailable;
+    private double event_price;
+
+    public int getId() {
+        return id;
     }
 
-
-    public void setDescription(String Event_description) {
-        this.Event_description = Event_description;
-    }
-    public String getDescription() {
-        return Event_description;
-    }
-    
-    
-    public void setAvailable(boolean Event_isAvailable) {
-        this.Event_isAvailable = Event_isAvailable;
-    }
-    public boolean getsAvailable(){
-        return Event_isAvailable;
-    }
-  
-    
-    public void setPrice(double Event_price) {
-        this.Event_price = Event_price;
-    }
-    public double getPrice() {
-        return Event_price;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    
+    public List<TransactionsEntity> getTransactionsEntity() {
+        return transactionsEntity;
+    }
+
+    public void setTransactionsEntity(List<TransactionsEntity> transactionsEntity) {
+        this.transactionsEntity = transactionsEntity;
+    }
+
+    public String getEvent_name() {
+        return event_name;
+    }
+
+    public void setEvent_name(String event_name) {
+        this.event_name = event_name;
+    }
+
+    public String getEvent_description() {
+        return event_description;
+    }
+
+    public void setEvent_description(String event_description) {
+        this.event_description = event_description;
+    }
+
+    public boolean isEvent_isAvailable() {
+        return event_isAvailable;
+    }
+
+    public void setEvent_isAvailable(boolean event_isAvailable) {
+        this.event_isAvailable = event_isAvailable;
+    }
+
+    public double getEvent_price() {
+        return event_price;
+    }
+
+    public void setEvent_price(double event_price) {
+        this.event_price = event_price;
+    }
 }
