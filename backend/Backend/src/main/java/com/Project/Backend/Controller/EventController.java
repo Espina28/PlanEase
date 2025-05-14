@@ -30,16 +30,14 @@ public class EventController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EventEntity> readById(@PathVariable int id) {
-        return ResponseEntity.ok(eventService.readById(id));
+    public ResponseEntity<EventEntity> findById(@PathVariable int id) {
+        return ResponseEntity.ok(eventService.findById(id));
     }
 
     @GetMapping
     public ResponseEntity<List<EventEntity>> readAll() {
         return ResponseEntity.ok(eventService.readAll());
     }
-
-    
 
     @PutMapping
     public ResponseEntity<EventEntity> update(@RequestBody EventEntity event) {

@@ -20,7 +20,7 @@ public class EventService {
         return eventRepository.save(event);
     }
 
-    public EventEntity readById(int id) {
+    public EventEntity findById(int id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
     }
