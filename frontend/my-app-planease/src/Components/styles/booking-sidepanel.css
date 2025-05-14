@@ -1,0 +1,61 @@
+/* Side Panel Styles */
+.side-panel {
+  width: 25%;
+  min-width: 200px;
+  padding-right: 20px;
+  border-right: 1px solid #eee;
+}
+
+.manage-booking-section,
+.payment-method-section {
+  margin-bottom: 30px;
+}
+
+.side-panel h3 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.side-panel ul {
+  list-style: none;
+  padding: 0;
+}
+
+.side-panel li {
+  padding: 10px 0;
+  color: #666;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.side-panel li a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: color 0.3s;
+}
+
+.side-panel li a:hover {
+  color: #4A63E7;
+}
+
+.side-panel li.active {
+  color: #4A63E7;
+  font-weight: 500;
+}
+
+.side-panel li.active a {
+  color: #4A63E7;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .side-panel {
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+  }
+}
