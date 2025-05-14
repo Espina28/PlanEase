@@ -3,14 +3,19 @@ package com.Project.Backend.Service;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.io.File;
+import java.time.Duration;
 
 @Component
 public class S3Service {
@@ -18,6 +23,8 @@ public class S3Service {
     private final String BUCKET_NAME = "academics-bucket"; // Change this
     private final String BUCKET_KEY = "System-Integ/";
     private S3Client s3;
+    private final S3Presigner presigner;
+
 
     private S3Service() {
         String accessKey = System.getenv("AWS_ACCESS_KEY");
@@ -35,6 +42,7 @@ public class S3Service {
                     ))
                     .build();
         }
+        this.presigner = S3Presigner.create();
     }
 
     public String upload(File file, String folderPath, String fileName) {
@@ -96,4 +104,30 @@ public class S3Service {
             return "application/octet-stream"; // Default if unknown
         }
     }
+
+    public String generatePresignedUploadUrl(String folderPath, String uuidName) {
+
+        String s3Key = BUCKET_KEY + folderPath + uuidName;
+        try {
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(s3Key)
+                    .contentType(getContentType(uuidName))
+                    .build();
+
+            // Generate a pre-signed URL for uploading
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .putObjectRequest(putObjectRequest)
+                    .signatureDuration(Duration.ofMinutes(15)) // URL expires in 15 minutes
+                    .build();
+
+            // Generate the pre-signed URL
+            PresignedPutObjectRequest presignedRequest = presigner.presignPutObject(presignRequest);
+            return presignedRequest.url().toString(); // Return the pre-signed URL
+        } catch (SdkClientException e) {
+            throw new RuntimeException("Error generating pre-signed URL: " + e.getMessage(), e);
+        }
+    }
+
 }
