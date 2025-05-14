@@ -9,6 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import NavPanel from "../../Components/subcon-navpanel";
+import ChunkFileUploader from "../../Components/ChunkFileUploader.jsx";
 import '../../index.css';
 import { Box, IconButton, Modal, Stack, TextField, Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -58,7 +59,7 @@ const SubcontractorDashboard = () => {
       console.log("selected image",selectedImage)
   },[selectedImage,itemData])
 
-    const resizeImage = (file, maxWidth = 1920, maxHeight = 1080) => {
+    const resizeImage = (file, maxWidth = 1920, maxHeight = 1080, sizeLimitMB = 10, quality = 0.8) => {
         return new Promise((resolve) => {
             const img = new Image();
             const canvas = document.createElement('canvas');
@@ -69,26 +70,30 @@ const SubcontractorDashboard = () => {
                     const originalWidth = img.width;
                     const originalHeight = img.height;
                     const originalSizeKB = file.size / 1024;
+                    const originalSizeMB = originalSizeKB / 1024; // Convert size to MB
 
-                    // Check if resizing is needed
-                    if (originalWidth <= maxWidth && originalHeight <= maxHeight) {
+                    // Check if compression is needed based on size
+                    if (originalSizeMB <= sizeLimitMB) {
+                        // If file is smaller than or equal to the size limit, no compression needed
                         resolve({
                             resizedFile: file,
                             original: {
                                 width: originalWidth,
                                 height: originalHeight,
                                 sizeKB: originalSizeKB,
+                                sizeMB: originalSizeMB,
                             },
                             resized: {
                                 width: originalWidth,
                                 height: originalHeight,
                                 sizeKB: originalSizeKB,
+                                sizeMB: originalSizeMB,
                             },
                         });
                         return;
                     }
 
-                    // Calculate scaled dimensions
+                    // Calculate scaled dimensions (only if resizing is needed)
                     const ratio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight);
                     const newWidth = Math.round(originalWidth * ratio);
                     const newHeight = Math.round(originalHeight * ratio);
@@ -99,9 +104,11 @@ const SubcontractorDashboard = () => {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
+                    // Compress the image with quality control only if it's larger than the size limit
                     canvas.toBlob((blob) => {
                         const resizedFile = new File([blob], file.name, { type: file.type });
                         const resizedSizeKB = resizedFile.size / 1024;
+                        const resizedSizeMB = resizedSizeKB / 1024;
 
                         resolve({
                             resizedFile,
@@ -109,14 +116,16 @@ const SubcontractorDashboard = () => {
                                 width: originalWidth,
                                 height: originalHeight,
                                 sizeKB: originalSizeKB,
+                                sizeMB: originalSizeMB,
                             },
                             resized: {
                                 width: newWidth,
                                 height: newHeight,
                                 sizeKB: resizedSizeKB,
+                                sizeMB: resizedSizeMB,
                             },
                         });
-                    }, file.type);
+                    }, file.type, quality); // Apply compression if the file is large
                 };
 
                 img.src = e.target.result;
@@ -126,50 +135,56 @@ const SubcontractorDashboard = () => {
         });
     };
 
-
     const handleSubmit = async () => {
-        console.log("submitting file");
+        if (!selectVideo) {
+            console.log("submitting image");
+            const resizedImages = await Promise.all(
+                selectedImage.map(async (img) => {
+                    const {resizedFile, original, resized} = await resizeImage(img.file);
 
-        const resizedImages = await Promise.all(
-            selectedImage.map(async (img) => {
-                const { resizedFile, original, resized } = await resizeImage(img.file);
+                    console.log(`Image: ${img.title}`);
+                    console.log(`Original: ${original.width}x${original.height}, ${original.sizeKB.toFixed(2)} KB`);
+                    console.log(`Resized:  ${resized.width}x${resized.height}, ${resized.sizeKB.toFixed(2)} KB`);
 
-                console.log(`Image: ${img.title}`);
-                console.log(`Original: ${original.width}x${original.height}, ${original.sizeKB.toFixed(2)} KB`);
-                console.log(`Resized:  ${resized.width}x${resized.height}, ${resized.sizeKB.toFixed(2)} KB`);
+                    return {
+                        image: URL.createObjectURL(resizedFile),
+                        title: resizedFile.name,
+                        file: resizedFile,
+                        meta: {original, resized}, // optional: keep for later display or debug
+                    };
+                })
+            );
 
-                return {
-                    image: URL.createObjectURL(resizedFile),
-                    title: resizedFile.name,
-                    file: resizedFile,
-                    meta: { original, resized }, // optional: keep for later display or debug
-                };
-            })
-        );
+            //call the endpoint and ask for presignedURL to POST in S3, then use the URL to save it in DB
+            // axios.get()
+            //     .then()
+            //     .catch()
 
-        const newItem = {
-            title,
-            description,
-            selectedImage: resizedImages.map((img) => ({
-                image: img.image,
-                title: img.title,
-                // meta: img.meta  <-- optional for UI feedback
-            })),
-        };
+            // const newItem = {
+            //     title,
+            //     description,
+            //     selectedImage: resizedImages.map((img) => ({
+            //         image: img.image,
+            //         title: img.title,
+            //         // meta: img.meta  <-- optional for UI feedback
+            //     })),
+            // };
+        }else{
+            console.log("submitting video");
 
-        setItemData((prev) => [...prev, newItem]);
-        setTitle('');
-        setDescription('');
-        setSelectedImage([]);
+            //call the chunkUploader then return the video url then save to db
+        }
+
+        // setItemData((prev) => [...prev, newItem]);
+        // setTitle('');
+        // setDescription('');
+        // setSelectedImage([]);
         handleClose();
     };
 
     const handleVideoChange = (event) => {
-        console.log("submitting video");
         setSelectedVideo(event.target.files[0]);
     }
-
-
 
     const handleImageChange = (event) => {
 
@@ -299,117 +314,115 @@ const SubcontractorDashboard = () => {
             <Divider />
             {/* Showcase Items */}
             {itemData.map((item, index) => (
-  <div key={index} className="py-6">
-    {/* Title + Ellipsis */}
-    <Box display="flex" justifyContent="space-between" alignItems="start">
-      <Typography
-        variant="h6"
-        fontWeight="bold"
-        className="font-poppins text-lg text-slate-800"
-      >
-        {item.title}
-      </Typography>
-      <Box sx={{ position: 'relative' }}>
-        <IconButton
-          size="small"
-          onClick={() => {
-            const menu = document.getElementById(`menu-${index}`);
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-          }}
-        >
-          <Typography sx={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>
-            &#8942;
-          </Typography>
-        </IconButton>
-        <Box
-          id={`menu-${index}`}
-          sx={{
-            display: 'none',
-            position: 'absolute',
-            right: 0,
-            zIndex: 10,
-            mt: 1,
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: 1,
-            boxShadow: 3,
-            minWidth: 120,
-          }}
-        >
-          <Button
-            fullWidth
-            sx={{ justifyContent: 'flex-start', color: 'black' }}
-            startIcon={<EditIcon />}
-            onClick={() => alert(`Edit: ${item.title}`)}
-          >
-            Edit
-          </Button>
-          <Button
-            fullWidth
-            sx={{ justifyContent: 'flex-start', color: 'black' }}
-            startIcon={<CloseIcon />}
-            onClick={() =>
-              setItemData((prev) => prev.filter((_, i) => i !== index))
-            }
-          >
-            Delete
-          </Button>
-        </Box>
-      </Box>
-    </Box>
-
-    {/* Description */}
-    <Typography className="font-poppins text-gray-700 mt-2 mb-3 whitespace-pre-line">
-      {item.description}
-    </Typography>
-
-    {/* Image Rendering Logic */}
-    {item.selectedImage.length > 0 && (
-      <Box>
-        <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={1}>
-          {item.selectedImage.slice(0, 3).map((img, imgIndex) => (
-            <Box
-              key={imgIndex}
-              position="relative"
-              onClick={() =>
-                setActiveGallery({ images: item.selectedImage, index: imgIndex })
-              }
-              sx={{ cursor: 'pointer' }}
-            >
-              <img
-                src={img.image}
-                alt={img.title}
-                loading="lazy"
-                className="rounded-lg w-full h-[150px] object-cover"
-              />
-              {imgIndex === 2 && item.selectedImage.length > 3 && (
-                <Box
-                  position="absolute"
-                  top={0}
-                  left={0}
-                  right={0}
-                  bottom={0}
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  bgcolor="rgba(0, 0, 0, 0.5)"
-                  borderRadius="8px"
-                >
-                  <Typography variant="h6" color="white" fontWeight="bold">
-                    +{item.selectedImage.length - 3} more
+              <div key={index} className="py-6">
+                {/* Title + Ellipsis */}
+                <Box display="flex" justifyContent="space-between" alignItems="start">
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    className="font-poppins text-lg text-slate-800"
+                  >
+                    {item.title}
                   </Typography>
+                  <Box sx={{ position: 'relative' }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        const menu = document.getElementById(`menu-${index}`);
+                        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                      }}
+                    >
+                      <Typography sx={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>
+                        &#8942;
+                      </Typography>
+                    </IconButton>
+                    <Box
+                      id={`menu-${index}`}
+                      sx={{
+                        display: 'none',
+                        position: 'absolute',
+                        right: 0,
+                        zIndex: 10,
+                        mt: 1,
+                        backgroundColor: 'white',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 1,
+                        boxShadow: 3,
+                        minWidth: 120,
+                      }}
+                    >
+                      <Button
+                        fullWidth
+                        sx={{ justifyContent: 'flex-start', color: 'black' }}
+                        startIcon={<EditIcon />}
+                        onClick={() => alert(`Edit: ${item.title}`)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        fullWidth
+                        sx={{ justifyContent: 'flex-start', color: 'black' }}
+                        startIcon={<CloseIcon />}
+                        onClick={() =>
+                          setItemData((prev) => prev.filter((_, i) => i !== index))
+                        }
+                      >
+                        Delete
+                      </Button>
+                    </Box>
+                  </Box>
                 </Box>
-              )}
-            </Box>
-          ))}
-        </Box>
-      </Box>
-    )}
 
+                {/* Description */}
+                <Typography className="font-poppins text-gray-700 mt-2 mb-3 whitespace-pre-line">
+                  {item.description}
+                </Typography>
 
-    {/* Divider after each post */}
-    <Divider sx={{ mt: 4 }} />
-  </div>
+                {/* Image Rendering Logic */}
+                {item.selectedImage.length > 0 && (
+                  <Box>
+                    <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={1}>
+                      {item.selectedImage.slice(0, 3).map((img, imgIndex) => (
+                        <Box
+                          key={imgIndex}
+                          position="relative"
+                          onClick={() =>
+                            setActiveGallery({ images: item.selectedImage, index: imgIndex })
+                          }
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <img
+                            src={img.image}
+                            alt={img.title}
+                            loading="lazy"
+                            className="rounded-lg w-full h-[150px] object-cover"
+                          />
+                          {imgIndex === 2 && item.selectedImage.length > 3 && (
+                            <Box
+                              position="absolute"
+                              top={0}
+                              left={0}
+                              right={0}
+                              bottom={0}
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="center"
+                              bgcolor="rgba(0, 0, 0, 0.5)"
+                              borderRadius="8px"
+                            >
+                              <Typography variant="h6" color="white" fontWeight="bold">
+                                +{item.selectedImage.length - 3} more
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+                {/* Divider after each post */}
+                <Divider sx={{ mt: 4 }} />
+              </div>
 ))}
 
           </div>
@@ -530,13 +543,7 @@ const SubcontractorDashboard = () => {
                             type="file"
                             multiple
                             onChange={(event) => {
-                                const file = event.target.files[0];
-                                if (file && file.type.startsWith("video/")) {
-                                    setSelectedVideo(file);
-                                } else {
-                                    handleImageChange(event);
-                                }
-                                event.target.value = null;
+                                handleImageChange(event);
                             }}
                             style={{display: 'none'}}
                             id="upload-image-button"
@@ -593,12 +600,12 @@ const SubcontractorDashboard = () => {
               </ImageList>
             )}
 
-            {/* Actions */}
+                {/* Actions */}
                 <Box mt={2} display="flex" justifyContent="flex-end" gap={2}>
                     <Button
                         variant="contained"
                         component="label" // Added component label for proper usage
-                        disabled={selectedImage.length != 0}
+                        disabled={selectedImage.length !== 0}
                     >
                         Add Video
                         <input
@@ -618,7 +625,7 @@ const SubcontractorDashboard = () => {
                     <Button
                         variant="contained"
                         onClick={handleSubmit}
-                        disabled={!title || !description && selectedImage.length === 0 || selectVideo == null}
+                        disabled={!title || !description || (selectedImageLenght === 0 && selectVideo == null)}
                     >
                         Add
                     </Button>
