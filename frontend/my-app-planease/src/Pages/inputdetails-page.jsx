@@ -1,22 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './styles/inputdetails-page.css';
 import Navbar from '../Components/Navbar';
 import BookingSidePanel from '../Components/Booking-sidepanel';
 import Footer from '../Components/Footer';
 import DatePickerWithRestriction from '../Components/DatePickerWithRestriction';
+import { getPersonalDetails, savePersonalDetails } from '../utils/bookingStorage';
 
 const InputDetailsPage = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    contact: '',
-    location: '',
-    eventDate: '',
-    note: ''
-  });
+  
+  // Initialize form data from bookingStorage utility
+  const [formData, setFormData] = useState(getPersonalDetails);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,9 +21,15 @@ const InputDetailsPage = () => {
     }));
   };
 
+  // Save form data whenever it changes
+  useEffect(() => {
+    savePersonalDetails(formData);
+  }, [formData]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add logic to save form data
+    // Save form data
+    savePersonalDetails(formData);
     console.log('Form data submitted:', formData);
     // Navigate to services page
     navigate('/book/services');

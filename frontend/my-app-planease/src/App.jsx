@@ -16,6 +16,8 @@ import AdminProtectedRoute from './Components/AdminProtectedRoute'
 import SubContractorProtectedRoute from './Components/SubContractorProtectedRoute'
 import InputDetailsPage from './Pages/inputdetails-page'
 import SelectServicePage from './Pages/selectservice-page'
+import PreviewBookingPage from './Pages/previewbooking-page'
+import PaymentProofPage from './Pages/paymentproof-page'
 
 
 function App() {
@@ -33,6 +35,8 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/book/inputdetails" element={<InputDetailsPage />} />
           <Route path="/book/services" element={<SelectServicePage />} />
+          <Route path="/book/preview" element={<PreviewBookingPage />} />
+          <Route path="/book/payment" element={<PaymentProofPage />} />
           <Route path="/subcontractor/dashboard" element={
             // <SubContractorProtectedRoute>
                 <SubcontractorDashboard />  

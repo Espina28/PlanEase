@@ -80,7 +80,10 @@ const DatePickerWithRestriction = ({ onChange, value, name }) => {
     }
   };
 
-  const handleDayClick = (day) => {
+  const handleDayClick = (e, day) => {
+    e.preventDefault(); // Prevent form submission
+    e.stopPropagation(); // Stop event propagation
+    
     if (!day || day.isDisabled) return;
     
     const newDate = day.date.format('YYYY-MM-DD');
@@ -95,15 +98,21 @@ const DatePickerWithRestriction = ({ onChange, value, name }) => {
     });
   };
 
-  const handlePrevMonth = () => {
+  const handlePrevMonth = (e) => {
+    e.preventDefault(); // Prevent form submission
+    e.stopPropagation(); // Stop event propagation
     setCurrentMonth(moment(currentMonth).subtract(1, 'month'));
   };
 
-  const handleNextMonth = () => {
+  const handleNextMonth = (e) => {
+    e.preventDefault(); // Prevent form submission
+    e.stopPropagation(); // Stop event propagation
     setCurrentMonth(moment(currentMonth).add(1, 'month'));
   };
 
-  const toggleCalendar = () => {
+  const toggleCalendar = (e) => {
+    e.preventDefault(); // Prevent form submission
+    e.stopPropagation(); // Stop event propagation
     setCalendarOpen(!calendarOpen);
   };
 
@@ -139,9 +148,9 @@ const DatePickerWithRestriction = ({ onChange, value, name }) => {
       {calendarOpen && (
         <div className="calendar-dropdown">
           <div className="calendar-header">
-            <button onClick={handlePrevMonth}>&lt;</button>
+            <button type="button" onClick={handlePrevMonth}>&lt;</button>
             <span>{currentMonth.format('MMMM YYYY')}</span>
-            <button onClick={handleNextMonth}>&gt;</button>
+            <button type="button" onClick={handleNextMonth}>&gt;</button>
           </div>
           
           <div className="calendar-day-names">
@@ -159,7 +168,7 @@ const DatePickerWithRestriction = ({ onChange, value, name }) => {
                 } ${day && day.isToday ? 'today' : ''} ${
                   day && moment(selectedDate).isSame(day.date, 'day') ? 'selected-day' : ''
                 }`}
-                onClick={() => handleDayClick(day)}
+                onClick={(e) => handleDayClick(e, day)}
               >
                 {day && day.day}
                 {day && day.isDisabled && (

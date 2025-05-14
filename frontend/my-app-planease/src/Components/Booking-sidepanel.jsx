@@ -12,7 +12,7 @@ const BookingSidePanel = ({ activeStep }) => {
 
   // Define payment steps
   const paymentSteps = [
-    { id: 'upload-payment', label: 'Upload Payment Proof', path: '/book/payment-proof' }
+    { id: 'upload-payment', label: 'Upload Payment Proof', path: '/book/payment' }
   ];
 
   return (

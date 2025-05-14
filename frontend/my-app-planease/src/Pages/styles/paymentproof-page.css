@@ -1,0 +1,270 @@
+/* Main Container Styles */
+.booking-container {
+  font-family: 'Poppins', Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Breadcrumb Styles */
+.breadcrumb {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 25px;
+  color: #888;
+  font-size: 14px;
+}
+
+.breadcrumb a {
+  color: #888;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: #4A63E7;
+}
+
+/* Booking Content Layout */
+.booking-content {
+  display: flex;
+  gap: 30px;
+}
+
+/* Main Form Content Styles */
+.main-form-content {
+  flex: 1;
+}
+
+/* Step Indicator Styles */
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #E8EAED;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.step.active .step-number {
+  background-color: #4A63E7;
+  color: white;
+}
+
+.step-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.step.active .step-label {
+  color: #4A63E7;
+  font-weight: 500;
+}
+
+.step-line {
+  flex-grow: 1;
+  height: 3px;
+  background-color: #E8EAED;
+  margin: 0 10px;
+  margin-bottom: 25px;
+}
+
+/* Payment Content */
+.payment-content {
+  width: 100%;
+}
+
+.section-title {
+  font-size: 18px;
+  color: #FF9800;
+  margin-bottom: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.info-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #E3F2FD;
+  color: #2196F3;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  margin-left: 8px;
+  cursor: help;
+}
+
+/* Payment QR Section */
+.payment-qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.payment-qr {
+  max-width: 250px;
+  max-height: 250px;
+  margin-bottom: 20px;
+}
+
+.payment-amount {
+  font-size: 16px;
+  color: #333;
+}
+
+.payment-amount strong {
+  color: #FF5252;
+  font-size: 18px;
+  margin-left: 5px;
+}
+
+/* Upload Area */
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  background-color: #f9f9f9;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  border-color: #4A63E7;
+  background-color: #f5f5f5;
+}
+
+.upload-area.has-file {
+  border-style: solid;
+  border-color: #4caf50;
+}
+
+.upload-placeholder {
+  color: #666;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #4A63E7;
+}
+
+.preview-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.file-preview {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.file-name {
+  font-size: 14px;
+  color: #333;
+  margin-top: 5px;
+}
+
+/* Navigation Buttons */
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.previous-button,
+.submit-button {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.previous-button {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.submit-button {
+  background-color: #2A3547;
+  color: white;
+}
+
+.previous-button:hover:not(:disabled) {
+  background-color: #e5e5e5;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #212b3b;
+}
+
+.previous-button:disabled,
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-button:disabled {
+  background-color: #4caf50;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .booking-content {
+    flex-direction: column;
+  }
+  
+  .upload-area {
+    padding: 20px;
+  }
+  
+  .navigation-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .previous-button,
+  .submit-button {
+    width: 100%;
+  }
+}

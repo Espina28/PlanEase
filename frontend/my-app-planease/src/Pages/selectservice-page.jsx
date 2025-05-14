@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './styles/selectservice-page.css';
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import BookingSidePanel from '../Components/Booking-sidepanel';
+import { getActiveTab, getSelectedServices, getSelectedPackage, saveServicesData } from '../utils/bookingStorage';
 
 const SelectServicePage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('custom'); // 'custom' or 'package'
-  const [selectedServices, setSelectedServices] = useState({
-    catering: false,
-    hosting: false,
-    photographer: false,
-    band: false
-  });
+  // Initialize from bookingStorage
+  const [activeTab, setActiveTab] = useState(getActiveTab);
+  const [selectedServices, setSelectedServices] = useState(getSelectedServices);
   const [expandedPackage, setExpandedPackage] = useState(null);
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(getSelectedPackage);
+  
+  // Save data when it changes
+  useEffect(() => {
+    saveServicesData({
+      activeTab,
+      selectedServices,
+      selectedPackage
+    });
+  }, [activeTab, selectedServices, selectedPackage]);
 
   // Services list for custom option
   const services = [
@@ -75,12 +81,32 @@ const SelectServicePage = () => {
   // Handle tab change
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    
+    // If switching to package tab, clear selected services
+    if (tab === 'package') {
+      setSelectedServices({
+        catering: false,
+        hosting: false,
+        photographer: false,
+        band: false
+      });
+    } 
+    // If switching to custom tab, clear selected package
+    else if (tab === 'custom') {
+      setSelectedPackage(null);
+    }
   };
 
   // Handle next button click
   const handleNext = () => {
-    // Save the selected services/package data (implement with state management or context if needed)
-    // Then navigate to the preview page
+    // Save booking services data
+    saveServicesData({
+      activeTab,
+      selectedServices,
+      selectedPackage
+    });
+    
+    // Navigate to preview page
     navigate('/book/preview');
   };
 
