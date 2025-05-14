@@ -12,9 +12,9 @@ public class ShowcaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int Serviceid;
-    private String ServiceShowcase_name;
-    private String ServiceShowcase_description;
+    private int showcase_id;
+    private String showcase_name;
+    private String showcase_description;
 
 
     @ManyToOne
