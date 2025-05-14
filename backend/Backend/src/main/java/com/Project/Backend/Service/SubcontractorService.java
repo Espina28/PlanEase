@@ -35,12 +35,5 @@ public class SubcontractorService {
         subContractorRepository.deleteById(id);
     }
 
-    public String generatePresignedUrl(String userName,String uuidName) {
-        try {
-            return s3Service.generatePresignedUploadUrl(userName+"/" ,uuidName);
-        }catch (SdkClientException e){
-            throw new RuntimeException("Error in creating presigned URL");
-        }
-    }
 
 }
