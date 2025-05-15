@@ -31,16 +31,13 @@ public class SubcontractorService {
         return result.orElse(null);
     }
 
+    public SubcontractorEntity getSubcontractorByEmail(String email) {
+        return subContractorRepository.findByEmail(email);
+    }
+
     public void deleteSubcontractor(int id) {
         subContractorRepository.deleteById(id);
     }
 
-    public String generatePresignedUrl(String userName,String uuidName) {
-        try {
-            return s3Service.generatePresignedUploadUrl(userName+"/" ,uuidName);
-        }catch (SdkClientException e){
-            throw new RuntimeException("Error in creating presigned URL");
-        }
-    }
 
 }
