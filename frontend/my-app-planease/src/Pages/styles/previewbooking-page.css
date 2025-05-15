@@ -1,0 +1,288 @@
+/* Main Container Styles */
+.booking-container {
+  font-family: 'Poppins', Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Breadcrumb Styles */
+.breadcrumb {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 25px;
+  color: #888;
+  font-size: 14px;
+}
+
+.breadcrumb a {
+  color: #888;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: #4A63E7;
+}
+
+/* Booking Content Layout */
+.booking-content {
+  display: flex;
+  gap: 30px;
+}
+
+/* Main Form Content Styles */
+.main-form-content {
+  flex: 1;
+}
+
+/* Step Indicator Styles */
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #E8EAED;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.step.active .step-number {
+  background-color: #4A63E7;
+  color: white;
+}
+
+.step-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.step.active .step-label {
+  color: #4A63E7;
+  font-weight: 500;
+}
+
+.step-line {
+  flex-grow: 1;
+  height: 3px;
+  background-color: #E8EAED;
+  margin: 0 10px;
+  margin-bottom: 25px;
+}
+
+/* Preview Content */
+.preview-content {
+  width: 100%;
+}
+
+.section-title {
+  font-size: 18px;
+  color: #FF9800;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* Information Display */
+.preview-section {
+  margin-bottom: 30px;
+}
+
+.info-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.info-group {
+  flex: 1;
+}
+
+.info-group.full-width {
+  width: 100%;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+}
+
+.info-value {
+  padding: 12px 15px;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  font-size: 14px;
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #eee;
+  color: #555;
+}
+
+.note-value {
+  min-height: 80px;
+  white-space: pre-wrap;
+}
+
+/* Services Preview */
+.services-preview {
+  margin-bottom: 30px;
+}
+
+.preview-service {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background-color: white;
+}
+
+.service-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #FFF3E0;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 15px;
+  font-size: 20px;
+}
+
+.service-name {
+  flex-grow: 1;
+  font-weight: 500;
+  color: #333;
+}
+
+.service-price {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Price Calculation */
+.price-calculation {
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.calculation-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding: 0 10px;
+}
+
+.calculation-label {
+  color: #555;
+  font-size: 15px;
+}
+
+.calculation-value {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+.payment-notice {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.to-pay {
+  margin-top: 10px;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.to-pay strong {
+  color: #FF5252;
+  font-size: 18px;
+}
+
+/* Navigation Buttons */
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.previous-button,
+.payment-button {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.previous-button {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.payment-button {
+  background-color: #2A3547;
+  color: white;
+}
+
+.previous-button:hover {
+  background-color: #e5e5e5;
+}
+
+.payment-button:hover {
+  background-color: #212b3b;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .booking-content {
+    flex-direction: column;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .navigation-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .previous-button,
+  .payment-button {
+    width: 100%;
+  }
+}
