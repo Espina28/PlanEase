@@ -26,14 +26,70 @@ public class TransactionsEntity {
     @JsonManagedReference(value = "transaction-event-service-provision")
     private List<Event_ServiceProvisionEntity> eventServiceProvisionEntity;
 
-    private String transaction_venue;
-    private Status transaction_status;
-    private Date transaction_date;
-    private Boolean transaction_isActive;
-
+    private String transactionVenue;
+    private Status transactionStatus;
+    private Date transactionDate;
+    private Boolean transactionIsActive;
 
     public enum Status {
         SUCCESS, CANCELLED, PENDING
     }
 
+    // Getters and Setters
+
+    public int getTransaction_Id() {
+        return transaction_Id;
+    }
+
+    public void setTransaction_Id(int transaction_Id) {
+        this.transaction_Id = transaction_Id;
+    }
+
+    public EventEntity getEventEntity() {
+        return eventEntity;
+    }
+
+    public void setEventEntity(EventEntity eventEntity) {
+        this.eventEntity = eventEntity;
+    }
+
+    public List<Event_ServiceProvisionEntity> getEventServiceProvisionEntity() {
+        return eventServiceProvisionEntity;
+    }
+
+    public void setEventServiceProvisionEntity(List<Event_ServiceProvisionEntity> eventServiceProvisionEntity) {
+        this.eventServiceProvisionEntity = eventServiceProvisionEntity;
+    }
+
+    public String getTransactionVenue() {
+        return transactionVenue;
+    }
+
+    public void setTransactionVenue(String transactionVenue) {
+        this.transactionVenue = transactionVenue;
+    }
+
+    public Status getTransactionStatus() {
+        return transactionStatus;
+    }
+
+    public void setTransactionStatus(Status transactionStatus) {
+        this.transactionStatus = transactionStatus;
+    }
+
+    public Date getTransactionDate() {
+        return transactionDate;
+    }
+
+    public void setTransactionDate(Date transactionDate) {
+        this.transactionDate = transactionDate;
+    }
+
+    public Boolean getTransactionIsActive() {
+        return transactionIsActive;
+    }
+
+    public void setTransactionIsActive(Boolean transactionIsActive) {
+        this.transactionIsActive = transactionIsActive;
+    }
 }
