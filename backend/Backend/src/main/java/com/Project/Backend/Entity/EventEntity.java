@@ -16,17 +16,17 @@ public class EventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     
-    private int id;
+    private int event_id;
     private String Event_name;
     private String Event_description;
     private boolean Event_isAvailable;
     private double Event_price;
 
-    public void setId(int id) {
-        this.id = id;
+    public void setId(int event_id) {
+        this.event_id = event_id;
     }
     public int getId() {
-        return id;
+        return event_id;
     }
 
     public void setName(String Event_name) {

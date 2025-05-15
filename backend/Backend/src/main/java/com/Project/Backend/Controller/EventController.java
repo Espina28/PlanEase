@@ -50,7 +50,7 @@ public class EventController {
         return ResponseEntity.noContent().build();
     }
 
-
+    
     // @GetMapping("/available")
     // public ResponseEntity<List<EventEntity>> readAvailable() {
     //     return ResponseEntity.ok(eventService.readAvailable());
