@@ -11,15 +11,12 @@ public class Event_ServiceProvisionEntity {
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private int event_serviceProvision_id;
 
-        @JsonBackReference(value = "service-offering-event-service-provision")
-        @ManyToOne
-        @JoinColumn(name = "servicesOffering_id")
-        private ServiceOfferingEntity serviceOfferingEntity;
-
+        // Fixed the column name in @JoinColumn
         @JsonBackReference(value = "transaction-event-service-provision")
         @ManyToOne
-        @JoinColumn(name = "transcation_id")
-        private TransactionsEntity transactionsEntity ;
+        @JoinColumn(name = "transaction_id", nullable = false) // Corrected typo here
+        private TransactionsEntity transactionsEntity;
+
 
 
 }

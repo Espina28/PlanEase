@@ -22,7 +22,6 @@ const SubcontractorDashboard = () => {
   const [error,setError] = useState(null);
   
   const [selectVideo, setSelectedVideo] = useState(null);
-    
 
     //this variable is for clicking the images in post
   const [activeGallery, setActiveGallery] = useState(null); // { images: [], index: 0 }
@@ -145,9 +144,9 @@ const SubcontractorDashboard = () => {
                 selectedImage.map(async (img) => {
                     const {resizedFile, original, resized} = await resizeImage(img.file);
 
-                    console.log(`Image: ${img.title}`);
-                    console.log(`Original: ${original.width}x${original.height}, ${original.sizeKB.toFixed(2)} KB`);
-                    console.log(`Resized:  ${resized.width}x${resized.height}, ${resized.sizeKB.toFixed(2)} KB`);
+                    // console.log(`Image: ${img.title}`);
+                    // console.log(`Original: ${original.width}x${original.height}, ${original.sizeKB.toFixed(2)} KB`);
+                    // console.log(`Resized:  ${resized.width}x${resized.height}, ${resized.sizeKB.toFixed(2)} KB`);
 
                     return {
                         image: URL.createObjectURL(resizedFile),
@@ -162,29 +161,30 @@ const SubcontractorDashboard = () => {
             for (const img of resizedImages) {
                 try {
                     // API call to get a presigned URL
-                    const presignedResponse = await axios.get('http://localhost:8080/subcontractor/generate-PresignedUrl', {
+                    const presignedResponse = await axios.get(
+                      `http://localhost:8080/showcasemedia/generate-PresignedUrl`,
+                      {
                         params: {
-                            file_name: img.file.name,
-                            user_name: "johndoe",
+                          file_name: img.file.name,
+                          user_name: "johndoe"
                         },
                         headers: {
-                            Authorization: `Bearer ${localStorage.getItem('token')}`
+                          Authorization: `Bearer ${localStorage.getItem('token')}`
                         }
-                    });
-                    console.log(presignedResponse.data);
+                      }
+                    );
 
+                    console.log(presignedResponse.data);
                     const presignedUrl = presignedResponse.data.presignedURL;
                     const baseUrl = presignedUrl.split('?')[0];
 
                     urlImages.push(baseUrl);
-
                     // Upload the file to the presigned URL
                     const uploadResponse = await axios.put(presignedUrl, img.file, {
                         headers: {
                             'Content-Type': img.file.type,
                         },
                     });
-
                     console.log(`Successfully uploaded: ${img.title}`);
 
                 } catch (error) {
@@ -192,13 +192,17 @@ const SubcontractorDashboard = () => {
                 }
             }
 
-            if(imageUrl.length != 0){
-                axios.post('http://localhost:8080/subcontractor/upload-images', {},{
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
-                    }
-                })
-            }
+            console.log("urlImages",urlImages);
+
+
+
+            // if(imageUrl.length != 0){
+            //     axios.post('http://localhost:8080/subcontractor/upload-images', {},{
+            //         headers: {
+            //             Authorization: `Bearer ${localStorage.getItem('token')}`
+            //         }
+            //     })
+            // }
 
 
             //call the endpoint and ask for presignedURL to POST in S3, then use the URL to save it in DB
@@ -505,19 +509,17 @@ const SubcontractorDashboard = () => {
           {/* Form Fields */}
             <Stack spacing={2}>
                 <Box>
-                    <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Header</Typography>
+                    <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Title</Typography>
                     <TextField
                         fullWidth
-                        placeholder="About Us"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                     />
                 </Box>
 
                 <Box>
-                    <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Body</Typography>
+                    <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Description</Typography>
                     <TextField
-                        placeholder="Hi..."
                         fullWidth
                         multiline
                         rows={3}

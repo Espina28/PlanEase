@@ -1,17 +1,19 @@
 package com.Project.Backend.DTO;
 
+import com.Project.Backend.Entity.ShowcaseMediaEntity;
+
 public class ShowcaseDTO {
-    private int service_offering_id;
+    private String email;
     private String title;
     private String description;
-    private String[] imageUrls;
+    private ShowcaseMediaEntity[] imageUrls;
 
-    public int getService_offering_id() {
-        return service_offering_id;
+    public String getEmail() {
+        return email;
     }
 
-    public void setService_offering_id(int service_offering_id) {
-        this.service_offering_id = service_offering_id;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getTitle() {
@@ -30,11 +32,11 @@ public class ShowcaseDTO {
         this.description = description;
     }
 
-    public String[] getImageUrls() {
+    public ShowcaseMediaEntity[] getImageUrls() {
         return imageUrls;
     }
 
-    public void setImageUrls(String[] imageUrls) {
+    public void setImageUrls(ShowcaseMediaEntity[] imageUrls) {
         this.imageUrls = imageUrls;
     }
 }

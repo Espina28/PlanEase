@@ -30,62 +30,60 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
-
-
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder(){
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Autowired 
+    @Autowired
     private UserDetailsService userDetailsService;
 
     private final RsaKeyProperties rsaKeyProperties;
-    
 
     public SecurityConfig(RsaKeyProperties rsaKeyProperties) {
         this.rsaKeyProperties = rsaKeyProperties;
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(){
+    public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withPublicKey(rsaKeyProperties.publicKey()).build();
     }
-    
+
     @Bean
-    public JwtEncoder jwtEncoder(){
+    public JwtEncoder jwtEncoder() {
         JWK jwk = new RSAKey.Builder(rsaKeyProperties.publicKey()).privateKey(rsaKeyProperties.privateKey()).build();
         JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwks);
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                        .csrf(AbstractHttpConfigurer ::disable)
-                        .cors(cors -> cors.configurationSource(configurationSource()))
-                        .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/user/login").permitAll()
-                            .requestMatchers("/user/register").permitAll()
-                            .requestMatchers("/user/check-user").permitAll()
-                            .requestMatchers("/subcontractor/create", "/subcontractor/login").permitAll()
-                            .requestMatchers("/api/transactions/**").permitAll()
-                            .requestMatchers("/subcontractor/**").authenticated()
-                                .requestMatchers("/showcase/**").permitAll()
-                            .anyRequest().authenticated()
-                        )
-                        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-                        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                        .httpBasic(Customizer.withDefaults())
-                        .build();
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(configurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/user/login").permitAll()
+                        .requestMatchers("/user/register").permitAll()
+                        .requestMatchers("/user/check-user").permitAll()
+                        .requestMatchers("/subcontractor/create", "/subcontractor/login").permitAll()
+                        .requestMatchers("/subcontractor/**").authenticated()
+                        .requestMatchers("/api/transactions/**").permitAll()
+                        .requestMatchers("/showcase/**").authenticated()
+                        .requestMatchers("/showcasemedia/**").authenticated()
+                        .requestMatchers("/serviceoffering/**").authenticated()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .httpBasic(Customizer.withDefaults())
+                .build();
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(){
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(bCryptPasswordEncoder());
@@ -93,7 +91,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource configurationSource(){
+    CorsConfigurationSource configurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));

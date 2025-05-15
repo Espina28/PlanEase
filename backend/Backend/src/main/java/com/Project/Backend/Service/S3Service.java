@@ -30,6 +30,10 @@ public class S3Service {
         String accessKey = System.getenv("AWS_ACCESS_KEY");
         String secretKey = System.getenv("AWS_ACCESS_SECRET_KEY");
         String region = System.getenv("AWS_REGION");
+
+        System.out.println("Access Key: " + accessKey);
+        System.out.println("Secret Key: " + secretKey);
+        System.out.println("Region: " + region);
         
 
         if (accessKey == null || secretKey == null) {
@@ -44,7 +48,12 @@ public class S3Service {
                     ))
                     .build();
         }
-        this.presigner = S3Presigner.create();
+        this.presigner = S3Presigner.builder()
+                .region(Region.of(region))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(accessKey, secretKey)
+                ))
+                .build();
     }
 
     public String upload(File file, String folderPath, String fileName) {
