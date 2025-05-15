@@ -23,26 +23,34 @@ public class S3Service {
     private final String BUCKET_NAME = "planease-data-storage"; // Change this
     private final String BUCKET_KEY = "Showcase Media/";
     private S3Client s3;
-    private final S3Presigner presigner;
+    private S3Presigner presigner;
 
 
     private S3Service() {
-        String accessKey = System.getenv("AWS_ACCESS_KEY");
-        String secretKey = System.getenv("AWS_ACCESS_SECRET_KEY");
-
-        if (accessKey == null || secretKey == null) {
-            throw new IllegalArgumentException("AWS credentials are not set in environment variables.");
-        }
+        System.out.println("AWS_ACCESS_KEY_ID = " + System.getenv("AWS_ACCESS_KEY"));
+        System.out.println("AWS_SECRET_ACCESS_KEY = " + System.getenv("AWS_SECRET_ACCESS_KEY"));
+        System.out.println("AWS_REGION = " + System.getenv("AWS_REGION"));
 
         if (s3 == null) {
             s3 = S3Client.builder()
-                    .region(Region.AP_SOUTHEAST_1)
+                    .region(Region.of(System.getenv("AWS_REGION")))
                     .credentialsProvider(StaticCredentialsProvider.create(
-                            AwsBasicCredentials.create(accessKey, secretKey)
+                            AwsBasicCredentials.create(
+                                    System.getenv("AWS_ACCESS_KEY"),
+                                    System.getenv("AWS_SECRET_ACCESS_KEY")
+                            )
                     ))
                     .build();
         }
-        this.presigner = S3Presigner.create();
+        this.presigner = S3Presigner.builder()
+                .region(Region.of(System.getenv("AWS_REGION")))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(
+                                System.getenv("AWS_ACCESS_KEY"),
+                                System.getenv("AWS_SECRET_ACCESS_KEY")
+                        )
+                ))
+                .build();
     }
 
     public String upload(File file, String folderPath, String fileName) {

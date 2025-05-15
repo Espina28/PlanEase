@@ -37,8 +37,9 @@ public class SubcontractorController {
     public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {
         SubcontractorEntity subcontractor = new SubcontractorEntity();
         subcontractor.setUser(request.getUser());
-        subcontractor.setService(request.getService());
-
+        subcontractor.setAvailable(true);
+        subcontractor.setDescription(request.getDescription());
+        subcontractor.setService_name(request.getService());
         SubcontractorEntity savedSubcontractor = subcontractorService.saveSubcontractor(subcontractor);
         return ResponseEntity.ok(savedSubcontractor);
     }

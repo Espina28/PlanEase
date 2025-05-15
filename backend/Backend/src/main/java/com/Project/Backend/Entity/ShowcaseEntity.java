@@ -16,15 +16,24 @@ public class ShowcaseEntity {
     private String showcase_title;
     private String showcase_description;
 
-
+    //here
     @ManyToOne
-    @JoinColumn(name = "service-offering-id")
-    @JsonBackReference(value = "service-offering-showcase")
-    private ServiceOfferingEntity serviceOfferingEntity;
+    @JsonBackReference("subcontactor-showcase")
+    @JoinColumn(name = "subcontractor_id")
+    private SubcontractorEntity subcontractor;
+
 
     @OneToMany(mappedBy = "showcaseEntity", fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "showcaseMedia-entity")
+    @JsonManagedReference(value = "showcase-showcaseMedia")
     private List<ShowcaseMediaEntity> showcaseMediaEntity;
+
+    public SubcontractorEntity getSubcontractor() {
+        return subcontractor;
+    }
+
+    public void setSubcontractor(SubcontractorEntity subcontractor) {
+        this.subcontractor = subcontractor;
+    }
 
     public int getShowcase_id() {
         return showcase_id;
@@ -48,14 +57,6 @@ public class ShowcaseEntity {
 
     public void setShowcase_description(String showcase_description) {
         this.showcase_description = showcase_description;
-    }
-
-    public ServiceOfferingEntity getServiceOfferingEntity() {
-        return serviceOfferingEntity;
-    }
-
-    public void setServiceOfferingEntity(ServiceOfferingEntity serviceOfferingEntity) {
-        this.serviceOfferingEntity = serviceOfferingEntity;
     }
 
     public List<ShowcaseMediaEntity> getShowcaseMediaEntity() {
