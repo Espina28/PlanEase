@@ -23,32 +23,35 @@ public class S3Service {
     private final String BUCKET_NAME = "planease-data-storage"; // Change this
     private final String BUCKET_KEY = "Showcase Media/";
     private S3Client s3;
-    private S3Presigner presigner;
+    private final S3Presigner presigner;
 
 
     private S3Service() {
-        System.out.println("AWS_ACCESS_KEY_ID = " + System.getenv("AWS_ACCESS_KEY"));
-        System.out.println("AWS_SECRET_ACCESS_KEY = " + System.getenv("AWS_SECRET_ACCESS_KEY"));
-        System.out.println("AWS_REGION = " + System.getenv("AWS_REGION"));
+        String accessKey = System.getenv("AWS_ACCESS_KEY");
+        String secretKey = System.getenv("AWS_ACCESS_SECRET_KEY");
+        String region = System.getenv("AWS_REGION");
+
+        System.out.println("Access Key: " + accessKey);
+        System.out.println("Secret Key: " + secretKey);
+        System.out.println("Region: " + region);
+        
+
+        if (accessKey == null || secretKey == null) {
+            throw new IllegalArgumentException("AWS credentials are not set in environment variables.");
+        }
 
         if (s3 == null) {
             s3 = S3Client.builder()
-                    .region(Region.of(System.getenv("AWS_REGION")))
+                    .region(Region.of(region))
                     .credentialsProvider(StaticCredentialsProvider.create(
-                            AwsBasicCredentials.create(
-                                    System.getenv("AWS_ACCESS_KEY"),
-                                    System.getenv("AWS_SECRET_ACCESS_KEY")
-                            )
+                            AwsBasicCredentials.create(accessKey, secretKey)
                     ))
                     .build();
         }
         this.presigner = S3Presigner.builder()
-                .region(Region.of(System.getenv("AWS_REGION")))
+                .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(
-                                System.getenv("AWS_ACCESS_KEY"),
-                                System.getenv("AWS_SECRET_ACCESS_KEY")
-                        )
+                        AwsBasicCredentials.create(accessKey, secretKey)
                 ))
                 .build();
     }

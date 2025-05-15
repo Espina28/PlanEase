@@ -71,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/user/check-user").permitAll()
                         .requestMatchers("/subcontractor/create", "/subcontractor/login").permitAll()
                         .requestMatchers("/subcontractor/**").authenticated()
+                        .requestMatchers("/api/transactions/**").permitAll()
                         .requestMatchers("/showcase/**").authenticated()
                         .requestMatchers("/showcasemedia/**").authenticated()
                         .requestMatchers("/serviceoffering/**").authenticated()

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import Navbar from "../../Components/Navbar";
 import NavPanel from "../../Components/subcon-navpanel";
 import {
@@ -57,49 +58,76 @@ export default function SubcontractorBookings() {
   
   const handleClose = () => setOpen(false);
   
-  // Load mock data on component mount
+  // Define loading and error states
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Load transaction data from backend on component mount
   useEffect(() => {
-    // Mock data based on the image
-    const mockBookings = [
-      { id: 1, name: "Nathaniel Salvoro", eventDate: "January 21 2025", amount: "₱50,000", status: "Success" },
-      { id: 2, name: "James Bonding", eventDate: "January 29 2025", amount: "₱50,000", status: "Cancelled" },
-      { id: 3, name: "Boy Abundant", eventDate: "February 5 2025", amount: "₱50,000", status: "Cancelled" },
-      { id: 4, name: "Christine Samsung", eventDate: "March 15 2025", amount: "₱50,000", status: "Success" },
-      { id: 5, name: "Jessica Sotto", eventDate: "March 24 2025", amount: "₱50,000", status: "Success" },
-      { id: 6, name: "Ed Cahugot", eventDate: "April 2 2025", amount: "₱50,000", status: "Cancelled" },
-      { id: 7, name: "Bustin Jieber", eventDate: "April 7 2025", amount: "₱50,000", status: "Pending" },
-      { id: 8, name: "Reblon James", eventDate: "April 27 2025", amount: "₱50,000", status: "Pending" },
-      { id: 9, name: "Will Smith", eventDate: "May 6 2025", amount: "₱50,000", status: "Pending" },
-      { id: 10, name: "Customer 10", eventDate: "May 15 2025", amount: "₱50,000", status: "Success" },
-      { id: 11, name: "Customer 11", eventDate: "May 22 2025", amount: "₱50,000", status: "Cancelled" },
-      { id: 12, name: "Customer 12", eventDate: "June 1 2025", amount: "₱50,000", status: "Success" },
-    ];
-    
-    setBookings(mockBookings);
-    
-    // TODO: Fetch actual booking data from the backend
-    // This should be implemented when the backend is ready
-    /*
-    fetch('/api/subcontractor/bookings', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth token if needed
-      },
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+    const fetchTransactions = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:8080/api/transactions/getAllTransactions', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        // Map the transaction data to the format expected by the component
+        const formattedBookings = response.data.map(transaction => {
+          // Now we can use the event data directly from TransactionDTO
+          const eventName = transaction.eventName || 'Event Name Unavailable';
+          
+          // Format the date - assuming transaction.date is in format like "2025-05-15"
+          const date = new Date(transaction.date);
+          const formattedDate = date.toLocaleDateString('en-US', { 
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+          
+          // Map status values (adjust according to your data)
+          let displayStatus = "Pending";
+          if (transaction.status === "SUCCESS") displayStatus = "Success";
+          if (transaction.status === "CANCELLED") displayStatus = "Cancelled";
+          
+          // Format price with peso sign
+          const formattedPrice = transaction.eventPrice ? 
+            `₱${transaction.eventPrice.toLocaleString()}` : 
+            '₱50,000'; // Default price if not available
+          
+          // For debugging
+          console.log('Transaction with event details:', transaction);
+          
+          return {
+            id: transaction.transactionId,
+            name: eventName,
+            eventDate: formattedDate,
+            amount: formattedPrice,
+            status: displayStatus,
+            // Store additional data if needed for the detail view
+            eventDescription: transaction.eventDescription,
+            venue: transaction.venue
+          };
+        });
+        
+        setBookings(formattedBookings);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching transactions:', err);
+        setError('Failed to load bookings. Please try again later.');
+        setLoading(false);
+        
+        // Fallback to empty array or mock data if needed
+        setBookings([]);
       }
-      return response.json();
-    })
-    .then(data => {
-      setBookings(data);
-    })
-    .catch(error => {
-      console.error('Error fetching bookings:', error);
-    });
-    */
+    };
+    
+    fetchTransactions();
   }, []);
   
   // Close filter menu when clicking outside
