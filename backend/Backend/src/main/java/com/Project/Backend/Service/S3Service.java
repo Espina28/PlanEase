@@ -31,11 +31,6 @@ public class S3Service {
         String secretKey = System.getenv("AWS_ACCESS_SECRET_KEY");
         String region = System.getenv("AWS_REGION");
 
-        System.out.println("Access Key: " + accessKey);
-        System.out.println("Secret Key: " + secretKey);
-        System.out.println("Region: " + region);
-        
-
         if (accessKey == null || secretKey == null) {
             throw new IllegalArgumentException("AWS credentials are not set in environment variables.");
         }

@@ -31,7 +31,9 @@ function App() {
               <Footer/>
             </>
             } />
+
           <Route path="/login" element={<LoginPage />} />
+
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/book/inputdetails" element={<InputDetailsPage />} />
           <Route path="/book/services" element={<SelectServicePage />} />
