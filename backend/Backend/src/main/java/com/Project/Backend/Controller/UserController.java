@@ -92,9 +92,9 @@ public class UserController {
         }
 
         String token = authHeader.substring(7);
-        String schoolId = tokenService.extractEmail(token);
+        String email = tokenService.extractEmail(token);
 
-        return ResponseEntity.ok(Collections.singletonMap("schoolId", schoolId));
+        return ResponseEntity.ok(Collections.singletonMap("email", email));
     }
 
     @GetMapping("/profile/image")
@@ -109,7 +109,7 @@ public class UserController {
     
             String schoolId = tokenService.extractEmail(token);
             if (schoolId == null || schoolId.isEmpty()) {
-                return ResponseEntity.status(401).body("Invalid token: schoolId missing");
+                return ResponseEntity.status(401).body("Invalid token: Email missing");
             }
     
             // System.out.println("Fetching profile image for schoolId: " + schoolId); // Debugging log
@@ -180,6 +180,11 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserEntity> getUserById(@PathVariable int id) {
         return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @GetMapping("getuser/{email}")
+    public ResponseEntity<UserEntity> getUserByEmail(@PathVariable String email) {
+        return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
     @DeleteMapping("/{id}")
