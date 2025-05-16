@@ -116,4 +116,41 @@ public class UserService {
 
         return true;
     }
+    public UserEntity updateUserInfoByEmail(String email, UserEntity updatedUser) {
+        UserEntity existingUser = userRepository.findByEmail(email);
+        if (existingUser == null) {
+            throw new RuntimeException("User not found with email: " + email);
+            }
+
+                existingUser.setFirstname(updatedUser.getFirstname());
+                existingUser.setLastname(updatedUser.getLastname());
+                existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+                existingUser.setRegion(updatedUser.getRegion());
+                existingUser.setProvince(updatedUser.getProvince());
+                existingUser.setCityAndMul(updatedUser.getCityAndMul());
+                existingUser.setBarangay(updatedUser.getBarangay());
+
+                return userRepository.save(existingUser);
+        }
+    public void updateUserPassword(String email, String newPassword) {
+        UserEntity user = userRepository.findByEmail(email);
+            if (user == null) {
+                throw new RuntimeException("User not found with email: " + email);
+            }
+
+            user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+            userRepository.save(user);
+    }
+
+    public boolean doesPasswordMatch(String email, String inputPassword) {
+        UserEntity user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found with email: " + email);
+        }
+        System.out.println(inputPassword);
+        System.out.println(user.getPassword());
+        return bCryptPasswordEncoder.matches(inputPassword, user.getPassword());
+    }
+
+
 }

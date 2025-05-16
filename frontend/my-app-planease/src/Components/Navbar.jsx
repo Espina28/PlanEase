@@ -3,14 +3,18 @@
 import { useState } from "react"
 import { Bell, LogOut, User } from "lucide-react"
 import { ProfileModal } from "./profile-modal"
+import { useAuth } from "./AuthProvider";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    // logout()
-    // navigate("/") // Navigate to home or login page after logout
+      logout()
+     navigate("/")
   }
 
   const toggleProfileDropdown = () => {

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Pencil, Check, X, KeyRound, MapPin, ChevronDown } from "lucide-react"
 import axios from "axios"
+import { Snackbar, Alert } from "@mui/material"
 
 const API_BASE_URL = "http://localhost:8080"
 
@@ -21,6 +22,19 @@ export function ProfileModal({ open, onOpenChange }) {
     profilePicture: null,
     role: "",
   })
+
+  // Password change modals state
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showNewPasswordModal, setShowNewPasswordModal] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+  const [passwordStrength, setPasswordStrength] = useState(0)
+  const [passwordErrors, setPasswordErrors] = useState([])
+  const [passwordsMatch, setPasswordsMatch] = useState(true)
+  const [isCheckingPassword, setIsCheckingPassword] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   // Location state
   const [regions, setRegions] = useState([])
@@ -43,6 +57,13 @@ export function ProfileModal({ open, onOpenChange }) {
   const [countries, setCountries] = useState([
     { code: "PH", dialCode: "+63", flag: "🇵🇭", name: "Philippines" }, // Default while loading
   ])
+
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  })
 
   // Fetch countries
   useEffect(() => {
@@ -97,12 +118,7 @@ export function ProfileModal({ open, onOpenChange }) {
       try {
         const token = localStorage.getItem("token")
 
-        const { data: emailData } = await axios.get(`${API_BASE_URL}/user/getcurrentuser`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const userEmail = emailData.email
-
-        const { data: userData } = await axios.get(`${API_BASE_URL}/user/getuser/${userEmail}`, {
+        const { data: userData } = await axios.get(`${API_BASE_URL}/user/getuser`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -342,6 +358,74 @@ export function ProfileModal({ open, onOpenChange }) {
     handleChange("barangay", barangayName)
   }
 
+  const handleSaveChanges = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        console.error("No authentication token found")
+        return
+      }
+
+      // Prepare the updated user data
+      const updatedUser = {
+        firstname: user.firstname,
+        lastname: user.lastname,
+        phoneNumber: user.phone, // Using the full phone number with country code
+        region: user.region,
+        province: user.province,
+        cityAndMul: user.cityAndMul,
+        barangay: user.barangay,
+      }
+
+      // Call the update endpoint
+      const response = await axios.put(`${API_BASE_URL}/user/update`, updatedUser, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (response.status === 200) {
+        // Update was successful
+        setEditMode(false)
+
+        // Show success message with snackbar
+        setSnackbar({
+          open: true,
+          message: "Profile updated successfully",
+          severity: "success",
+        })
+      }
+    } catch (error) {
+      console.error("Failed to update user profile:", error)
+
+      // Show error message
+      if (error.response && error.response.status === 404) {
+        setSnackbar({
+          open: true,
+          message: "User not found. Please try again.",
+          severity: "error",
+        })
+      } else if (error.response && error.response.status === 401) {
+        setSnackbar({
+          open: true,
+          message: "Unauthorized. Please log in again.",
+          severity: "error",
+        })
+      } else {
+        setSnackbar({
+          open: true,
+          message: "Failed to update profile. Please try again.",
+          severity: "error",
+        })
+      }
+    }
+  }
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return
+    }
+    setSnackbar((prev) => ({ ...prev, open: false }))
+  }
+
   // Handle phone number change
   const handlePhoneNumberChange = (e) => {
     // Only allow numbers
@@ -354,6 +438,142 @@ export function ProfileModal({ open, onOpenChange }) {
 
   // Check if phone number is empty - fix the check to use the actual phone number
   const isPhoneEmpty = !user.phone || user.phone.trim() === ""
+
+  // Password validation function
+  const validatePassword = (password) => {
+    const errors = []
+    let strength = 0
+
+    // Check if it contains a capital letter
+    if (/[A-Z]/.test(password)) {
+      strength += 1
+    } else {
+      errors.push("Must have a capital letter")
+    }
+
+    // Check if it contains a number
+    if (/\d/.test(password)) {
+      strength += 1
+    } else if (!errors.includes("Must have a capital letter")) {
+      errors.push("Must have a number")
+    }
+
+    // Check if it contains a unique character
+    if (/[^A-Za-z0-9]/.test(password)) {
+      strength += 1
+    } else if (!errors.includes("Must have a capital letter") && !errors.includes("Must have a number")) {
+      errors.push("Must have a unique character")
+    }
+
+    setPasswordStrength(strength)
+    setPasswordErrors(errors)
+  }
+
+  const handleNewPasswordChange = (e) => {
+    const newPasswordValue = e.target.value
+    setNewPassword(newPasswordValue)
+    validatePassword(newPasswordValue)
+
+    if (confirmNewPassword) {
+      setPasswordsMatch(confirmNewPassword === newPasswordValue)
+    }
+  }
+
+  const handleConfirmPasswordChange = (e) => {
+    const value = e.target.value
+    setConfirmNewPassword(value)
+    setPasswordsMatch(value === newPassword)
+  }
+
+  const handleCheckPassword = async () => {
+    if (!currentPassword) {
+      setPasswordError("Please enter your current password")
+      return
+    }
+
+    setIsCheckingPassword(true)
+    setPasswordError("")
+
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setPasswordError("You are not logged in")
+        setIsCheckingPassword(false)
+        return
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/user/check-password`,
+        { password: currentPassword },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+
+      if (response.data.match) {
+        // Password is correct, show the new password modal
+        setShowPasswordModal(false)
+        setShowNewPasswordModal(true)
+        setCurrentPassword("")
+      } else {
+        setPasswordError("Incorrect password")
+      }
+    } catch (error) {
+      console.error("Error checking password:", error)
+      setPasswordError("Failed to verify password. Please try again.")
+    } finally {
+      setIsCheckingPassword(false)
+    }
+  }
+
+  const handleUpdatePassword = async () => {
+    if (passwordStrength < 3) {
+      setPasswordError("Password does not meet requirements")
+      return
+    }
+
+    if (!passwordsMatch) {
+      setPasswordError("Passwords do not match")
+      return
+    }
+
+    setIsChangingPassword(true)
+    setPasswordError("")
+
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setPasswordError("You are not logged in")
+        setIsChangingPassword(false)
+        return
+      }
+
+      const response = await axios.put(
+        `${API_BASE_URL}/user/update-password`,
+        { newPassword },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+
+      if (response.status === 200) {
+        // Password updated successfully
+        setShowNewPasswordModal(false)
+        setNewPassword("")
+        setConfirmNewPassword("")
+        setPasswordStrength(0)
+        setPasswordErrors([])
+
+        // Show success message
+        setSnackbar({
+          open: true,
+          message: "Password updated successfully",
+          severity: "success",
+        })
+      }
+    } catch (error) {
+      console.error("Error updating password:", error)
+      setPasswordError("Failed to update password. Please try again.")
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 pt-18">
@@ -404,13 +624,24 @@ export function ProfileModal({ open, onOpenChange }) {
             {/* Action Buttons */}
             <div className="flex gap-2">
               <button
-                onClick={() => setEditMode(!editMode)}
+                onClick={() => {
+                  if (editMode) {
+                    // Save changes
+                    handleSaveChanges()
+                  } else {
+                    // Enter edit mode
+                    setEditMode(true)
+                  }
+                }}
                 className="flex items-center px-3 py-2 h-9 text-sm text-white bg-black rounded-md hover:bg-gray-800 transition-colors"
               >
                 {editMode ? <Check size={16} className="mr-2" /> : <Pencil size={16} className="mr-2" />}
                 {editMode ? "Save" : "Edit"}
               </button>
-              <button className="flex items-center px-3 py-2 h-9 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+              <button
+                onClick={() => setShowPasswordModal(true)}
+                className="flex items-center px-3 py-2 h-9 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+              >
                 <KeyRound size={16} className="mr-2" />
                 Change Password
               </button>
@@ -678,6 +909,228 @@ export function ProfileModal({ open, onOpenChange }) {
           </div>
         </div>
       </div>
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <Alert
+          onClose={(e) => {
+            e.stopPropagation()
+            handleCloseSnackbar(e)
+          }}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      {/* Current Password Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className="bg-white rounded-md shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="bg-slate-900 h-12 relative flex items-center justify-between px-4">
+              <div className="text-white font-medium">Verify Password</div>
+              <button
+                onClick={() => {
+                  setShowPasswordModal(false)
+                  setCurrentPassword("")
+                  setPasswordError("")
+                }}
+                className="text-white hover:text-gray-300"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal content */}
+            <div className="p-6">
+              <p className="text-gray-600 mb-4">Please enter your current password to continue</p>
+
+              {passwordError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">{passwordError}</div>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="current-password" className="text-sm font-medium text-gray-700">
+                    Current Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="current-password"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter your current password"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowPasswordModal(false)
+                      setCurrentPassword("")
+                      setPasswordError("")
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCheckPassword}
+                    disabled={isCheckingPassword}
+                    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-70"
+                  >
+                    {isCheckingPassword ? "Verifying..." : "Next"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Password Modal */}
+      {showNewPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className="bg-white rounded-md shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="bg-slate-900 h-12 relative flex items-center justify-between px-4">
+              <div className="text-white font-medium">Change Password</div>
+              <button
+                onClick={() => {
+                  setShowNewPasswordModal(false)
+                  setNewPassword("")
+                  setConfirmNewPassword("")
+                  setPasswordError("")
+                  setPasswordStrength(0)
+                  setPasswordErrors([])
+                }}
+                className="text-white hover:text-gray-300"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal content */}
+            <div className="p-6">
+              <p className="text-gray-600 mb-4">Create a new password for your account</p>
+
+              {passwordError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">{passwordError}</div>
+              )}
+
+              <div className="space-y-4">
+                {/* New Password */}
+                <div className="space-y-2">
+                  <label htmlFor="new-password" className="text-sm font-medium text-gray-700">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={handleNewPasswordChange}
+                      className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter new password"
+                    />
+                  </div>
+                </div>
+
+                {/* Password Strength */}
+                {newPassword && (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium text-gray-700">Password Strength</div>
+                      <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${
+                            passwordStrength === 3
+                              ? "bg-green-500"
+                              : passwordStrength === 2
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
+                          }`}
+                          style={{ width: `${(passwordStrength / 3) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Password requirements */}
+                    {passwordErrors.length > 0 && (
+                      <div className="space-y-1 text-sm text-red-500">
+                        {passwordErrors.map((error, index) => (
+                          <div key={index}>{error}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Confirm New Password */}
+                {passwordStrength === 3 && (
+                  <div className="space-y-2">
+                    <label htmlFor="confirm-new-password" className="text-sm font-medium text-gray-700">
+                      Confirm New Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="confirm-new-password"
+                        type="password"
+                        value={confirmNewPassword}
+                        onChange={handleConfirmPasswordChange}
+                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+                    {!passwordsMatch && confirmNewPassword && (
+                      <div className="text-sm text-red-500">Passwords do not match</div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowNewPasswordModal(false)
+                      setNewPassword("")
+                      setConfirmNewPassword("")
+                      setPasswordError("")
+                      setPasswordStrength(0)
+                      setPasswordErrors([])
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUpdatePassword}
+                    disabled={isChangingPassword || passwordStrength < 3 || !passwordsMatch || !confirmNewPassword}
+                    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-70"
+                  >
+                    {isChangingPassword ? "Updating..." : "Update Password"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

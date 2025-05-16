@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -182,9 +183,21 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    @GetMapping("getuser/{email}")
-    public ResponseEntity<UserEntity> getUserByEmail(@PathVariable String email) {
-        return ResponseEntity.ok(userService.getUserByEmail(email));
+    @GetMapping("/getuser")
+    public ResponseEntity<UserEntity> getUserByToken(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        String email = tokenService.extractEmail(token);
+
+        UserEntity user = userService.getUserByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(user);
     }
 
     @DeleteMapping("/{id}")
@@ -192,5 +205,53 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/update")
+    public ResponseEntity<UserEntity> updateUser(@RequestHeader("Authorization") String authHeader, @RequestBody UserEntity updatedUser) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring(7);
+        String email = tokenService.extractEmail(token);
+
+        try {
+            UserEntity user = userService.updateUserInfoByEmail(email, updatedUser);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @PutMapping("/update-password")
+    public ResponseEntity<String> updatePassword(@RequestHeader("Authorization") String authHeader, @RequestBody Map<String, String> request) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid token");
+        }
+
+        String token = authHeader.substring(7);
+        String email = tokenService.extractEmail(token);
+        String newPassword = request.get("newPassword");
+
+        try {
+            userService.updateUserPassword(email, newPassword);
+            return ResponseEntity.ok("Password updated successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+    }
+    @PostMapping("/check-password")
+    public ResponseEntity<Map<String, Boolean>> checkPassword(@RequestHeader("Authorization") String authHeader, @RequestBody Map<String, String> request) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("match", false));
+        }
+
+        String token = authHeader.substring(7);
+        String email = tokenService.extractEmail(token);
+        String inputPassword = request.get("password");
+        boolean matches = userService.doesPasswordMatch(email, inputPassword);
+        return ResponseEntity.ok(Collections.singletonMap("match", matches));
+    }
+
     
 }
