@@ -1,21 +1,80 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import Navbar from '../../Components/Navbar';
 import NavPanel from "../../Components/subcon-navpanel";
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, TextField } from '@mui/material';
+import { AuthContext } from '../../Components/AuthProvider';
 
 const localizer = momentLocalizer(moment);
 
 const SubcontractorCalendar = () => {
+  const { token } = useContext(AuthContext);
   const [unavailableDates, setUnavailableDates] = useState([]);
   const [savedStatus, setSavedStatus] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [reason, setReason] = useState('');
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     date: null
   });
+  const [removeDialog, setRemoveDialog] = useState({
+    open: false,
+    date: null,
+    id: null
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Load unavailable dates from backend on component mount
+  useEffect(() => {
+    const fetchUnavailableDates = async () => {
+      try {
+        setLoading(true);
+        // Get user email from localStorage
+        const email = localStorage.getItem('email');
+        if (!email) {
+          setError('User email not found');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch(`http://localhost:8080/api/subcontractor/unavailable-dates?email=${encodeURIComponent(email)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch unavailable dates');
+        }
+
+        const data = await response.json();
+        // Transform dates from the backend into the format needed by the calendar
+        const formattedDates = data.map(item => ({
+          start: new Date(item.date),
+          end: new Date(item.date),
+          title: item.reason || 'Unavailable',
+          allDay: true,
+          id: item.unavailableDate_id,
+          reason: item.reason
+        }));
+
+        setUnavailableDates(formattedDates);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching unavailable dates:', error);
+        setError('Failed to load unavailable dates');
+        setLoading(false);
+      }
+    };
+
+    fetchUnavailableDates();
+  }, [token]);
 
   // Function to handle date selection
   const handleDateSelect = ({ start }) => {
@@ -31,16 +90,21 @@ const SubcontractorCalendar = () => {
     });
 
     if (dateExists) {
-      // Remove the date if it's already selected
-      setUnavailableDates(unavailableDates.filter(date => {
+      // Show remove dialog to confirm removal
+      const dateToRemove = unavailableDates.find(date => {
         const existingDate = new Date(date.start);
         existingDate.setHours(0, 0, 0, 0);
-        return existingDate.getTime() !== selectedDate.getTime();
-      }));
-      // Clear any previous saved status
-      setSavedStatus('');
+        return existingDate.getTime() === selectedDate.getTime();
+      });
+      
+      setRemoveDialog({
+        open: true,
+        date: selectedDate,
+        id: dateToRemove.id
+      });
     } else {
-      // Show confirmation dialog before adding the date
+      // Reset reason field and show confirmation dialog before adding the date
+      setReason('');
       setConfirmDialog({
         open: true,
         date: selectedDate
@@ -63,7 +127,8 @@ const SubcontractorCalendar = () => {
       {
         start: selectedDate,
         end: selectedDate,
-        title: 'Unavailable',
+        title: reason || 'Unavailable',
+        reason: reason,
         allDay: true
       }
     ]);
@@ -78,11 +143,69 @@ const SubcontractorCalendar = () => {
     setSavedStatus('');
   };
   
+  // Function to handle reason change
+  const handleReasonChange = (event) => {
+    setReason(event.target.value);
+  };
+  
+  // Function to confirm removal of unavailable date
+  const handleConfirmRemoval = async () => {
+    const { id, date } = removeDialog;
+    
+    if (id) {
+      // If the date has an ID, it's in the backend and needs to be deleted
+      try {
+        const response = await fetch(`http://localhost:8080/api/subcontractor/unavailable-dates/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to delete unavailable date');
+        }
+        
+        // Remove from local state after successful deletion
+        setUnavailableDates(unavailableDates.filter(date => date.id !== id));
+        setSavedStatus('Date removed successfully');
+      } catch (error) {
+        console.error('Error deleting date:', error);
+        setSavedStatus('Error removing date. Please try again.');
+      }
+    } else {
+      // If the date doesn't have an ID, just remove it from local state
+      setUnavailableDates(unavailableDates.filter(item => {
+        const existingDate = new Date(item.start);
+        existingDate.setHours(0, 0, 0, 0);
+        return existingDate.getTime() !== date.getTime();
+      }));
+    }
+    
+    // Close the dialog
+    setRemoveDialog({
+      open: false,
+      date: null,
+      id: null
+    });
+  };
+  
   // Function to cancel unavailability
   const handleCancelUnavailability = () => {
     setConfirmDialog({
       open: false,
       date: null
+    });
+    setReason('');
+  };
+  
+  // Function to cancel removal
+  const handleCancelRemoval = () => {
+    setRemoveDialog({
+      open: false,
+      date: null,
+      id: null
     });
   };
 
@@ -102,28 +225,69 @@ const SubcontractorCalendar = () => {
   };
 
   // Function to save unavailable dates to backend
-  const saveUnavailableDates = () => {
-    // Here you would typically make an API call to save the dates
-    // For now, we'll just simulate a successful save
-    console.log('Saving unavailable dates:', unavailableDates);
-    setSavedStatus('Unavailable dates saved successfully!');
-    
-    // TODO: Add actual API call to save dates to your backend
-    // Example:
-    // fetch('/api/subcontractor/unavailable-dates', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({ dates: unavailableDates }),
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //   setSavedStatus('Unavailable dates saved successfully!');
-    // })
-    // .catch(error => {
-    //   setSavedStatus('Error saving dates. Please try again.');
-    // });
+  const saveUnavailableDates = async () => {
+    try {
+      setSavedStatus('Saving...');
+      const email = localStorage.getItem('email');
+      
+      if (!email) {
+        setSavedStatus('Error: User email not found');
+        return;
+      }
+      
+      // Filter only new dates (those without an ID)
+      const newDates = unavailableDates.filter(date => !date.id);
+      
+      if (newDates.length === 0) {
+        setSavedStatus('No new dates to save.');
+        return;
+      }
+      
+      // Send dates one by one
+      const savePromises = newDates.map(dateObj => {
+        const requestBody = {
+          email: email,
+          date: moment(dateObj.start).format('YYYY-MM-DD'),
+          reason: dateObj.reason || 'Unavailable'
+        };
+        
+        return fetch('http://localhost:8080/api/subcontractor/unavailable-dates', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(requestBody),
+          credentials: 'include'
+        }).then(res => {
+          if (!res.ok) throw new Error('Failed to save date');
+          return res.json();
+        });
+      });
+      
+      const savedDates = await Promise.all(savePromises);
+      
+      // Update local state with saved dates (now with IDs)
+      const updatedDates = [
+        // Keep existing dates that have IDs
+        ...unavailableDates.filter(date => date.id),
+        // Add newly saved dates with their IDs
+        ...savedDates.map(item => ({
+          start: new Date(item.date),
+          end: new Date(item.date),
+          title: item.reason || 'Unavailable',
+          allDay: true,
+          id: item.unavailableDate_id,
+          reason: item.reason
+        }))
+      ];
+      
+      setUnavailableDates(updatedDates);
+      setSavedStatus('Unavailable dates saved successfully!');
+    } catch (error) {
+      console.error('Error saving dates:', error);
+      setSavedStatus('Error saving dates. Please try again.');
+    }
   };
 
   return (
@@ -148,6 +312,17 @@ const SubcontractorCalendar = () => {
                 </div>
               )}
               
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+                  {error}
+                </div>
+              )}
+              
+              {loading ? (
+                <div className="mb-6 flex justify-center items-center" style={{ height: 600 }}>
+                  <p>Loading calendar...</p>
+                </div>
+              ) : (
               <div className="mb-6" style={{ height: 600 }}>
                 <Calendar
                   localizer={localizer}
@@ -164,21 +339,35 @@ const SubcontractorCalendar = () => {
                   style={{ height: '100%' }}
                 />
               </div>
+              )}
               
-              {/* Confirmation Dialog */}
+              
+              {/* Confirmation Dialog for Adding Unavailable Date */}
               <Dialog
                 open={confirmDialog.open}
                 onClose={handleCancelUnavailability}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
+                aria-labelledby="add-dialog-title"
+                aria-describedby="add-dialog-description"
               >
-                <DialogTitle id="alert-dialog-title">
+                <DialogTitle id="add-dialog-title">
                   Confirm Unavailability
                 </DialogTitle>
                 <DialogContent>
-                  <DialogContentText id="alert-dialog-description">
+                  <DialogContentText id="add-dialog-description" className="mb-4">
                     Are you sure you're not available on this date {confirmDialog.date ? moment(confirmDialog.date).format('MMMM D, YYYY') : ''}?
                   </DialogContentText>
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="reason"
+                    label="Reason for Unavailability"
+                    type="text"
+                    fullWidth
+                    variant="outlined"
+                    value={reason}
+                    onChange={handleReasonChange}
+                    placeholder="E.g., Vacation, Personal Event, etc."
+                  />
                 </DialogContent>
                 <DialogActions>
                   <Button onClick={handleCancelUnavailability} color="primary">
@@ -186,6 +375,31 @@ const SubcontractorCalendar = () => {
                   </Button>
                   <Button onClick={handleConfirmUnavailability} color="primary" autoFocus>
                     Confirm
+                  </Button>
+                </DialogActions>
+              </Dialog>
+              
+              {/* Confirmation Dialog for Removing Unavailable Date */}
+              <Dialog
+                open={removeDialog.open}
+                onClose={handleCancelRemoval}
+                aria-labelledby="remove-dialog-title"
+                aria-describedby="remove-dialog-description"
+              >
+                <DialogTitle id="remove-dialog-title">
+                  Remove Unavailable Date
+                </DialogTitle>
+                <DialogContent>
+                  <DialogContentText id="remove-dialog-description">
+                    Are you sure you want to remove this unavailable date {removeDialog.date ? moment(removeDialog.date).format('MMMM D, YYYY') : ''}?
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleCancelRemoval} color="primary">
+                    Cancel
+                  </Button>
+                  <Button onClick={handleConfirmRemoval} color="error" autoFocus>
+                    Remove
                   </Button>
                 </DialogActions>
               </Dialog>
