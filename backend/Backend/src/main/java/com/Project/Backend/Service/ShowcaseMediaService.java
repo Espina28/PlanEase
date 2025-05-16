@@ -74,16 +74,17 @@ public class ShowcaseMediaService {
         return null; // Waiting for more chunks
     }
 
-    public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaEntity[] showcaseMediaEntity, int showcaseId) {
+    public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaEntity[] imageUrls, int showcaseId) {
         List<ShowcaseMediaEntity> savedMedia = new ArrayList<>();
         try {
             ShowcaseEntity showcase = showcaseService.findShowcaseById(showcaseId);
-            for (ShowcaseMediaEntity media : showcaseMediaEntity) {
+            for (ShowcaseMediaEntity media : imageUrls) {
                 ShowcaseMediaEntity newMedia = new ShowcaseMediaEntity();
                 newMedia.setShowcaseMedia_imageurl(media.getShowcaseMedia_imageurl());
                 newMedia.setShowcaseMedia_fileName(media.getShowcaseMedia_fileName());
                 newMedia.setShowcaseEntity(showcase);
                 savedMedia.add(showcaseMediaRepository.save(newMedia));
+                System.out.println("Saved media: " + savedMedia);
             }
             return savedMedia;
         } catch (Exception e) {

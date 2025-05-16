@@ -45,7 +45,11 @@ const SubcontractorDashboard = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [about, setAbout] = useState('');
-
+    const [userdetails, setUserDetails] = useState({
+        fullname: '',
+        email: '',
+        service_name: ''
+    });
   const [imageUrl, setImageUrl] = useState([]);
 
   const handleOpen = () => setOpen(true);
@@ -69,26 +73,33 @@ const SubcontractorDashboard = () => {
     setError(null);
   };
 
-  useEffect(() => {
-      console.log("item data",itemData)
-      console.log("selected image",selectedImage)
-      console.log("email: ",email)
+    useEffect(() => {
+        fetchShowcaseData();
+    }, []);
 
+  const fetchShowcaseData = () => {
+        axios.get(`http://localhost:8080/subcontractor/getdetails/${email}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+            .then((response) => {
+                console.log("response", response.data);
 
-  axios.get(`http://localhost:8080/subcontractor/getdetails/${email}`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`
+                const user = response.data.user;
+
+                setShowcase(response.data.showcase);
+                setAbout(response.data.description);
+                setUserDetails({
+                    fullname: `${user.firstname} ${user.lastname}`,
+                    email: user.email,
+                    service_name: response.data.service_name,
+                });
+            })
+            .catch((error) => {
+                console.error("Error fetching user details:", error);
+            });
     }
-  }).then((response) => {
-    console.log("response",response.data);
-    setShowcase(response.data.showcase);
-    setAbout(response.data.description);
-  }).catch((error) => {
-    console.error("Error fetching user details:", error);
-  });
-  },[selectedImage])
-
-  
 
     const resizeImage = (file, maxWidth = 1920, maxHeight = 1080, sizeLimitMB = 10, quality = 0.8) => {
         return new Promise((resolve) => {
@@ -166,6 +177,10 @@ const SubcontractorDashboard = () => {
         });
     };
 
+  const handleDelete = (showcase_id) => {
+      console.log(showcase_id);
+  }
+
     const handleSubmit = async () => {
         if (!selectVideo) {
             console.log("submitting image");
@@ -205,13 +220,16 @@ const SubcontractorDashboard = () => {
                     const presignedUrl = presignedResponse.data.presignedURL;
                     const baseUrl = presignedUrl.split('?')[0];
 
-                    urlImages.push(baseUrl);
+                    urlImages.push({
+                        "showcaseMedia_imageurl": baseUrl,
+                        "showcaseMedia_fileName": img.file.name
+                    });
                     // Upload the file to the presigned URL
                     const uploadResponse = await axios.put(presignedUrl, img.file, {
                         headers: {
                             'Content-Type': img.file.type,
                         },
-                    });
+                    }); 
                     console.log(`Successfully uploaded: ${img.title}`);
 
                 } catch (error) {
@@ -221,26 +239,19 @@ const SubcontractorDashboard = () => {
 
             console.log("urlImages",urlImages);
             
-            if(imageUrl.length != 0){
+            if(urlImages.length !== 0){
                 axios.post('http://localhost:8080/showcase/create-showcase', {
-  email: email,
-  title: title,
-  description: description,
-  imageUrls: [
-    {
-      showcaseMedia_imageurl: "https://sample1.example.com",
-      showcaseMedia_fileName: "sample1.jpeg"
-    },
-    {
-      showcaseMedia_imageurl: "https://sample2.example.com",
-      showcaseMedia_fileName: "sample2.jpeg"
-    }
-  ]
-}, {
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem('token')}`
-  }
-});
+                  email: email,
+                  title: title,
+                  description: description,
+                  imageUrls: urlImages
+                }, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                  }
+                }).then(res => {
+                    fetchShowcaseData();
+                });
             }
 
 
@@ -302,8 +313,6 @@ const SubcontractorDashboard = () => {
         event.target.value = null;
     }
 
-
-
   const style = {
     position: 'absolute',
     top: '50%',
@@ -331,13 +340,13 @@ const SubcontractorDashboard = () => {
         <div className="flex flex-col direct rounded-lg gap-4 bg-gray-100 md:px-10 md:py-10">
           <div className="flex items-center bg-white p-5 md:p-10 shadow-lg">
             <img
-              src="https://s3-alpha-sig.figma.com/img/77cd/766b/225481949bb96c1ee92e2969c13f92f6?Expires=1745193600&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=MgA~u1aSsMJWwuIpk-E5xBEOi8XPMninH2z6y2KAx~Azfo37d6ks4SqAolAPot7xsHEQShMTQvRSvv2ClxROmBPnuFzb4JiO7J3woNLPb897H5ndYRF-DWZM8Sa0VAJ6JXOYGEW~T9MVAM0ekDuikPDxbYMydG2BNtvD9lJozuraR2NtjgqszlfemHOanssPqdWEKzriBQjI0JGLu8ULQat5G6sXUQ-wlgwFUOk9L2Cs0ACDND5UVeaOAfrTT8Jh~n6hK9XQ~guO6IMNo47QZ-aR8g-7dP0uSWZmkm7WAsrhh3BYw0LzMYlTzkrGNyWjFd31cLCysbnYIrGUQ9FcMQ__"
+              src=""
               alt="Profile"
               className="w-20 h-20 rounded-full object-cover"
             />
             <div className="ml-4">
-              <                h2 className="text-lg font-semibold">James Wilson</h2>
-              <p className="text-gray-500">Subcontractor</p>
+              <h2 className="text-lg font-semibold">{userdetails.fullname}</h2>
+              <p className="text-gray-500">{userdetails.service_name}</p>
             </div>
           </div>
 
@@ -406,120 +415,146 @@ const SubcontractorDashboard = () => {
 
             <Divider />
             {/* Showcase Items */}
-            {itemData.map((item, index) => (
-              <div key={index} className="py-6">
-                {/* Title + Ellipsis */}
-                <Box display="flex" justifyContent="space-between" alignItems="start">
-                  <Typography
-                    variant="h6"
-                    fontWeight="bold"
-                    className="font-poppins text-lg text-slate-800"
-                  >
-                    {item.title}
-                  </Typography>
-                  <Box sx={{ position: 'relative' }}>
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        const menu = document.getElementById(`menu-${index}`);
-                        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-                      }}
-                    >
-                      <Typography sx={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>
-                        &#8942;
+              {showcase?.map((item, index) => (
+                  <div key={index} className="py-6">
+                      {/* Title + Ellipsis */}
+                      <Box display="flex" justifyContent="space-between" alignItems="start">
+                          <Typography
+                              variant="h6"
+                              fontWeight="bold"
+                              className="font-poppins text-lg text-slate-800"
+                          >
+                              {item.showcase_title}
+                          </Typography>
+                          <Box sx={{ position: 'relative' }}>
+                              <IconButton
+                                  size="small"
+                                  onClick={() => {
+                                      const menu = document.getElementById(`menu-${index}`);
+                                      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                                  }}
+                              >
+                                  <Typography sx={{ fontSize: 24, fontWeight: 'bold', color: 'black' }}>
+                                      &#8942;
+                                  </Typography>
+                              </IconButton>
+                              <Box
+                                  id={`menu-${index}`}
+                                  sx={{
+                                      display: 'none',
+                                      position: 'absolute',
+                                      right: 0,
+                                      zIndex: 10,
+                                      mt: 1,
+                                      backgroundColor: 'white',
+                                      border: '1px solid #e5e7eb',
+                                      borderRadius: 1,
+                                      boxShadow: 3,
+                                      minWidth: 120,
+                                  }}
+                              >
+                                  <Button
+                                      fullWidth
+                                      sx={{ justifyContent: 'flex-start', color: 'black' }}
+                                      startIcon={<EditIcon />}
+                                      onClick={() => alert(`Edit: ${item.title}`)}
+                                  >
+                                      Edit
+                                  </Button>
+                                  <Button
+                                      fullWidth
+                                      sx={{ justifyContent: 'flex-start', color: 'black' }}
+                                      startIcon={<CloseIcon />}
+                                      onClick={() =>
+                                          handleDelete(item.showcase_id)
+                                      }
+                                  >
+                                      Delete
+                                  </Button>
+                              </Box>
+                          </Box>
+                      </Box>
+
+                      {/* Description */}
+                      <Typography className="font-poppins text-gray-700 mt-2 mb-3 whitespace-pre-line">
+                          {item.showcase_description}
                       </Typography>
-                    </IconButton>
-                    <Box
-                      id={`menu-${index}`}
-                      sx={{
-                        display: 'none',
-                        position: 'absolute',
-                        right: 0,
-                        zIndex: 10,
-                        mt: 1,
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: 1,
-                        boxShadow: 3,
-                        minWidth: 120,
-                      }}
-                    >
-                      <Button
-                        fullWidth
-                        sx={{ justifyContent: 'flex-start', color: 'black' }}
-                        startIcon={<EditIcon />}
-                        onClick={() => alert(`Edit: ${item.title}`)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        fullWidth
-                        sx={{ justifyContent: 'flex-start', color: 'black' }}
-                        startIcon={<CloseIcon />}
-                        onClick={() =>
-                          setItemData((prev) => prev.filter((_, i) => i !== index))
-                        }
-                      >
-                        Delete
-                      </Button>
-                    </Box>
-                  </Box>
-                </Box>
 
-                {/* Description */}
-                <Typography className="font-poppins text-gray-700 mt-2 mb-3 whitespace-pre-line">
-                  {item.description}
-                </Typography>
-
-                {/* Image Rendering Logic */}
-                {item.selectedImage.length > 0 && (
-                  <Box>
-                    <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={1}>
-                      {item.selectedImage.slice(0, 3).map((img, imgIndex) => (
-                        <Box
-                          key={imgIndex}
-                          position="relative"
-                          onClick={() =>
-                            setActiveGallery({ images: item.selectedImage, index: imgIndex })
-                          }
-                          sx={{ cursor: 'pointer' }}
-                        >
-                          <img
-                            src={img.image}
-                            alt={img.title}
-                            loading="lazy"
-                            className="rounded-lg w-full h-[150px] object-cover"
-                          />
-                          {imgIndex === 2 && item.selectedImage.length > 3 && (
-                            <Box
-                              position="absolute"
-                              top={0}
-                              left={0}
-                              right={0}
-                              bottom={0}
-                              display="flex"
-                              alignItems="center"
-                              justifyContent="center"
-                              bgcolor="rgba(0, 0, 0, 0.5)"
-                              borderRadius="8px"
-                            >
-                              <Typography variant="h6" color="white" fontWeight="bold">
-                                +{item.selectedImage.length - 3} more
-                              </Typography>
-                            </Box>
-                          )}
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                )}
-                {/* Divider after each post */}
-                <Divider sx={{ mt: 4 }} />
-              </div>
-            ))}
+                      {/* Image Rendering Logic */}
+                      {item.showcaseMediaEntity.length > 0 && (
+                          <Box mt={2}>
+                              <Box
+                                  display="grid"
+                                  gap={1}
+                                  sx={{
+                                      gridTemplateColumns: (() => {
+                                          const count = item.showcaseMediaEntity.length;
+                                          if (count === 1) return '1fr';
+                                          if (count === 2) return 'repeat(2, 1fr)';
+                                          return 'repeat(3, 1fr)';
+                                      })(),
+                                  }}
+                              >
+                                  {item.showcaseMediaEntity.slice(0, 3).map((media, imgIndex) => (
+                                      <Box
+                                          key={media.showcaseMedia_id}
+                                          position="relative"
+                                          onClick={() =>
+                                              setActiveGallery({
+                                                  images: item.showcaseMediaEntity.map((img) => ({
+                                                      image: img.showcaseMedia_imageurl,
+                                                      alt: img.showcaseMedia_fileName || 'Image',
+                                                  })),
+                                                  index: imgIndex,
+                                              })
+                                          }
+                                          sx={{ cursor: 'pointer' }}
+                                      >
+                                          <img
+                                              src={media.showcaseMedia_imageurl}
+                                              alt={media.showcaseMedia_fileName || `Media ${imgIndex + 1}`}
+                                              loading="lazy"
+                                              className={`rounded-lg w-full ${
+                                                  item.showcaseMediaEntity.length === 1
+                                                      ? 'object-contain'
+                                                      : 'h-[150px] object-cover'
+                                              }`}
+                                              style={
+                                                  item.showcaseMediaEntity.length === 1
+                                                      ? { maxHeight: '400px', objectFit: 'contain' }
+                                                      : {}
+                                              }
+                                          />
+                                          {imgIndex === 2 && item.showcaseMediaEntity.length > 3 && (
+                                              <Box
+                                                  position="absolute"
+                                                  top={0}
+                                                  left={0}
+                                                  right={0}
+                                                  bottom={0}
+                                                  display="flex"
+                                                  alignItems="center"
+                                                  justifyContent="center"
+                                                  bgcolor="rgba(0, 0, 0, 0.5)"
+                                                  borderRadius="8px"
+                                              >
+                                                  <Typography variant="h6" color="white" fontWeight="bold">
+                                                      +{item.showcaseMediaEntity.length - 3} more
+                                                  </Typography>
+                                              </Box>
+                                          )}
+                                      </Box>
+                                  ))}
+                              </Box>
+                          </Box>
+                      )}
+                      {/* Divider after each post */}
+                      <Divider sx={{ mt: 4 }} />
+                  </div>
+              ))}
           </div>
-        </div>
       </div>
+  </div>
 
       {/* Upload Modal Form*/}
       <Modal open={open} onClose={handleClose}>

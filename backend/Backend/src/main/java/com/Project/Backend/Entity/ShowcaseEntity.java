@@ -14,6 +14,7 @@ public class ShowcaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int showcase_id;
     private String showcase_title;
+    @Column(columnDefinition = "TEXT")
     private String showcase_description;
 
     //here

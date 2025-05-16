@@ -29,7 +29,6 @@ public class ShowcaseService {
             newShowcase.setShowcase_title(showcase.getTitle());
             newShowcase.setShowcase_description(showcase.getDescription());
             newShowcase.setSubcontractor(subcontractor);
-            showcaseMediaService.createShowcaseMedia(showcase.getImageUrls(), newShowcase.getShowcase_id());
         } catch (Exception e) {
             throw new RuntimeException("Error creating showcase");
         }
