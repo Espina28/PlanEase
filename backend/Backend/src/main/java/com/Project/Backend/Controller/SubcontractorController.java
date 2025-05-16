@@ -26,6 +26,15 @@ public class SubcontractorController {
         return ResponseEntity.ok(subcontractorService.getAllSubcontractors());
     }
 
+    @GetMapping("/getdetails/{email}")
+    public ResponseEntity<?> getSubcontractorDetails(@PathVariable String email) {
+        SubcontractorEntity subcontractor = subcontractorService.getSubcontractorByEmail(email);
+        if(subcontractor == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(subcontractor);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<SubcontractorEntity> getSubcontractorById(@PathVariable int id) {
         SubcontractorEntity subcontractor = subcontractorService.getSubcontractorById(id);

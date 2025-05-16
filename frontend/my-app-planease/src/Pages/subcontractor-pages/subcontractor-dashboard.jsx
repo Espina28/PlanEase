@@ -14,8 +14,15 @@ import '../../index.css';
 import { Box, IconButton, Modal, Stack, TextField, Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const SubcontractorDashboard = () => {
+
+  // Get JWT from localStorage and decode it
+  const token = localStorage.getItem('token');
+  const decoded = token ? jwtDecode(token) : null;
+  const [email, setEmail] = useState(decoded?.email || '');
+  const [showcase, setShowcase] = useState([]);
     
   const MAX_IMAGE_COUNT = 5;
   const MAX_VIDEO_COUNT = 1;
@@ -27,7 +34,6 @@ const SubcontractorDashboard = () => {
   const [activeGallery, setActiveGallery] = useState(null); // { images: [], index: 0 }
 
   const [isEditingAbout, setIsEditingAbout] = useState(false);
-  const [aboutUsText, setAboutUsText] = useState("Hi! We are passionate about bringing delicious food and memorable dining experience to your special events...");
 
   const [open, setOpen] = useState(false);
   const [editMediaOpen, setEditMediaOpen] = useState(false);
@@ -38,6 +44,7 @@ const SubcontractorDashboard = () => {
   const [selectedImageLenght, setSelectedImageLenght] = useState(0);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [about, setAbout] = useState('');
 
   const [imageUrl, setImageUrl] = useState([]);
 
@@ -46,6 +53,12 @@ const SubcontractorDashboard = () => {
       setOpen(false);
       setError(null);
       setSelectedImage([]);
+  }
+
+  const handleSubmitDescription = () => {
+      console.log("description",description);
+      setIsEditingAbout(false);
+      //postman for submitting the description
   }
 
   const theme = useTheme();
@@ -59,7 +72,23 @@ const SubcontractorDashboard = () => {
   useEffect(() => {
       console.log("item data",itemData)
       console.log("selected image",selectedImage)
-  },[selectedImage,itemData])
+      console.log("email: ",email)
+
+
+  axios.get(`http://localhost:8080/subcontractor/getdetails/${email}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+  }).then((response) => {
+    console.log("response",response.data);
+    setShowcase(response.data.showcase);
+    setAbout(response.data.description);
+  }).catch((error) => {
+    console.error("Error fetching user details:", error);
+  });
+  },[selectedImage])
+
+  
 
     const resizeImage = (file, maxWidth = 1920, maxHeight = 1080, sizeLimitMB = 10, quality = 0.8) => {
         return new Promise((resolve) => {
@@ -143,11 +172,9 @@ const SubcontractorDashboard = () => {
             const resizedImages = await Promise.all(
                 selectedImage.map(async (img) => {
                     const {resizedFile, original, resized} = await resizeImage(img.file);
-
                     // console.log(`Image: ${img.title}`);
                     // console.log(`Original: ${original.width}x${original.height}, ${original.sizeKB.toFixed(2)} KB`);
                     // console.log(`Resized:  ${resized.width}x${resized.height}, ${resized.sizeKB.toFixed(2)} KB`);
-
                     return {
                         image: URL.createObjectURL(resizedFile),
                         title: resizedFile.name,
@@ -193,16 +220,28 @@ const SubcontractorDashboard = () => {
             }
 
             console.log("urlImages",urlImages);
-
-
-
-            // if(imageUrl.length != 0){
-            //     axios.post('http://localhost:8080/subcontractor/upload-images', {},{
-            //         headers: {
-            //             Authorization: `Bearer ${localStorage.getItem('token')}`
-            //         }
-            //     })
-            // }
+            
+            if(imageUrl.length != 0){
+                axios.post('http://localhost:8080/showcase/create-showcase', {
+  email: email,
+  title: title,
+  description: description,
+  imageUrls: [
+    {
+      showcaseMedia_imageurl: "https://sample1.example.com",
+      showcaseMedia_fileName: "sample1.jpeg"
+    },
+    {
+      showcaseMedia_imageurl: "https://sample2.example.com",
+      showcaseMedia_fileName: "sample2.jpeg"
+    }
+  ]
+}, {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('token')}`
+  }
+});
+            }
 
 
             //call the endpoint and ask for presignedURL to POST in S3, then use the URL to save it in DB
@@ -341,7 +380,7 @@ const SubcontractorDashboard = () => {
 
               {!isEditingAbout ? (
                 <Typography className="font-poppins md:text-md text-gray-600 whitespace-pre-line">
-                  {aboutUsText}
+                  {about}
                 </Typography>
               ) : (
                 <Box mt={2}>
@@ -349,14 +388,14 @@ const SubcontractorDashboard = () => {
                     multiline
                     rows={4}
                     fullWidth
-                    value={aboutUsText}
-                    onChange={(e) => setAboutUsText(e.target.value)}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                   />
                   <Box display="flex" justifyContent="flex-end" mt={1}>
                     <Button
                       variant="contained"
                       size="small"
-                      onClick={() => setIsEditingAbout(false)}
+                      onClick={handleSubmitDescription}
                     >
                       Save
                     </Button>
@@ -477,13 +516,12 @@ const SubcontractorDashboard = () => {
                 {/* Divider after each post */}
                 <Divider sx={{ mt: 4 }} />
               </div>
-))}
-
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Upload Modal */}
+      {/* Upload Modal Form*/}
       <Modal open={open} onClose={handleClose}>
         <Box
           sx={{
@@ -687,7 +725,7 @@ const SubcontractorDashboard = () => {
       </Modal>
 
 
-      {/* Fullscreen Edit Modal */}
+      {/* Fullscreen Edit Modal of a Form*/}
       <Modal open={editMediaOpen} onClose={() => setEditMediaOpen(false)}>
         <Box
           sx={{
@@ -766,108 +804,108 @@ const SubcontractorDashboard = () => {
           </Box>
         </Box>
       </Modal>
-      {/* Fullscreen Viewer */}
-              {/* Fullscreen Viewer Modal */}
-<Modal
-  open={!!activeGallery}
-  onClose={() => setActiveGallery(null)}
-  sx={{
-    backdropFilter: 'blur(6px)', // 🔵 BLUR BACKGROUND
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Dim + blur
-    zIndex: 1300,
-  }}
->
-  <Box
+
+  {/* Fullscreen Viewer Modal */}
+  <Modal
+    open={!!activeGallery}
+    onClose={() => setActiveGallery(null)}
     sx={{
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: '90%',
-      maxWidth: '900px',
-      maxHeight: '90vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
+      backdropFilter: 'blur(6px)', // 🔵 BLUR BACKGROUND
+      backgroundColor: 'rgba(0, 0, 0, 0.6)', // Dim + blur
+      zIndex: 1300,
     }}
   >
-    {activeGallery && (
-      <>
-        <img
-          src={activeGallery.images[activeGallery.index].image}
-          alt="Preview"
-          style={{
-            maxHeight: '70vh',
-            maxWidth: '100%',
-            borderRadius: '12px',
-            objectFit: 'contain',
-            boxShadow: '0px 0px 20px rgba(0,0,0,0.5)',
-          }}
-        />
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          width="100%"
-          mt={2}
-          px={2}
-        >
-          <Button
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            },
-            color: 'white'
-          }}
-            variant="outlined"
-            color="inherit"
-            onClick={() =>
-              setActiveGallery((prev) => ({
-                ...prev,
-                index:
-                  prev.index === 0
-                    ? prev.images.length - 1
-                    : prev.index - 1,
-              }))
-            }
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '90%',
+        maxWidth: '900px',
+        maxHeight: '90vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {activeGallery && (
+        <>
+          <img
+            src={activeGallery.images[activeGallery.index].image}
+            alt="Preview"
+            style={{
+              maxHeight: '70vh',
+              maxWidth: '100%',
+              borderRadius: '12px',
+              objectFit: 'contain',
+              boxShadow: '0px 0px 20px rgba(0,0,0,0.5)',
+            }}
+          />
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            width="100%"
+            mt={2}
+            px={2}
           >
-            Prev
-          </Button>
-          <Typography color="white">
-            {activeGallery.index + 1} / {activeGallery.images.length}
-          </Typography>
-          <Button
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            },
-            color: 'white'
-          }}
-            variant="outlined"
-            color="inherit"
-            onClick={() =>
-              setActiveGallery((prev) => ({
-                ...prev,
-                index:
-                  prev.index === prev.images.length - 1
-                    ? 0
-                    : prev.index + 1,
-              }))
-            }
-          >
-            Next
-          </Button>
-        </Box>
-      </>
-    )}
-  </Box>
-</Modal>
+            <Button
+            sx={{
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              },
+              color: 'white'
+            }}
+              variant="outlined"
+              color="inherit"
+              onClick={() =>
+                setActiveGallery((prev) => ({
+                  ...prev,
+                  index:
+                    prev.index === 0
+                      ? prev.images.length - 1
+                      : prev.index - 1,
+                }))
+              }
+            >
+              Prev
+            </Button>
+            <Typography color="white">
+              {activeGallery.index + 1} / {activeGallery.images.length}
+            </Typography>
+            <Button
+            sx={{
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              },
+              color: 'white'
+            }}
+              variant="outlined"
+              color="inherit"
+              onClick={() =>
+                setActiveGallery((prev) => ({
+                  ...prev,
+                  index:
+                    prev.index === prev.images.length - 1
+                      ? 0
+                      : prev.index + 1,
+                }))
+              }
+            >
+              Next
+            </Button>
+          </Box>
+        </>
+      )}
+    </Box>
+  </Modal>
 
-    </div>
-  );
-};
+      </div>
+    );
+  };
 
 export default SubcontractorDashboard;
