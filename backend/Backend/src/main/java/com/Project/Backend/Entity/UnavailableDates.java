@@ -22,4 +22,44 @@ public class UnavailableDates {
     @JsonBackReference(value = "subcontractor-unavailable-dates")
     private SubcontractorEntity subcontractorEntity;
 
+    // Getters and setters
+    public int getUnavailableDate_id() {
+        return unavailableDate_id;
+    }
+
+    public void setUnavailableDate_id(int unavailableDate_id) {
+        this.unavailableDate_id = unavailableDate_id;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public Timestamp getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(Timestamp created_at) {
+        this.created_at = created_at;
+    }
+
+    public SubcontractorEntity getSubcontractorEntity() {
+        return subcontractorEntity;
+    }
+
+    public void setSubcontractorEntity(SubcontractorEntity subcontractorEntity) {
+        this.subcontractorEntity = subcontractorEntity;
+    }
 }

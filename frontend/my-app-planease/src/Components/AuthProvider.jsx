@@ -1,7 +1,9 @@
 import axios from "axios";
 import React, { createContext, useContext, useState } from "react";
 
-const AuthContext = createContext();
+// const AuthContext = createContext();
+
+export const AuthContext = createContext(); // Now it's exported and can be imported
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);//wala ni sud diri lang ni incase gamiton nako, ge try nako backend mo butang session para dili makita info sa user
