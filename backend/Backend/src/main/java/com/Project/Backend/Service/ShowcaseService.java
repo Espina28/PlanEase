@@ -37,19 +37,33 @@ public class ShowcaseService {
         return showcaseRepository.save(newShowcase);
     }
 
-    public ShowcaseEntity editShowcase(ShowcaseEntity showcase) {
+    public ShowcaseEntity editShowcase(ShowcaseDTO showcase, int showcase_id) {
         try {
-            Optional<ShowcaseEntity> optionalShowcaseEntity = showcaseRepository.findById(showcase.getShowcase_id());
-            if (optionalShowcaseEntity.isPresent()) {
-                ShowcaseEntity existingShowcase = optionalShowcaseEntity.get();
-                existingShowcase.setShowcase_title(showcase.getShowcase_title());
-                existingShowcase.setShowcase_description(showcase.getShowcase_description());
+            ShowcaseEntity existingShowcase = showcaseRepository.findById(showcase_id).orElse(null);
+            if (existingShowcase != null) {
+                existingShowcase.setShowcase_title(showcase.getTitle());
+                existingShowcase.setShowcase_description(showcase.getDescription());
                 return showcaseRepository.save(existingShowcase);
             } else {
-                throw new RuntimeException("Showcase not found with id: " + showcase.getShowcase_id());
+                throw new RuntimeException("Showcase not found with id: " + showcase_id);
             }
         } catch (Exception e) {
             throw new RuntimeException("Error editing showcase", e);
+        }
+    }
+
+    public ShowcaseEntity updateShowcase(int id, ShowcaseEntity updatedShowcase) {
+        try {
+            ShowcaseEntity existingShowcase = findShowcaseById(id);
+            if (existingShowcase != null) {
+                existingShowcase.setShowcase_title(updatedShowcase.getShowcase_title());
+                existingShowcase.setShowcase_description(updatedShowcase.getShowcase_description());
+                return showcaseRepository.save(existingShowcase);
+            } else {
+                return null;
+            }
+        }catch (Exception e){
+            throw new RuntimeException("Error updating showcase", e);
         }
     }
 

@@ -92,17 +92,25 @@ public class ShowcaseMediaService {
         }
     }
 
-//    public String updateShowcaseMedia(CreateShowcaseMedia createShowcaseMedia) {
-//        ShowcaseMediaEntity newShowcaseMedia = new ShowcaseMediaEntity();
+//    public ShowcaseMediaEntity updateShowcaseMedia(ShowcaseMediaEntity[] imageUrls, int showcaseId) {
 //        try {
-//            ShowcaseEntity showcase = showcaseService.findShowcaseById(createShowcaseMedia.getShowcase_id());
-//            if(showcase == null){
-//                throw new RuntimeException("Showcase not found with id: " + createShowcaseMedia.getShowcase_id());
+//            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcaseId);
+//
+//            for(ShowcaseMediaEntity newMedia : imageUrls){
+//                ShowcaseMediaEntity existingMedia = showcaseMediaRepository.findShowcaseMediaByImage_url(newMedia.getShowcaseMedia_imageurl());
+//                if(existingMedia != null){
+//                    if(!existingMedia.getShowcaseMedia_imageurl().equals(newMedia.getShowcaseMedia_imageurl())){
+//                        existingMedia.setShowcaseMedia_imageurl(newMedia.getShowcaseMedia_imageurl());
+//                        existingMedia.setShowcaseMedia_fileName(newMedia.getShowcaseMedia_fileName());
+//                        showcaseMediaRepository.save(existingMedia);
+//                    }
+//                }
+//                ShowcaseMediaEntity newMediaEntity = new ShowcaseMediaEntity();
+//                newMediaEntity.setShowcaseMedia_imageurl(newMedia.getShowcaseMedia_imageurl());
+//                newMediaEntity.setShowcaseMedia_fileName(newMedia.getShowcaseMedia_fileName());
+//                newMediaEntity.setShowcaseEntity(showcase);
+//                showcaseMediaRepository.save(newMediaEntity);
 //            }
-//            newShowcaseMedia.setShowcaseMedia_imageurl(createShowcaseMedia.getImageUrl());
-//            newShowcaseMedia.setShowcaseMedia_fileName(createShowcaseMedia.getFileName());
-//            newShowcaseMedia.setShowcaseEntity(showcase);
-//            showcaseMediaRepository.save(newShowcaseMedia);
 //            return createShowcaseMedia.getImageUrl();
 //        }catch (Exception e){
 //            throw new RuntimeException("Error in saving showcase media");

@@ -139,7 +139,7 @@ const SubcontractorDashboard = () => {
                 });
             })
             .catch((error) => {
-                console.error("Error fetching user details:", error);
+                console.log("Error fetching user details:", error);
             });
     }
 
@@ -326,6 +326,7 @@ const SubcontractorDashboard = () => {
         } else {
             console.log(isEditingShowcase ? "updating video showcase" : "submitting new video showcase");
             // TODO: Handle video editing/uploading logic
+
         }
         handleClose();
     };
@@ -335,9 +336,6 @@ const SubcontractorDashboard = () => {
         setSelectedVideo(event.target.files[0]);
     }
 
-    useEffect(()=>{
-        console.log(imageUrl);
-    },[imageUrl])
 
     const handleImageChange = (event) => {
 
