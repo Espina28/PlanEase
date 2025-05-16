@@ -6,6 +6,7 @@ import Navbar from '../../Components/Navbar';
 import NavPanel from "../../Components/subcon-navpanel";
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, TextField } from '@mui/material';
 import { AuthContext } from '../../Components/AuthProvider';
+import axios from 'axios';
 
 const localizer = momentLocalizer(moment);
 
@@ -32,30 +33,36 @@ const SubcontractorCalendar = () => {
     const fetchUnavailableDates = async () => {
       try {
         setLoading(true);
-        // Get user email from localStorage
-        const email = localStorage.getItem('email');
+        
+        // Get the token from localStorage (similar to subcontractor-bookings.jsx)
+        const token = localStorage.getItem('token');
+        
+        // First get the current user's email
+        const userResponse = await axios.get('http://localhost:8080/user/getcurrentuser', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const email = userResponse.data.schoolId; // The API returns email as "schoolId"
+        
         if (!email) {
           setError('User email not found');
           setLoading(false);
           return;
         }
-
-        const response = await fetch(`http://localhost:8080/api/subcontractor/unavailable-dates?email=${encodeURIComponent(email)}`, {
-          method: 'GET',
+        
+        // Then fetch the unavailable dates using the email
+        const response = await axios.get(`http://localhost:8080/api/subcontractor/unavailable-dates`, {
+          params: { email: email },
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-          },
-          credentials: 'include'
+          }
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch unavailable dates');
-        }
-
-        const data = await response.json();
+        
         // Transform dates from the backend into the format needed by the calendar
-        const formattedDates = data.map(item => ({
+        const formattedDates = response.data.map(item => ({
           start: new Date(item.date),
           end: new Date(item.date),
           title: item.reason || 'Unavailable',
@@ -74,7 +81,7 @@ const SubcontractorCalendar = () => {
     };
 
     fetchUnavailableDates();
-  }, [token]);
+  }, []);  // Removed token dependency since we now get it from localStorage
 
   // Function to handle date selection
   const handleDateSelect = ({ start }) => {
@@ -117,30 +124,100 @@ const SubcontractorCalendar = () => {
     setCurrentDate(newDate);
   };
   
+  // Function to save unavailability to backend
+  const saveUnavailabilityToServer = async (date, reason) => {
+    try {
+      // Get the token from localStorage (similar to subcontractor-bookings.jsx)
+      const token = localStorage.getItem('token');
+      
+      // First get the current user's email
+      const userResponse = await axios.get('http://localhost:8080/user/getcurrentuser', {
+        headers: {
+             'Content-Type': 'application/json',
+             'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const email = userResponse.data.schoolId;
+
+      if (!email) {
+        throw new Error('User email not found');
+      }
+
+      const formattedDate = moment(date).format('YYYY-MM-DD');
+      
+      // Save the unavailable date
+      const response = await axios.post('http://localhost:8080/api/subcontractor/unavailable-dates', 
+        {
+          email: email,
+          date: formattedDate,
+          reason: reason
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Error saving unavailable date:', error);
+      throw error;
+    }
+  };
+
   // Function to confirm unavailability
-  const handleConfirmUnavailability = () => {
+  const handleConfirmUnavailability = async () => {
     const selectedDate = confirmDialog.date;
     
-    // Add the date as unavailable
-    setUnavailableDates([
-      ...unavailableDates,
-      {
+    try {
+      // First, directly store it in the local state to give immediate feedback
+      const tempDate = {
         start: selectedDate,
         end: selectedDate,
         title: reason || 'Unavailable',
         reason: reason,
-        allDay: true
+        allDay: true,
+        // We'll add a temporary ID that will be replaced once server responds
+        id: `temp-${Date.now()}`
+      };
+      
+      // Add to local state first for immediate feedback
+      setUnavailableDates([
+        ...unavailableDates,
+        tempDate
+      ]);
+      
+      // Try to save to backend
+      const savedDate = await saveUnavailabilityToServer(selectedDate, reason);
+      
+      // Update the temporary date with the proper ID from server
+      setUnavailableDates(prev => 
+        prev.map(date => 
+          date.id === tempDate.id ? {
+            ...date,
+            id: savedDate.unavailableDate_id
+          } : date
+        )
+      );
+      
+      setSavedStatus('Date saved successfully');
+    } catch (error) {
+      console.error('Failed to save date:', error);
+      if (error.message && error.message.includes('User email not found')) {
+        setSavedStatus('Error: Your account information could not be retrieved. Please log out and log in again.');
+      } else {
+        setSavedStatus('Error saving date. Please try again.');
       }
-    ]);
+    }
     
     // Close the dialog
     setConfirmDialog({
       open: false,
       date: null
     });
-    
-    // Clear any previous saved status
-    setSavedStatus('');
   };
   
   // Function to handle reason change
@@ -404,14 +481,14 @@ const SubcontractorCalendar = () => {
                 </DialogActions>
               </Dialog>
               
-              <div className="flex justify-end">
+              {/* <div className="flex justify-end">
                 <button 
                   onClick={saveUnavailableDates}
                   className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition duration-300"
                 >
                   Save Unavailable Dates
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
