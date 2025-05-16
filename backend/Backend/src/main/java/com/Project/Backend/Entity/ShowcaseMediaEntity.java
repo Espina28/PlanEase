@@ -17,7 +17,39 @@ public class ShowcaseMediaEntity {
 
     @ManyToOne
     @JoinColumn(name = "showcase_id")
-    @JsonBackReference(value = "showcaseMedia-entity")
+    @JsonBackReference(value = "showcase-showcaseMedia")
     private ShowcaseEntity showcaseEntity;
 
+
+    public int getShowcaseMedia_id() {
+        return showcaseMedia_id;
+    }
+
+    public void setShowcaseMedia_id(int showcaseMedia_id) {
+        this.showcaseMedia_id = showcaseMedia_id;
+    }
+
+    public String getShowcaseMedia_imageurl() {
+        return showcaseMedia_imageurl;
+    }
+
+    public void setShowcaseMedia_imageurl(String showcaseMedia_imageurl) {
+        this.showcaseMedia_imageurl = showcaseMedia_imageurl;
+    }
+
+    public String getShowcaseMedia_fileName() {
+        return showcaseMedia_fileName;
+    }
+
+    public void setShowcaseMedia_fileName(String showcaseMedia_fileName) {
+        this.showcaseMedia_fileName = showcaseMedia_fileName;
+    }
+
+    public ShowcaseEntity getShowcaseEntity() {
+        return showcaseEntity;
+    }
+
+    public void setShowcaseEntity(ShowcaseEntity showcaseEntity) {
+        this.showcaseEntity = showcaseEntity;
+    }
 }

@@ -32,27 +32,14 @@ public class SubcontractorController {
         return ResponseEntity.ok(subcontractor);
     }
 
-    @GetMapping("/generate-PresignedUrl")
-    public ResponseEntity<?> generatePresignedURL(
-            @RequestParam("file_name") String fileName,
-            @RequestParam("user_name") String userName){
-        String uuidName = java.util.UUID.randomUUID() + "_" + fileName;
-
-        try{
-            String presignedURL = subcontractorService.generatePresignedUrl(userName,uuidName);
-            return ResponseEntity.ok(Map.of("presignedURL", presignedURL, "uuidName", uuidName));
-        }catch (RuntimeException e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
-        }
-    }
-
 
     @PostMapping("/create")
     public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {
         SubcontractorEntity subcontractor = new SubcontractorEntity();
         subcontractor.setUser(request.getUser());
-        subcontractor.setService(request.getService());
-
+        subcontractor.setAvailable(true);
+        subcontractor.setDescription(request.getDescription());
+        subcontractor.setService_name(request.getService());
         SubcontractorEntity savedSubcontractor = subcontractorService.saveSubcontractor(subcontractor);
         return ResponseEntity.ok(savedSubcontractor);
     }

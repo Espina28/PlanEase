@@ -61,3 +61,6 @@ hs_err_pid*
 # Lombok config
 .lombok/
 
+
+#package json
+package-lock.json

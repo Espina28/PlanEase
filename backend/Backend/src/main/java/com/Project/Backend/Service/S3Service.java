@@ -43,7 +43,12 @@ public class S3Service {
                     ))
                     .build();
         }
-        this.presigner = S3Presigner.create();
+        this.presigner = S3Presigner.builder()
+                .region(Region.of(region))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(accessKey, secretKey)
+                ))
+                .build();
     }
 
     public String upload(File file, String folderPath, String fileName) {
