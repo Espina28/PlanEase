@@ -69,19 +69,16 @@ public class UserController {
         return response;
     }
 
-    @PostMapping("/upload/user/{userId}")
-    public ResponseEntity<?> updateUserProfile(
+    @PostMapping("/upload/profile/{userId}")
+    public ResponseEntity<?> uploadUserProfilePicture(
         @PathVariable String userId,
-        @RequestParam(value = "file", required = false) MultipartFile file,
-        @RequestParam(value = "firstname", required = false) String firstname,
-        @RequestParam(value = "lastname", required = false) String lastname,
-        @RequestParam(value = "password", required = false) String password
+        @RequestParam(value = "file", required = false) MultipartFile file
     ) {
         try {
-            UserEntity updatedUser = userService.updateUserProfile(userId, file, firstname, lastname, password);
+            UserEntity updatedUser = userService.updateUserProfilePicture(userId, file);
             return ResponseEntity.ok(updatedUser);
         } catch (IOException e) {
-            return ResponseEntity.badRequest().body("Profile update failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Profile picture upload failed: " + e.getMessage());
         }
     }
 

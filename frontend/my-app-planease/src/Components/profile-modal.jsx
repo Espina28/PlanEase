@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { Pencil, Check, X, KeyRound, MapPin, ChevronDown } from "lucide-react"
 import axios from "axios"
 import { Snackbar, Alert } from "@mui/material"
+import { PROFILE_UPDATED_EVENT } from "./Navbar"
 
 const API_BASE_URL = "http://localhost:8080"
 
@@ -358,6 +359,79 @@ export function ProfileModal({ open, onOpenChange }) {
     handleChange("barangay", barangayName)
   }
 
+  // Find the handleProfilePictureUpload function and modify it to dispatch an event when successful
+  const handleProfilePictureUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setSnackbar({
+          open: true,
+          message: "You are not logged in",
+          severity: "error",
+        })
+        return
+      }
+
+      // Create form data
+      const formData = new FormData()
+      formData.append("file", file)
+
+      // Show loading state
+      setSnackbar({
+        open: true,
+        message: "Uploading profile picture...",
+        severity: "info",
+      })
+
+      // Get user ID from email
+      const userId = user.email
+
+      // Call the upload endpoint
+      const response = await axios.post(`${API_BASE_URL}/user/upload/profile/${userId}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      })
+
+      if (response.status === 200) {
+        // Update the user state with the new profile picture URL
+        const newProfilePicture = response.data.profilePicture
+
+        setUser((prev) => ({
+          ...prev,
+          profilePicture: newProfilePicture,
+        }))
+
+        // Dispatch custom event to notify navbar of profile picture update
+        window.dispatchEvent(
+          new CustomEvent(PROFILE_UPDATED_EVENT, {
+            detail: { profilePicture: newProfilePicture },
+          }),
+        )
+
+        // Show success message
+        setSnackbar({
+          open: true,
+          message: "Profile picture updated successfully",
+          severity: "success",
+        })
+      }
+    } catch (error) {
+      console.error("Failed to upload profile picture:", error)
+
+      // Show error message
+      setSnackbar({
+        open: true,
+        message: "Failed to upload profile picture. Please try again.",
+        severity: "error",
+      })
+    }
+  }
+
   const handleSaveChanges = async () => {
     try {
       const token = localStorage.getItem("token")
@@ -595,18 +669,37 @@ export function ProfileModal({ open, onOpenChange }) {
         <div className="px-8 pt-6 pb-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              {/* Profile Image */}
-              {user.profilePicture ? (
-                <img
-                  src={user.profilePicture || "/placeholder.svg"}
-                  alt="Profile"
-                  className="h-20 w-20 rounded-full object-cover"
-                />
-              ) : (
-                <div className="h-20 w-20 rounded-full bg-gray-400 flex items-center justify-center text-white text-3xl font-semibold select-none">
-                  {user.firstname ? user.firstname.charAt(0).toUpperCase() : "?"}
+              {/* Profile Image with upload hover effect */}
+              <div className="relative group">
+                {user.profilePicture ? (
+                  <img
+                    src={user.profilePicture || "/placeholder.svg"}
+                    alt="Profile"
+                    className="h-20 w-20 rounded-full object-cover cursor-pointer"
+                  />
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-gray-400 flex items-center justify-center text-white text-3xl font-semibold select-none cursor-pointer">
+                    {user.firstname ? user.firstname.charAt(0).toUpperCase() : "?"}
+                  </div>
+                )}
+
+                {/* Upload overlay */}
+                <div
+                  className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  onClick={() => document.getElementById("profile-upload").click()}
+                >
+                  <span className="text-white text-xs font-medium">Change Photo</span>
                 </div>
-              )}
+
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  id="profile-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleProfilePictureUpload}
+                />
+              </div>
 
               {/* Profile Info */}
               <div>
@@ -931,7 +1024,10 @@ export function ProfileModal({ open, onOpenChange }) {
       </Snackbar>
       {/* Current Password Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onMouseDown={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <div
             className="bg-white rounded-md shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300"
             onClick={(e) => e.stopPropagation()}
@@ -1003,7 +1099,10 @@ export function ProfileModal({ open, onOpenChange }) {
 
       {/* New Password Modal */}
       {showNewPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onMouseDown={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <div
             className="bg-white rounded-md shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300"
             onClick={(e) => e.stopPropagation()}

@@ -1,6 +1,10 @@
 package com.Project.Backend.Service;
 
 import java.io.IOException;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.Project.Backend.Entity.UserEntity;
 import com.Project.Backend.Repository.UserRepository;
+import com.Project.Backend.Service.S3Service;
 
 @Service
 public class UserService {
@@ -21,14 +26,18 @@ public class UserService {
     @Autowired
     private final CloudinaryService cloudinaryService;
 
+    @Autowired
+    private final S3Service s3Service;
+
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     
     
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, CloudinaryService cloudinaryService) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, CloudinaryService cloudinaryService, S3Service s3Service) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.cloudinaryService = cloudinaryService;
+        this.s3Service = s3Service;
     }
 
     public UserEntity saveUser(UserEntity user) {
@@ -52,35 +61,30 @@ public class UserService {
         return user.getProfilePicture();
     }
 
-    public UserEntity updateUserProfile(String email, MultipartFile file, String firstname, String lastname, String password) throws IOException {
+public UserEntity updateUserProfilePicture(String email, MultipartFile file) throws IOException {
         UserEntity user = userRepository.findByEmail(email);
         
-        // Check if a new profile image is provided
         if (file != null && !file.isEmpty()) {
-            // Delete the previous image from Cloudinary (if it exists)
+            // Delete the previous image from S3 (if it exists)
             String existingImageUrl = user.getProfilePicture();
             if (existingImageUrl != null && !existingImageUrl.isEmpty()) {
-                cloudinaryService.deleteImage(existingImageUrl);
+                // TODO: Implement S3 delete if needed
             }
-    
-            // Upload new image
-            String newImageUrl = cloudinaryService.uploadImage(file, "user_profiles");
+
+            // Convert MultipartFile to File
+            File convFile = File.createTempFile("upload", file.getOriginalFilename());
+            file.transferTo(convFile);
+
+            // Upload new image to S3
+            String newImageUrl = s3Service.upload(convFile, "user_profiles", file.getOriginalFilename());
             user.setProfilePicture(newImageUrl);
+
+            // Delete temp file
+            convFile.delete();
         }
-    
-        // Update other fields if provided
-        if (firstname != null && !firstname.isEmpty()) {
-            user.setFirstname(firstname);
-        }
-        if (lastname != null && !lastname.isEmpty()) {
-            user.setLastname(lastname);
-        }
-        if (password != null && !password.isEmpty()) {
-            user.setPassword(bCryptPasswordEncoder.encode(password)); // Ensure password is hashed before saving
-        }
-    
-        return userRepository.save(user);
-    }
+
+    return userRepository.save(user);
+ }
 
     public boolean loginUser(String email, String password) {
         UserEntity user = userRepository.findByEmail(email);

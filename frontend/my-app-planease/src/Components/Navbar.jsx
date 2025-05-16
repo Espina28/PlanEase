@@ -1,20 +1,88 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Bell, LogOut, User } from "lucide-react"
 import { ProfileModal } from "./profile-modal"
-import { useAuth } from "./AuthProvider";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthProvider"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
+
+const API_BASE_URL = "http://localhost:8080"
+
+// Create a custom event for profile updates
+export const PROFILE_UPDATED_EVENT = "profileUpdated"
 
 const Navbar = () => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
-  const { logout } = useAuth();
-  const navigate = useNavigate();
+  const [user, setUser] = useState({
+    firstname: "",
+    lastname: "",
+    email: "",
+    profilePicture: null,
+  })
+  const [loading, setLoading] = useState(true)
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setLoading(false)
+        return
+      }
+
+      const { data } = await axios.get(`${API_BASE_URL}/user/getuser`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      setUser({
+        firstname: data.firstname || "",
+        lastname: data.lastname || "",
+        email: data.email || "",
+        profilePicture: data.profilePicture || null,
+      })
+      setLoading(false)
+    } catch (error) {
+      console.error("Failed to fetch user data:", error)
+      setLoading(false)
+    }
+  }
+
+  // Fetch user data when component mounts
+  useEffect(() => {
+    fetchUserData()
+  }, [])
+
+  // Listen for profile update events
+  useEffect(() => {
+    // Create event listener for profile updates
+    const handleProfileUpdate = (event) => {
+      // If the event includes updated profile data, use it directly
+      if (event.detail && event.detail.profilePicture) {
+        setUser((prevUser) => ({
+          ...prevUser,
+          profilePicture: event.detail.profilePicture,
+        }))
+      } else {
+        // Otherwise refetch the user data
+        fetchUserData()
+      }
+    }
+
+    // Add event listener
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate)
+
+    // Clean up
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdate)
+    }
+  }, [])
 
   const handleLogout = () => {
-      logout()
-     navigate("/")
+    logout()
+    navigate("/")
   }
 
   const toggleProfileDropdown = () => {
@@ -24,6 +92,11 @@ const Navbar = () => {
   const openProfileModal = () => {
     setProfileModalOpen(true)
     setProfileDropdownOpen(false)
+  }
+
+  // Get user's first initial for avatar fallback
+  const getInitial = () => {
+    return user.firstname ? user.firstname.charAt(0).toUpperCase() : "U"
   }
 
   return (
@@ -44,7 +117,7 @@ const Navbar = () => {
           <div className="my-div-1 flex justify-between">
             {/* Logo - now positioned on the left */}
             <a href="/" className="text-xl font-medium">
-              Event<span className="text-blue-500">Ease</span>
+              Event<span className="text-amber-500">Ease</span>
             </a>
 
             {/* Right side - notifications and profile */}
@@ -56,11 +129,19 @@ const Navbar = () => {
               {/* Profile dropdown */}
               <div className="relative">
                 <button onClick={toggleProfileDropdown} className="focus:outline-none">
-                  <img
-                    src="/assets/image-profile.jpg"
-                    alt="Profile"
-                    className="h-8 w-8 rounded-full object-cover border border-gray-200"
-                  />
+                  {loading ? (
+                    <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+                  ) : user.profilePicture ? (
+                    <img
+                      src={user.profilePicture || "/placeholder.svg"}
+                      alt="Profile"
+                      className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+                      {getInitial()}
+                    </div>
+                  )}
                 </button>
 
                 {/* Dropdown menu */}
