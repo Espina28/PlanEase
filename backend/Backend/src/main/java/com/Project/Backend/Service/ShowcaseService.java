@@ -2,8 +2,10 @@ package com.Project.Backend.Service;
 
 import com.Project.Backend.DTO.ShowcaseDTO;
 import com.Project.Backend.Entity.ShowcaseEntity;
+import com.Project.Backend.Entity.ShowcaseMediaEntity;
 import com.Project.Backend.Entity.SubcontractorEntity;
 import com.Project.Backend.Repository.ShowcaseRepository;
+import org.springframework.boot.actuate.endpoint.Show;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,6 +60,20 @@ public class ShowcaseService {
 
     public ShowcaseEntity findShowcaseById(int id) {
         return showcaseRepository.findById(id).orElse(null);
+    }
+
+    public String deleteShowcase(int id) {
+        String message = "";
+        try {
+            ShowcaseEntity showcase = findShowcaseById(id);
+
+            if(showcase == null)
+                return "Showcase not found";
+            showcaseRepository.deleteById(id);
+        } catch (Exception e) {
+            return null;
+        }
+        return message = "deleted successfully";
     }
 
 

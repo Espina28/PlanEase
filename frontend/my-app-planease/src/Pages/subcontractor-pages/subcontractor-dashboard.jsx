@@ -27,13 +27,14 @@ const SubcontractorDashboard = () => {
   const MAX_IMAGE_COUNT = 5;
   const MAX_VIDEO_COUNT = 1;
   const [error,setError] = useState(null);
-  
   const [selectVideo, setSelectedVideo] = useState(null);
 
     //this variable is for clicking the images in post
   const [activeGallery, setActiveGallery] = useState(null); // { images: [], index: 0 }
 
   const [isEditingAbout, setIsEditingAbout] = useState(false);
+    const [isEditingShowcase, setIsEditingShowcase] = useState(false);
+    const [editingShowcaseId, setEditingShowcaseId] = useState(null);
 
   const [open, setOpen] = useState(false);
   const [editMediaOpen, setEditMediaOpen] = useState(false);
@@ -53,17 +54,58 @@ const SubcontractorDashboard = () => {
   const [imageUrl, setImageUrl] = useState([]);
 
   const handleOpen = () => setOpen(true);
-  const handleClose = () => {
-      setOpen(false);
-      setError(null);
-      setSelectedImage([]);
-  }
 
-  const handleSubmitDescription = () => {
-      console.log("description",description);
-      setIsEditingAbout(false);
-      //postman for submitting the description
-  }
+
+    const handleEdit = (item) => {
+        setTitle(item.showcase_title);
+        setDescription(item.showcase_description);
+        setSelectedImage(item.showcaseMediaEntity.map(media => ({
+            title: media.showcaseMedia_fileName,
+            image: media.showcaseMedia_imageurl,
+            file: null // read-only for existing files; replace only if changed
+        })));
+        setSelectedImageLenght(item.showcaseMediaEntity.length);
+        setEditingShowcaseId(item.showcase_id);
+        setIsEditingShowcase(true);
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        setTitle('');
+        setDescription('');
+        setSelectedImage([]);
+        setSelectedImageLenght(0);
+        setSelectedVideo(null);
+        setIsEditingShowcase(false);
+        setEditingShowcaseId(null);
+        setError(null);
+    };
+
+    const handleSubmitDescription = () => {
+        console.log("description", description);
+        setIsEditingAbout(false);
+
+        // Submit the updated description
+        axios.put('http://localhost:8080/subcontractor/edit-description', {
+                email: email,
+                description: description
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            }
+        ).then(res => {
+            if (res.status === 200) {
+                setAbout(description); // Update the local 'about' state to reflect changes
+            } else {
+                console.error("Failed to update description, unexpected response status:", res.status);
+            }
+        }).catch(err => {
+            console.error("Error updating description:", err);
+        });
+    }
 
   const theme = useTheme();
   const dropRef = useRef(null);
@@ -179,108 +221,115 @@ const SubcontractorDashboard = () => {
 
   const handleDelete = (showcase_id) => {
       console.log(showcase_id);
+      axios.delete(`http://localhost:8080/showcase/delete/${showcase_id}`, {
+          headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+      })
+          .then((response) => {
+              fetchShowcaseData();
+          })
   }
 
     const handleSubmit = async () => {
         if (!selectVideo) {
-            console.log("submitting image");
+            console.log(isEditingShowcase ? "updating image showcase" : "submitting new image showcase");
+
             const resizedImages = await Promise.all(
                 selectedImage.map(async (img) => {
-                    const {resizedFile, original, resized} = await resizeImage(img.file);
-                    // console.log(`Image: ${img.title}`);
-                    // console.log(`Original: ${original.width}x${original.height}, ${original.sizeKB.toFixed(2)} KB`);
-                    // console.log(`Resized:  ${resized.width}x${resized.height}, ${resized.sizeKB.toFixed(2)} KB`);
+                    if (!img.file) {
+                        // Reuse existing image (already uploaded, not replaced)
+                        return {
+                            image: img.image,
+                            title: img.title,
+                            file: null,
+                            existing: true,
+                        };
+                    }
+
+                    const { resizedFile, original, resized } = await resizeImage(img.file);
                     return {
                         image: URL.createObjectURL(resizedFile),
                         title: resizedFile.name,
                         file: resizedFile,
-                        meta: {original, resized}, // optional: keep for later display or debug
+                        meta: { original, resized },
                     };
                 })
             );
-            console.log(resizedImages);
-            let urlImages = [];
+
+            const urlImages = [];
+
             for (const img of resizedImages) {
+                if (img.existing) {
+                    urlImages.push({
+                        showcaseMedia_imageurl: img.image,
+                        showcaseMedia_fileName: img.title,
+                    });
+                    continue;
+                }
+
                 try {
-                    // API call to get a presigned URL
                     const presignedResponse = await axios.get(
-                      `http://localhost:8080/showcasemedia/generate-PresignedUrl`,
-                      {
-                        params: {
-                          file_name: img.file.name,
-                          user_name: "johndoe"
-                        },
-                        headers: {
-                          Authorization: `Bearer ${localStorage.getItem('token')}`
+                        `http://localhost:8080/showcasemedia/generate-PresignedUrl`,
+                        {
+                            params: {
+                                file_name: img.title,
+                                user_name: "johndoe"
+                            },
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem('token')}`
+                            }
                         }
-                      }
                     );
 
-                    console.log(presignedResponse.data);
                     const presignedUrl = presignedResponse.data.presignedURL;
                     const baseUrl = presignedUrl.split('?')[0];
 
                     urlImages.push({
-                        "showcaseMedia_imageurl": baseUrl,
-                        "showcaseMedia_fileName": img.file.name
+                        showcaseMedia_imageurl: baseUrl,
+                        showcaseMedia_fileName: img.title,
                     });
-                    // Upload the file to the presigned URL
-                    const uploadResponse = await axios.put(presignedUrl, img.file, {
+
+                    await axios.put(presignedUrl, img.file, {
                         headers: {
                             'Content-Type': img.file.type,
                         },
-                    }); 
-                    console.log(`Successfully uploaded: ${img.title}`);
+                    });
 
+                    console.log(`Uploaded: ${img.title}`);
                 } catch (error) {
                     console.error(`Error uploading ${img.title}:`, error);
                 }
             }
 
-            console.log("urlImages",urlImages);
-            
-            if(urlImages.length !== 0){
-                axios.post('http://localhost:8080/showcase/create-showcase', {
-                  email: email,
-                  title: title,
-                  description: description,
-                  imageUrls: urlImages
+            console.log("urlImages", urlImages);
+
+            if (urlImages.length !== 0) {
+                const endpoint = isEditingShowcase
+                    ? `http://localhost:8080/showcase/edit-showcase/${editingShowcaseId}`
+                    : `http://localhost:8080/showcase/create-showcase`;
+                const method = isEditingShowcase ? 'put' : 'post';
+
+                axios[method](endpoint, {
+                    email,
+                    title,
+                    description,
+                    imageUrls: urlImages
                 }, {
-                  headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                  }
-                }).then(res => {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                }).then(() => {
                     fetchShowcaseData();
                 });
             }
-
-
-            //call the endpoint and ask for presignedURL to POST in S3, then use the URL to save it in DB
-            // axios.get()
-            //     .then()
-            //     .catch()
-
-            // const newItem = {
-            //     title,
-            //     description,
-            //     selectedImage: resizedImages.map((img) => ({
-            //         image: img.image,
-            //         title: img.title,
-            //         // meta: img.meta  <-- optional for UI feedback
-            //     })),
-            // };
-        }else{
-            console.log("submitting video");
-
-            //call the chunkUploader then return the video url then save to db
+        } else {
+            console.log(isEditingShowcase ? "updating video showcase" : "submitting new video showcase");
+            // TODO: Handle video editing/uploading logic
         }
-
-        // setItemData((prev) => [...prev, newItem]);
-        // setTitle('');
-        // setDescription('');
-        // setSelectedImage([]);
         handleClose();
     };
+
 
     const handleVideoChange = (event) => {
         setSelectedVideo(event.target.files[0]);
@@ -373,47 +422,52 @@ const SubcontractorDashboard = () => {
               </div>
             </div>
             <Divider />
-            <div className="md:p-4">
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="h6" fontWeight="medium" className="font-poppins md:text-lg">
-                  About us
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => setIsEditingAbout((prev) => !prev)}
-                  sx={{ color: 'gray' }}
-                >
-                  <EditIcon sx={{ color: 'grey-600' }} />
-                </IconButton>
-              </Box>
-
-              {!isEditingAbout ? (
-                <Typography className="font-poppins md:text-md text-gray-600 whitespace-pre-line">
-                  {about}
-                </Typography>
-              ) : (
-                <Box mt={2}>
-                  <TextField
-                    multiline
-                    rows={4}
-                    fullWidth
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                  <Box display="flex" justifyContent="flex-end" mt={1}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={handleSubmitDescription}
-                    >
-                      Save
-                    </Button>
+              <div className="md:p-4">
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                      <Typography variant="h6" fontWeight="medium" className="font-poppins md:text-lg">
+                          About us
+                      </Typography>
+                      <IconButton
+                          size="small"
+                          onClick={() => {
+                              setIsEditingAbout((prev) => {
+                                  if (!prev) setDescription(about); // Pre-fill when entering edit mode
+                                  return !prev;
+                              });
+                          }}
+                          sx={{ color: 'gray' }}
+                      >
+                          {isEditingAbout ? <CloseIcon /> : <EditIcon />} {/* Toggle icon */}
+                      </IconButton>
                   </Box>
-                </Box>
-              )}
-            </div>
 
-            <Divider />
+                  {!isEditingAbout ? (
+                      <Typography className="font-poppins md:text-md text-gray-600 whitespace-pre-line">
+                          {about}
+                      </Typography>
+                  ) : (
+                      <Box mt={2}>
+                          <TextField
+                              multiline
+                              rows={4}
+                              fullWidth
+                              value={description}
+                              onChange={(e) => setDescription(e.target.value)} // ← only updates state as you type
+                          />
+                          <Box display="flex" justifyContent="flex-end" mt={1}>
+                              <Button
+                                  variant="contained"
+                                  size="small"
+                                  onClick={handleSubmitDescription}
+                              >
+                                  Save
+                              </Button>
+                          </Box>
+                      </Box>
+                  )}
+              </div>
+
+              <Divider />
             {/* Showcase Items */}
               {showcase?.map((item, index) => (
                   <div key={index} className="py-6">
@@ -457,7 +511,7 @@ const SubcontractorDashboard = () => {
                                       fullWidth
                                       sx={{ justifyContent: 'flex-start', color: 'black' }}
                                       startIcon={<EditIcon />}
-                                      onClick={() => alert(`Edit: ${item.title}`)}
+                                      onClick={() => handleEdit(item)}
                                   >
                                       Edit
                                   </Button>
@@ -557,193 +611,160 @@ const SubcontractorDashboard = () => {
   </div>
 
       {/* Upload Modal Form*/}
-      <Modal open={open} onClose={handleClose}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 600,
-            bgcolor: '#fff',
-            borderRadius: '12px',
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          {/* Header */}
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Typography variant="h6" fontWeight={600}>Add Showcase</Typography>
-            <IconButton onClick={handleClose}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-          {/* Form Fields */}
-            <Stack spacing={2}>
-                <Box>
-                    <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Title</Typography>
-                    <TextField
-                        fullWidth
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                    />
-                </Box>
-
-                <Box>
-                    <Typography fontWeight={600} fontSize="0.875rem" color="#4A4A4A" mb={0.5}>Description</Typography>
-                    <TextField
-                        fullWidth
-                        multiline
-                        rows={3}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
-                </Box>
-
-                {/* Upload Section */}
-                {error ? (
-                    <Typography color="error" fontSize="0.9rem" mb={1}>
-                        {error}
-                    </Typography>
-                ) : selectVideo ? (
-                    <Box
-                        sx={{
-                            position: 'relative',
-                            border: '2px solid #ccc',
-                            borderRadius: '12px',
-                            padding: '32px',
-                            textAlign: 'center',
-                            backgroundColor: '#fafafa',
-                        }}
-                    >
-                        <video
-                            controls
-                            src={URL.createObjectURL(selectVideo)}
-                            style={{
-                                width: '100%',
-                                height: 'auto',
-                                borderRadius: '12px',
-                            }}
-                        />
-                        <IconButton
-                            size="small"
-                            onClick={() => setSelectedVideo(null)}
-                            sx={{
-                                position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                backgroundColor: '#fff',
-                                boxShadow: 1,
-                            }}
-                        >
-                            <CloseIcon fontSize="small"/>
+        <Modal open={open} onClose={handleClose}>
+            <Box
+                className="w-[90vw] max-w-3xl bg-white rounded-xl shadow-xl flex flex-col"
+                sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                }}
+            >
+                {/* Scrollable content without footer */}
+                <Box className="overflow-y-auto max-h-[70vh] p-6">
+                    {/* Header */}
+                    <Box className="flex items-center justify-between mb-4">
+                        <Typography variant="h6" fontWeight={600}>
+                            {isEditingShowcase ? 'Edit Showcase' : 'Add Showcase'}
+                        </Typography>
+                        <IconButton onClick={handleClose}>
+                            <CloseIcon />
                         </IconButton>
                     </Box>
-                ) : (
-                    <Box
-                        ref={dropRef}
-                        onClick={() => document.getElementById('upload-image-button')?.click()}
-                        sx={{
-                            border: '2px dashed #ccc',
-                            borderRadius: '12px',
-                            padding: '32px',
-                            textAlign: 'center',
-                            backgroundColor: '#fafafa',
-                            cursor: 'pointer',
-                            '&:hover': {
-                                backgroundColor: '#f0f0f0',
-                            },
-                        }}
-                    >
-                        <CloudUploadIcon sx={{color: '#90a4ae', fontSize: 40}}/>
-                        <Typography mt={1} fontSize="0.9rem">
-                            <span style={{color: '#1976d2', cursor: 'pointer', textDecoration: 'underline'}}>
-                                Click here
-                            </span>{' '}
-                            to Upload Images
-                        </Typography>
-                        <input
-                            accept="image/*"
-                            type="file"
-                            multiple
-                            onChange={(event) => {
-                                handleImageChange(event);
-                            }}
-                            style={{display: 'none'}}
-                            id="upload-image-button"
-                        />
-                    </Box>
-                )}
 
-            {/* Preview Section */}
-            {selectedImage.length > 0 && (
-              <ImageList cols={3} gap={8}>
-                {selectedImage.slice(0, 3).map((item, index) => (
-                  <ImageListItem key={index} sx={{ position: 'relative' }}>
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      style={{
-                        borderRadius: '12px',
-                        width: '100%',
-                        height: 'auto',
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => handleRemoveImage(index)}
-                      sx={{
-                        position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        backgroundColor: '#fff',
-                        boxShadow: 1,
-                      }}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </ImageListItem>
-                ))}
-                {selectedImage.length > 3 && (
-                  <ImageListItem
-                    onClick={() => setEditMediaOpen(true)}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: '#e0e0e0',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    <Typography fontWeight="bold" color="primary">
-                      +{selectedImage.length - 3} more
-                    </Typography>
-                  </ImageListItem>
-                )}
-              </ImageList>
-            )}
+                    {/* Form Fields */}
+                    <Stack spacing={3}>
+                        {/* Title */}
+                        <Box>
+                            <Typography className="text-sm font-semibold text-gray-700 mb-1">Title</Typography>
+                            <TextField fullWidth value={title} onChange={(e) => setTitle(e.target.value)} />
+                        </Box>
 
-                {/* Actions */}
-                <Box mt={2} display="flex" justifyContent="flex-end" gap={2}>
+                        {/* Description (limited height) */}
+                        <Box>
+                            <Typography className="text-sm font-semibold text-gray-700 mb-1">Description</Typography>
+                            <TextField
+                                fullWidth
+                                multiline
+                                minRows={2}
+                                maxRows={4}
+                                inputProps={{ maxLength: 700 }}
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                            />
+                        </Box>
+
+                        {/* Upload / Preview Section – keep unchanged */}
+                        {error ? (
+                            <Typography color="error" fontSize="0.9rem">{error}</Typography>
+                        ) : selectVideo ? (
+                            <Box className="relative border-2 border-gray-300 rounded-xl p-6 bg-gray-100 text-center">
+                                <video
+                                    controls
+                                    src={URL.createObjectURL(selectVideo)}
+                                    className="w-full rounded-lg"
+                                />
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setSelectedVideo(null)}
+                                    className="absolute top-2 right-2 bg-white shadow"
+                                >
+                                    <CloseIcon fontSize="small" />
+                                </IconButton>
+                            </Box>
+                        ) : (
+                            <Box
+                                ref={dropRef}
+                                onClick={() => document.getElementById('upload-image-button')?.click()}
+                                className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                            >
+                                <CloudUploadIcon className="text-gray-400 text-4xl mx-auto" />
+                                <Typography className="mt-2 text-sm">
+                                    <span className="text-blue-600 underline">Click here</span> to Upload Images
+                                </Typography>
+                                <input
+                                    accept="image/*"
+                                    type="file"
+                                    multiple
+                                    onChange={handleImageChange}
+                                    className="hidden"
+                                    id="upload-image-button"
+                                />
+                            </Box>
+                        )}
+
+                        {/* Preview Section */}
+                        {selectedImage.length > 0 && (
+                            <ImageList cols={3} gap={8}>
+                                {selectedImage.slice(0, 3).map((item, index) => (
+                                    <ImageListItem key={index} sx={{ position: 'relative' }}>
+                                        <img
+                                            src={item.image}
+                                            alt={item.title}
+                                            style={{
+                                                borderRadius: '12px',
+                                                width: '100%',
+                                                height: 'auto',
+                                                objectFit: 'cover',
+                                            }}
+                                        />
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => handleRemoveImage(index)}
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 4,
+                                                right: 4,
+                                                backgroundColor: '#fff',
+                                                boxShadow: 1,
+                                            }}
+                                        >
+                                            <CloseIcon fontSize="small" />
+                                        </IconButton>
+                                    </ImageListItem>
+                                ))}
+                                {selectedImage.length > 3 && (
+                                    <ImageListItem
+                                        onClick={() => setEditMediaOpen(true)}
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            backgroundColor: '#e0e0e0',
+                                            borderRadius: '12px',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                            +{selectedImage.length - 3} more
+                                        </Typography>
+                                    </ImageListItem>
+                                )}
+                            </ImageList>
+                        )}
+                    </Stack>
+                </Box>
+
+                {/* Sticky Footer Buttons */}
+                <Box className="flex justify-end gap-3 p-4 border-t border-gray-200 rounded-b-xl bg-white">
                     <Button
                         variant="contained"
-                        component="label" // Added component label for proper usage
+                        component="label"
                         disabled={selectedImage.length !== 0}
                     >
                         Add Video
                         <input
-                            accept="video/*" // Fixed to accept video files instead of images
+                            accept="video/*"
                             type="file"
-                            onChange={(event) => handleVideoChange(event)} // Ensure handleVideoChange method exists and handles video files appropriately
-                            style={{display: 'none'}}
-                            id="upload-video-button" // Updated ID for better clarity and avoid conflict
+                            onChange={handleVideoChange}
+                            className="hidden"
                         />
                     </Button>
-                    <Button variant="outlined"
-                            onClick={() => setEditMediaOpen(true)}
-                            disabled={selectedImage.length === 0}
+                    <Button
+                        variant="outlined"
+                        onClick={() => setEditMediaOpen(true)}
+                        disabled={selectedImage.length === 0}
                     >
                         Edit All
                     </Button>
@@ -752,15 +773,13 @@ const SubcontractorDashboard = () => {
                         onClick={handleSubmit}
                         disabled={!title || !description || (selectedImageLenght === 0 && selectVideo == null)}
                     >
-                        Add
+                        {isEditingShowcase ? 'Update' : 'Add'}
                     </Button>
                 </Box>
-          </Stack>
-        </Box>
-      </Modal>
+            </Box>
+        </Modal>
 
-
-      {/* Fullscreen Edit Modal of a Form*/}
+        {/* Fullscreen Edit Modal of a Form*/}
       <Modal open={editMediaOpen} onClose={() => setEditMediaOpen(false)}>
         <Box
           sx={{

@@ -54,4 +54,13 @@ public class ShowcaseController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/delete/{showcase_id}")
+    public ResponseEntity<?> deleteShowcase(@PathVariable int showcase_id){
+        String message = showcaseService.deleteShowcase(showcase_id);
+        if(message == null){
+            return ResponseEntity.notFound().build();
+        }
+    return ResponseEntity.ok(message);
+    }
 }

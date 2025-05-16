@@ -24,7 +24,7 @@ public class ShowcaseEntity {
     private SubcontractorEntity subcontractor;
 
 
-    @OneToMany(mappedBy = "showcaseEntity", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "showcaseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "showcase-showcaseMedia")
     private List<ShowcaseMediaEntity> showcaseMediaEntity;
 

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.Project.Backend.DTO.SubcontractorDescriptionDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,17 @@ public class SubcontractorController {
         return ResponseEntity.ok(subcontractor);
     }
 
+    @PutMapping("/edit-description")
+    public ResponseEntity<?> editSubcontractorDescription(
+                                @RequestBody SubcontractorDescriptionDTO subcontractorDescriptionDTO) {
+            String message = subcontractorService.editDescription(subcontractorDescriptionDTO.getEmail(),
+                                                                  subcontractorDescriptionDTO.getDescription());
+            if(message.equals("Error")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Error in updating description" ));
+            }
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
 
     @PostMapping("/create")
     public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {
@@ -58,4 +70,5 @@ public class SubcontractorController {
         subcontractorService.deleteSubcontractor(id);
         return ResponseEntity.noContent().build();
     }
+
 }
