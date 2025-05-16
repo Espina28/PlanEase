@@ -74,16 +74,17 @@ public class ShowcaseMediaService {
         return null; // Waiting for more chunks
     }
 
-    public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaEntity[] showcaseMediaEntity, int showcaseId) {
+    public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaEntity[] imageUrls, int showcaseId) {
         List<ShowcaseMediaEntity> savedMedia = new ArrayList<>();
         try {
             ShowcaseEntity showcase = showcaseService.findShowcaseById(showcaseId);
-            for (ShowcaseMediaEntity media : showcaseMediaEntity) {
+            for (ShowcaseMediaEntity media : imageUrls) {
                 ShowcaseMediaEntity newMedia = new ShowcaseMediaEntity();
                 newMedia.setShowcaseMedia_imageurl(media.getShowcaseMedia_imageurl());
                 newMedia.setShowcaseMedia_fileName(media.getShowcaseMedia_fileName());
                 newMedia.setShowcaseEntity(showcase);
                 savedMedia.add(showcaseMediaRepository.save(newMedia));
+                System.out.println("Saved media: " + savedMedia);
             }
             return savedMedia;
         } catch (Exception e) {
@@ -91,17 +92,25 @@ public class ShowcaseMediaService {
         }
     }
 
-//    public String updateShowcaseMedia(CreateShowcaseMedia createShowcaseMedia) {
-//        ShowcaseMediaEntity newShowcaseMedia = new ShowcaseMediaEntity();
+//    public ShowcaseMediaEntity updateShowcaseMedia(ShowcaseMediaEntity[] imageUrls, int showcaseId) {
 //        try {
-//            ShowcaseEntity showcase = showcaseService.findShowcaseById(createShowcaseMedia.getShowcase_id());
-//            if(showcase == null){
-//                throw new RuntimeException("Showcase not found with id: " + createShowcaseMedia.getShowcase_id());
+//            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcaseId);
+//
+//            for(ShowcaseMediaEntity newMedia : imageUrls){
+//                ShowcaseMediaEntity existingMedia = showcaseMediaRepository.findShowcaseMediaByImage_url(newMedia.getShowcaseMedia_imageurl());
+//                if(existingMedia != null){
+//                    if(!existingMedia.getShowcaseMedia_imageurl().equals(newMedia.getShowcaseMedia_imageurl())){
+//                        existingMedia.setShowcaseMedia_imageurl(newMedia.getShowcaseMedia_imageurl());
+//                        existingMedia.setShowcaseMedia_fileName(newMedia.getShowcaseMedia_fileName());
+//                        showcaseMediaRepository.save(existingMedia);
+//                    }
+//                }
+//                ShowcaseMediaEntity newMediaEntity = new ShowcaseMediaEntity();
+//                newMediaEntity.setShowcaseMedia_imageurl(newMedia.getShowcaseMedia_imageurl());
+//                newMediaEntity.setShowcaseMedia_fileName(newMedia.getShowcaseMedia_fileName());
+//                newMediaEntity.setShowcaseEntity(showcase);
+//                showcaseMediaRepository.save(newMediaEntity);
 //            }
-//            newShowcaseMedia.setShowcaseMedia_imageurl(createShowcaseMedia.getImageUrl());
-//            newShowcaseMedia.setShowcaseMedia_fileName(createShowcaseMedia.getFileName());
-//            newShowcaseMedia.setShowcaseEntity(showcase);
-//            showcaseMediaRepository.save(newShowcaseMedia);
 //            return createShowcaseMedia.getImageUrl();
 //        }catch (Exception e){
 //            throw new RuntimeException("Error in saving showcase media");

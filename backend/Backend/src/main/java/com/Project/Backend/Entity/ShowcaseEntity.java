@@ -14,6 +14,7 @@ public class ShowcaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int showcase_id;
     private String showcase_title;
+    @Column(columnDefinition = "TEXT")
     private String showcase_description;
 
     //here
@@ -23,7 +24,7 @@ public class ShowcaseEntity {
     private SubcontractorEntity subcontractor;
 
 
-    @OneToMany(mappedBy = "showcaseEntity", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "showcaseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "showcase-showcaseMedia")
     private List<ShowcaseMediaEntity> showcaseMediaEntity;
 

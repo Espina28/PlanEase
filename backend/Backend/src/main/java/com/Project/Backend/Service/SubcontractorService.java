@@ -39,5 +39,14 @@ public class SubcontractorService {
         subContractorRepository.deleteById(id);
     }
 
-
+    public String editDescription(String email, String description) throws SdkClientException {
+       try {
+           SubcontractorEntity subcontractor = getSubcontractorByEmail(email);
+           subcontractor.setDescription(description);
+           subContractorRepository.save(subcontractor);
+       }catch (Exception e) {
+           return "Error";
+       }
+        return description;
+    }
 }

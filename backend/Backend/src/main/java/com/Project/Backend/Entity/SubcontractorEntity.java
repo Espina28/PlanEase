@@ -13,6 +13,7 @@ public class SubcontractorEntity {
     private int subcontractor_Id;
 
     private String service_name; //Catering, Photography,etc..
+    @Column(columnDefinition = "TEXT")
     private String description;
     private Boolean isAvailable;
 
