@@ -18,7 +18,8 @@ import InputDetailsPage from './Pages/inputdetails-page'
 import SelectServicePage from './Pages/selectservice-page'
 import PreviewBookingPage from './Pages/previewbooking-page'
 import PaymentProofPage from './Pages/paymentproof-page'
-
+import EventPage from './Pages/event-dashboard'
+import EventDetails from './Pages/event-details';
 
 function App() {
   return (
@@ -74,6 +75,25 @@ function App() {
               </>
             }
           />
+          <Route path="/event" element={
+              <>
+                <ProtectedRoute>
+                  <Navbar />
+                    <EventPage />
+                  <Footer />
+                </ProtectedRoute>
+              </>
+            }
+          />
+          <Route path="/event/:id" element={
+  <>
+    <ProtectedRoute>
+      <Navbar />
+        <EventDetails />
+      <Footer />
+    </ProtectedRoute>
+  </>
+} />
         </Routes>
     </BrowserRouter>
   </AuthProvider>
