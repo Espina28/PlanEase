@@ -24,7 +24,7 @@ public class EventController {
     @Autowired
     private EventService eventService;
 
-    @PostMapping
+    @PostMapping("/createEvent")
     public ResponseEntity<EventEntity> create(@RequestBody EventEntity event) {
         return ResponseEntity.ok(eventService.create(event));
     }

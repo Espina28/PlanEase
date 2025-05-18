@@ -2,10 +2,14 @@ package com.Project.Backend.Controller;
 
 import com.Project.Backend.DTO.ShowcaseDTO;
 import com.Project.Backend.Entity.ShowcaseEntity;
+import com.Project.Backend.Entity.ShowcaseMediaEntity;
 import com.Project.Backend.Repository.ShowcaseRepository;
+import com.Project.Backend.Service.ShowcaseMediaService;
 import com.Project.Backend.Service.ShowcaseService;
 import org.apache.coyote.Response;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,25 +23,26 @@ public class ShowcaseController {
 
     @Autowired
     private ShowcaseService showcaseService;
+    @Autowired
+    private ShowcaseMediaService showcaseMediaService;
+
 
     @PostMapping("/create-showcase")
     public ResponseEntity<?> addNewShowcase(@RequestBody ShowcaseDTO showcaseDTO) {
        try {
            ShowcaseEntity showcase = showcaseService.createShowcase(showcaseDTO);
-           if(showcase == null) {
-               return ResponseEntity.notFound().build();
-           }
+           List<ShowcaseMediaEntity> showcaseMedia = showcaseMediaService.createShowcaseMedia(showcaseDTO.getImageUrls(), showcase.getShowcase_id());
            return ResponseEntity.ok().body(showcase);
        }catch (Exception e){
            return ResponseEntity.badRequest().body(e.getMessage());
        }
     }
 
-    @GetMapping("/get-showcase/{email}")
+    @GetMapping("/getshowcase/{email}")
     public ResponseEntity<?> getShowcaseByServiceName(@PathVariable String email){
         List<ShowcaseEntity> showcase = null;
         try {
-            showcase = showcaseService.getShowcaseByServiceName(email);
+            showcase = showcaseService.getAllShowcaseByUserEmail(email);
             if(showcase == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -46,4 +51,30 @@ public class ShowcaseController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/delete/{showcase_id}")
+    public ResponseEntity<?> deleteShowcase(@PathVariable int showcase_id){
+
+        String message = showcaseService.deleteShowcase(showcase_id);
+        if(message == null){
+            return ResponseEntity.notFound().build();
+        }
+    return ResponseEntity.ok(message);
+    }
+
+//    @PutMapping("edit-showcase/{showcase_id}")
+//    public ResponseEntity<?> editShowcase(
+//                                            @RequestBody ShowcaseDTO showcaseDTO,
+//                                            @PathVariable int showcase_id){
+//        try {
+//            ShowcaseEntity showcase = showcaseService.editShowcase(showcase_id,showcaseDTO);
+//            showcaseMediaService.createShowcaseMedia(showcaseDTO.getImageUrls(), showcase.getShowcase_id());
+//            if (showcase == null) {
+//                return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body("Failed to save showcase");
+//            }
+//            return ResponseEntity.ok().body(showcase);
+//        }catch (Exception e){
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
 }

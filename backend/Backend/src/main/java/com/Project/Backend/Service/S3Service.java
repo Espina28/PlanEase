@@ -29,6 +29,7 @@ public class S3Service {
     private S3Service() {
         String accessKey = System.getenv("AWS_ACCESS_KEY");
         String secretKey = System.getenv("AWS_ACCESS_SECRET_KEY");
+        String region = System.getenv("AWS_REGION");
 
         if (accessKey == null || secretKey == null) {
             throw new IllegalArgumentException("AWS credentials are not set in environment variables.");
@@ -36,13 +37,18 @@ public class S3Service {
 
         if (s3 == null) {
             s3 = S3Client.builder()
-                    .region(Region.AP_SOUTHEAST_1)
+                    .region(Region.of(region))
                     .credentialsProvider(StaticCredentialsProvider.create(
                             AwsBasicCredentials.create(accessKey, secretKey)
                     ))
                     .build();
         }
-        this.presigner = S3Presigner.create();
+        this.presigner = S3Presigner.builder()
+                .region(Region.of(region))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(accessKey, secretKey)
+                ))
+                .build();
     }
 
     public String upload(File file, String folderPath, String fileName) {
