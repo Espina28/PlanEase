@@ -24,7 +24,7 @@ public class EventController {
     @Autowired
     private EventService eventService;
 
-    @PostMapping
+    @PostMapping("/createEvent")
     public ResponseEntity<EventEntity> create(@RequestBody EventEntity event) {
         return ResponseEntity.ok(eventService.create(event));
     }
@@ -34,7 +34,7 @@ public class EventController {
         return ResponseEntity.ok(eventService.findById(id));
     }
 
-    @GetMapping
+    @GetMapping("/getEvents")
     public ResponseEntity<List<EventEntity>> readAll() {
         return ResponseEntity.ok(eventService.readAll());
     }

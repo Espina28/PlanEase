@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface ShowcaseRepository extends JpaRepository<ShowcaseEntity,Integer> {
 
-    @Query ("SELECT s FROM ShowcaseEntity s WHERE s.serviceOfferingEntity.serviceOffering_name = :serviceName")
-    List<ShowcaseEntity> findAllShowcasesByServiceName(@Param("serviceTitle")String serviceName);
+    @Query("SELECT s FROM ShowcaseEntity s JOIN s.subcontractor sub JOIN sub.user u WHERE u.email = :email")
+    List<ShowcaseEntity> getAllShowcaseByUserEmail(@Param("email") String email);
+
 }

@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Eye, EyeOff, ChevronDown } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import CustomInput from "../Components/CustomInput"
 import CustomButton from "../Components/CustomButton"
 import axios from "axios"
+import { motion, AnimatePresence } from "framer-motion" // Import framer-motion
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -44,10 +45,66 @@ export default function SignUpPage() {
   const [showCountryList, setShowCountryList] = useState(false)
   const countryListRef = useRef(null)
 
+  // Tips rotation state
+  const [currentTipIndex, setCurrentTipIndex] = useState(0)
+  const tips = [
+    "Create a detailed profile to help vendors understand your needs better.",
+    "Compare multiple vendors before making your final decision.",
+    "Book early to secure your preferred date and time.",
+    "Read reviews from other clients to find the best service providers.",
+    "Use our messaging system to communicate directly with vendors.",
+    "Save your favorite vendors to revisit them later.",
+    "Complete your location details to find services near you.",
+  ]
+
+  // Cycle through tips every 8 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTipIndex((prevIndex) => (prevIndex + 1) % tips.length)
+    }, 8000)
+
+    return () => clearInterval(interval)
+  }, [tips.length])
+
   // Countries data with flags and dial codes
   const [countries, setCountries] = useState([
     { code: "PH", dialCode: "+63", flag: "🇵🇭", name: "Philippines" }, // Default while loading
   ])
+
+  // Generate confetti particles data with useMemo to ensure it doesn't regenerate on re-renders
+  const confettiParticles = useMemo(() => {
+    // Colors for the confetti particles - using amber tones to match the login page
+    const colors = [
+      "rgba(255, 255, 255, 0.8)",
+      "rgba(255, 223, 186, 0.8)",
+      "rgba(255, 179, 186, 0.8)",
+      "rgba(255, 255, 186, 0.8)",
+      "rgba(186, 255, 201, 0.8)",
+      "rgba(186, 225, 255, 0.8)",
+    ]
+
+    // Shapes for the confetti particles
+    const shapes = ["circle", "square", "triangle"]
+
+    return Array.from({ length: 30 }, () => {
+      const shape = shapes[Math.floor(Math.random() * shapes.length)]
+      const color = colors[Math.floor(Math.random() * colors.length)]
+      const size = Math.random() * 15 + 5
+      const zIndex = Math.floor(Math.random() * 10) - 5 // For 3D effect
+
+      return {
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        size,
+        color,
+        shape,
+        rotation: Math.random() * 360,
+        zIndex,
+        blur: Math.random() * 2,
+        opacity: Math.random() * 0.5 + 0.3,
+      }
+    })
+  }, []) // Empty dependency array ensures this only runs once
 
   // Add this useEffect to fetch countries
   useEffect(() => {
@@ -246,9 +303,9 @@ export default function SignUpPage() {
       if (response.status === 201 || response.status === 200) {
         // After successful user registration, also create regular user entity
         try {
-          await axios.post("http://localhost:8080/regularuser/create", response.data);
+          await axios.post("http://localhost:8080/regularuser/create", response.data)
         } catch (error) {
-          console.error("Regular user creation error:", error);
+          console.error("Regular user creation error:", error)
           // Optionally handle error, but do not block navigation
         }
         alert("Registration Successful! Redirecting to login...")
@@ -264,39 +321,236 @@ export default function SignUpPage() {
 
   return (
     <div className="flex h-screen w-full">
-      {/* Left side - Blue section with illustration */}
-      <div className="hidden md:flex md:w-1/2 flex-col bg-sky-100 p-10 justify-between">
-        <div className="text-2xl font-medium text-center">
-          Event<span className="text-blue-500">Ease</span>
+      {/* Left side - Background image section with overlay */}
+      <div className="hidden md:flex md:w-1/2 flex-col relative overflow-hidden">
+        {/* Background image with direct URL from public folder */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url('/sunsetweddingbackground.jpg')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        ></div>
+
+        {/* Semi-transparent overlay using rgba */}
+        <div className="absolute inset-0" style={{ backgroundColor: "rgba(0, 0, 0, 0.2)" }}></div>
+
+        {/* 3D Confetti-like particles */}
+        <div className="absolute inset-0" style={{ perspective: "1000px" }}>
+          {confettiParticles.map((particle, i) => {
+            // Render different shapes based on the particle type
+            let shapeElement
+
+            if (particle.shape === "circle") {
+              shapeElement = (
+                <div
+                  className="absolute rounded-full"
+                  style={{
+                    left: particle.left,
+                    top: particle.top,
+                    width: `${particle.size}px`,
+                    height: `${particle.size}px`,
+                    backgroundColor: particle.color,
+                    opacity: particle.opacity,
+                    transform: `rotate(${particle.rotation}deg) translateZ(${particle.zIndex}px)`,
+                    boxShadow: `0 ${particle.size / 5}px ${particle.size / 3}px rgba(0,0,0,0.1), 
+                                inset 0 0 ${particle.size / 3}px rgba(255,255,255,0.6)`,
+                    filter: `blur(${particle.blur}px)`,
+                  }}
+                />
+              )
+            } else if (particle.shape === "square") {
+              shapeElement = (
+                <div
+                  className="absolute"
+                  style={{
+                    left: particle.left,
+                    top: particle.top,
+                    width: `${particle.size}px`,
+                    height: `${particle.size}px`,
+                    backgroundColor: particle.color,
+                    opacity: particle.opacity,
+                    transform: `rotate(${particle.rotation}deg) translateZ(${particle.zIndex}px)`,
+                    boxShadow: `0 ${particle.size / 5}px ${particle.size / 3}px rgba(0,0,0,0.1), 
+                                inset 0 0 ${particle.size / 3}px rgba(255,255,255,0.6)`,
+                    filter: `blur(${particle.blur}px)`,
+                  }}
+                />
+              )
+            } else {
+              // triangle
+              const triangleSize = particle.size * 1.5
+              shapeElement = (
+                <div
+                  className="absolute"
+                  style={{
+                    left: particle.left,
+                    top: particle.top,
+                    width: 0,
+                    height: 0,
+                    borderLeft: `${triangleSize / 2}px solid transparent`,
+                    borderRight: `${triangleSize / 2}px solid transparent`,
+                    borderBottom: `${triangleSize}px solid ${particle.color}`,
+                    opacity: particle.opacity,
+                    transform: `rotate(${particle.rotation}deg) translateZ(${particle.zIndex}px)`,
+                    filter: `blur(${particle.blur}px)`,
+                  }}
+                />
+              )
+            }
+
+            return (
+              <motion.div
+                key={i}
+                className="absolute cursor-pointer"
+                style={{
+                  left: particle.left,
+                  top: particle.top,
+                  zIndex: particle.zIndex + 5,
+                }}
+                whileHover={{
+                  scale: 1.5,
+                  rotate: particle.rotation + 45,
+                  z: particle.zIndex + 20,
+                  filter: "brightness(1.2)",
+                  boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
+                  transition: { duration: 0.3 },
+                }}
+              >
+                {shapeElement}
+              </motion.div>
+            )
+          })}
         </div>
-        <div className="flex flex-col items-center justify-center space-y-6">
-          <img src="/placeholder.svg?height=250&width=250" alt="Calendar illustration" className="w-64 h-64 mb-6" />
-          <div className="text-center space-y-4">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Find, Book, and Manage
-              <br />
-              Services with Ease
-            </h2>
-            <p className="text-gray-600 text-sm max-w-md">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-              <br />
-              sed do eiusmod tempor incididunt.
-            </p>
+
+        {/* Content on top of background */}
+        <div className="relative z-10 flex flex-col h-full p-10 justify-between text-white">
+          <motion.div
+            className="text-2xl font-medium text-center"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            Event
+            <motion.span
+              className="text-amber-400"
+              animate={{
+                scale: [1, 1.05, 1],
+                textShadow: [
+                  "0px 0px 0px rgba(251, 191, 36, 0)",
+                  "0px 0px 8px rgba(251, 191, 36, 0.5)",
+                  "0px 0px 0px rgba(251, 191, 36, 0)",
+                ],
+              }}
+              transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, repeatType: "loop" }}
+            >
+              Ease
+            </motion.span>
+          </motion.div>
+
+          <div className="flex flex-col items-start justify-center space-y-8">
+            <div className="text-left space-y-4">
+              <motion.h2
+                className="text-5xl font-bold tracking-tight"
+                initial={{ x: -100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
+              >
+                CREATE YOUR <span className="text-amber-400">ACCOUNT</span>
+                <br />
+                START <span className="text-amber-400">PLANNING</span>
+              </motion.h2>
+              <motion.p
+                className="text-lg max-w-md opacity-90"
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 0.9 }}
+                transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+              >
+                Join our community of event planners and service providers to make your next event a success.
+              </motion.p>
+            </div>
           </div>
+
+          {/* Animated rotating tips */}
+          <motion.div
+            className="flex items-center gap-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            <motion.div
+              className="p-2 rounded-full bg-amber-400 text-white flex-shrink-0"
+              whileHover={{ scale: 1.1, rotate: 10 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </motion.div>
+            <div className="w-full max-w-xs">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={currentTipIndex}
+                  className="text-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1 }}
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
+                >
+                  Tip: {tips[currentTipIndex]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+          </motion.div>
         </div>
-        <div className="h-10"></div> {/* Spacer */}
       </div>
 
       {/* Right side - Sign Up form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-8">
+      <div className="w-full md:w-1/2 flex items-center justify-center p-6 bg-gradient-to-br from-amber-50 to-white overflow-y-auto">
+        <motion.div
+          className="w-full max-w-md space-y-6 py-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           <div className="text-center">
-            <h1 className="text-2xl font-medium text-gray-700">
-              Welcome to Event<span className="text-blue-500">Ease</span>!
+            <h1 className="text-2xl font-medium text-gray-800">
+              Welcome to Event<span className="text-amber-500">Ease</span>!
             </h1>
+            <p className="mt-2 text-gray-600">Create your account to get started</p>
           </div>
 
-          <div className="space-y-6">
+          {/* Error message */}
+          {errorMessage && (
+            <motion.div
+              className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative"
+              role="alert"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <span className="block sm:inline">{errorMessage}</span>
+            </motion.div>
+          )}
+
+          <form onSubmit={handleRegister} className="space-y-5">
             {/* Firstname and Lastname in the same row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Firstname */}
@@ -311,6 +565,7 @@ export default function SignUpPage() {
                   onChange={(e) => setFirstname(e.target.value)}
                   hint="John"
                   className="w-full"
+                  required
                 />
               </div>
 
@@ -326,6 +581,7 @@ export default function SignUpPage() {
                   onChange={(e) => setLastname(e.target.value)}
                   hint="Doe"
                   className="w-full"
+                  required
                 />
               </div>
             </div>
@@ -342,6 +598,7 @@ export default function SignUpPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 hint="planease@gmail.com"
                 className="w-full"
+                required
               />
             </div>
 
@@ -352,16 +609,18 @@ export default function SignUpPage() {
               </label>
               <div className="flex">
                 <div className="relative">
-                  <button
+                  <motion.button
                     type="button"
-                    className="flex items-center justify-between h-10 px-3 bg-white border-b border-gray-300 focus:border-blue-500 transition-colors"
+                    className="flex items-center justify-between h-10 px-3 bg-white border-b border-gray-300 focus:border-amber-500 transition-colors rounded-l"
                     onClick={() => setShowCountryList(!showCountryList)}
                     aria-label="Select country code"
+                    whileHover={{ backgroundColor: "rgba(251, 191, 36, 0.1)" }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <span className="mr-2 text-lg">{selectedCountry.flag}</span>
                     <span className="text-sm font-medium">{selectedCountry.dialCode}</span>
                     <ChevronDown className="ml-1 h-4 w-4 text-gray-500" />
-                  </button>
+                  </motion.button>
 
                   {/* Country dropdown */}
                   {showCountryList && (
@@ -387,19 +646,20 @@ export default function SignUpPage() {
                         />
                       </div>
                       {countries.map((country) => (
-                        <button
+                        <motion.button
                           key={country.code}
                           type="button"
-                          className="flex items-center w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
+                          className="flex items-center w-full px-4 py-2 text-left hover:bg-amber-50 transition-colors"
                           onClick={() => {
                             setSelectedCountry(country)
                             setShowCountryList(false)
                           }}
+                          whileHover={{ backgroundColor: "rgba(251, 191, 36, 0.1)" }}
                         >
                           <span className="mr-2 text-lg">{country.flag}</span>
                           <span className="text-sm">{country.name}</span>
                           <span className="ml-auto text-sm text-gray-500">{country.dialCode}</span>
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   )}
@@ -415,7 +675,7 @@ export default function SignUpPage() {
                     setPhoneNumber(value)
                   }}
                   hint="9123456789"
-                  className="w-full"
+                  className="w-full rounded-r"
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">Enter your number without the country code</p>
@@ -434,6 +694,7 @@ export default function SignUpPage() {
                   onChange={handlePasswordChange}
                   hint="Enter your password"
                   className="w-full"
+                  required
                 />
                 <button
                   type="button"
@@ -467,7 +728,9 @@ export default function SignUpPage() {
                 <div className="text-sm font-medium text-gray-700">Password Strength</div>
                 <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ease-out ${passwordStrength === 3 ? "bg-green-500" : passwordStrength === 2 ? "bg-yellow-500" : "bg-red-500"}`}
+                    className={`h-full rounded-full transition-all duration-500 ease-out ${
+                      passwordStrength === 3 ? "bg-green-500" : passwordStrength === 2 ? "bg-yellow-500" : "bg-red-500"
+                    }`}
                     style={{
                       width: `${(passwordStrength / 3) * 100}%`,
                       transitionDelay: "200ms",
@@ -515,6 +778,7 @@ export default function SignUpPage() {
                     onChange={handleConfirmPasswordChange}
                     hint="Enter your password"
                     className="w-full"
+                    required
                   />
                   <button
                     type="button"
@@ -534,7 +798,12 @@ export default function SignUpPage() {
               {/* Region */}
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Region</label>
-                <select className="w-full p-2 border rounded" onChange={handleRegionChange} value={selectedRegion}>
+                <select
+                  className="w-full p-2 border rounded focus:border-amber-500 focus:ring focus:ring-amber-200 focus:ring-opacity-50 transition-all"
+                  onChange={handleRegionChange}
+                  value={selectedRegion}
+                  required
+                >
                   <option value="">Select Region</option>
                   {regions.map((region) => (
                     <option key={region.code} value={region.code}>
@@ -548,10 +817,11 @@ export default function SignUpPage() {
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Province</label>
                 <select
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:border-amber-500 focus:ring focus:ring-amber-200 focus:ring-opacity-50 transition-all"
                   onChange={handleProvinceChange}
                   disabled={!selectedRegion}
                   value={selectedProvince}
+                  required
                 >
                   <option value="">Select Province</option>
                   {provinces.map((province) => (
@@ -569,10 +839,11 @@ export default function SignUpPage() {
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">City/Municipality</label>
                 <select
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:border-amber-500 focus:ring focus:ring-amber-200 focus:ring-opacity-50 transition-all"
                   onChange={handleCityMunicipalityChange}
                   disabled={!selectedProvince}
                   value={selectedCityMunicipality}
+                  required
                 >
                   <option value="">Select City/Municipality</option>
                   {citiesMunicipalities.map((city) => (
@@ -587,10 +858,11 @@ export default function SignUpPage() {
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Barangay</label>
                 <select
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:border-amber-500 focus:ring focus:ring-amber-200 focus:ring-opacity-50 transition-all"
                   onChange={handleBarangayChange}
                   disabled={!selectedCityMunicipality}
                   value={selectedBarangay}
+                  required
                 >
                   <option value="">Select Barangay</option>
                   {barangays.map((barangay) => (
@@ -603,27 +875,27 @@ export default function SignUpPage() {
             </div>
 
             {/* Sign Up button */}
-            <CustomButton
-              type="button"
-              className="w-full h-12"
-              fontSize="text-sm"
-              disabled={isSubmitting}
-              onClick={handleRegister}
-            >
-              {isSubmitting ? "Registering..." : "SIGN UP"}
-            </CustomButton>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <CustomButton
+                type="submit"
+                className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white"
+                fontSize="text-sm"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "REGISTERING..." : "SIGN UP"}
+              </CustomButton>
+            </motion.div>
 
             {/* Link to Login */}
-            <div className="text-center text-sm">
+            <div className="text-center text-sm text-gray-600">
               Already have an account?{" "}
-              <Link to="/login" className="text-blue-500 font-medium">
+              <Link to="/login" className="text-amber-500 hover:underline">
                 Log in
               </Link>
             </div>
-          </div>
-        </div>
+          </form>
+        </motion.div>
       </div>
     </div>
   )
 }
-

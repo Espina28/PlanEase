@@ -1,8 +1,11 @@
 package com.Project.Backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
+import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -12,32 +15,32 @@ public class EventEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int event_Id;
 
     @OneToMany(mappedBy = "eventEntity")
-    @JsonIgnoreProperties("event-transaction")
-    private List<TransactionsEntity> transactionsEntity;
-
+    @JsonBackReference("event-transaction")
+    private List<TransactionsEntity> transactions;
 
     private String event_name;
     private String event_description;
     private boolean event_isAvailable;
     private double event_price;
+    private String event_image;
 
-    public int getId() {
-        return id;
+    public int getEvent_Id() {
+        return event_Id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setEvent_Id(int event_Id) {
+        this.event_Id = event_Id;
     }
 
     public List<TransactionsEntity> getTransactionsEntity() {
-        return transactionsEntity;
+        return transactions;
     }
 
-    public void setTransactionsEntity(List<TransactionsEntity> transactionsEntity) {
-        this.transactionsEntity = transactionsEntity;
+    public void setTransactionsEntity(List<TransactionsEntity> transactions) {
+        this.transactions = transactions;
     }
 
     public String getEvent_name() {
@@ -71,4 +74,12 @@ public class EventEntity {
     public void setEvent_price(double event_price) {
         this.event_price = event_price;
     }
+    public String getEvent_image() {
+        return event_image;
+    }
+
+    public void setEvent_image(String event_image) {
+        this.event_image = event_image;
+    }
+    
 }

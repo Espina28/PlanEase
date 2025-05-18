@@ -17,8 +17,8 @@ public class ShowcaseMediaEntity {
 
     @ManyToOne
     @JoinColumn(name = "showcase_id")
-    @JsonBackReference(value = "showcaseMedia-entity")
-    private ShowcaseEntity showcaseEntity;
+    @JsonBackReference(value = "showcase-showcaseMedia")
+    private ShowcaseEntity showcase;
 
 
     public int getShowcaseMedia_id() {
@@ -46,10 +46,10 @@ public class ShowcaseMediaEntity {
     }
 
     public ShowcaseEntity getShowcaseEntity() {
-        return showcaseEntity;
+        return showcase;
     }
 
-    public void setShowcaseEntity(ShowcaseEntity showcaseEntity) {
-        this.showcaseEntity = showcaseEntity;
+    public void setShowcaseEntity(ShowcaseEntity showcase) {
+        this.showcase = showcase;
     }
 }
