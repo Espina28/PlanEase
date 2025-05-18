@@ -12,10 +12,8 @@ public class SubcontractorEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int subcontractor_Id;
 
-    private String service_name; //Catering, Photography,etc..
     @Column(columnDefinition = "TEXT")
     private String description;
-    private Boolean isAvailable;
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
@@ -26,11 +24,14 @@ public class SubcontractorEntity {
     @JsonManagedReference("subcontactor-showcase")
     private List<ShowcaseEntity> showcase;
 
-    @OneToMany(mappedBy = "subcontractorEntity", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "subcontractor", fetch = FetchType.LAZY)
     @JsonManagedReference(value = "subcontractor-unavailable-dates")
     private List<UnavailableDates> unavailableDates;
 
-    public SubcontractorEntity() {}
+    @OneToOne
+    @JoinColumn(name = "service_offered_id")
+    @JsonManagedReference("subcontractor-offering-service")
+    private ServiceOfferedEntity serviceName;
 
     public int getSubcontractor_Id() {
         return subcontractor_Id;
@@ -40,28 +41,12 @@ public class SubcontractorEntity {
         this.subcontractor_Id = subcontractor_Id;
     }
 
-    public String getService_name() {
-        return service_name;
-    }
-
-    public void setService_name(String service_name) {
-        this.service_name = service_name;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Boolean getAvailable() {
-        return isAvailable;
-    }
-
-    public void setAvailable(Boolean available) {
-        isAvailable = available;
     }
 
     public UserEntity getUser() {
@@ -86,5 +71,13 @@ public class SubcontractorEntity {
 
     public void setUnavailableDates(List<UnavailableDates> unavailableDates) {
         this.unavailableDates = unavailableDates;
+    }
+
+    public ServiceOfferedEntity getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(ServiceOfferedEntity serviceName) {
+        this.serviceName = serviceName;
     }
 }

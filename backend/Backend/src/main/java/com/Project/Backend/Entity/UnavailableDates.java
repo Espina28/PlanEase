@@ -14,13 +14,15 @@ public class UnavailableDates {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int unavailableDate_id;
     private Date date;
+
+    @Column(columnDefinition = "TEXT")
     private String reason;
     private Timestamp created_at;
 
     @ManyToOne
     @JoinColumn(name = "subcontractor_id")
     @JsonBackReference(value = "subcontractor-unavailable-dates")
-    private SubcontractorEntity subcontractorEntity;
+    private SubcontractorEntity subcontractor;
 
     // Getters and setters
     public int getUnavailableDate_id() {
@@ -56,10 +58,10 @@ public class UnavailableDates {
     }
 
     public SubcontractorEntity getSubcontractorEntity() {
-        return subcontractorEntity;
+        return subcontractor;
     }
 
-    public void setSubcontractorEntity(SubcontractorEntity subcontractorEntity) {
-        this.subcontractorEntity = subcontractorEntity;
+    public void setSubcontractorEntity(SubcontractorEntity subcontractor) {
+        this.subcontractor = subcontractor;
     }
 }

@@ -47,7 +47,7 @@ public class TransactionDTO {
         
         return new TransactionDTO(
             entity.getTransaction_Id(),
-            entity.getEventEntity() != null ? entity.getEventEntity().getId() : null,
+            entity.getEventEntity() != null ? entity.getEventEntity().getEvent_Id() : null,
             entity.getTransactionVenue(),
             entity.getTransactionStatus(),
             entity.getTransactionDate(),
