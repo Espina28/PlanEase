@@ -1,10 +1,13 @@
 package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "event_services")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subcontractor_id")
 public class EventServiceEntity {
 
     @Id

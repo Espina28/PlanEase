@@ -1,6 +1,8 @@
 package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.sql.Date;
@@ -8,6 +10,7 @@ import java.sql.Timestamp;
  
 @Entity
 @Table(name = "Unavailable_Dates")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "unavailableDate_id")
 public class UnavailableDates {
 
     @Id

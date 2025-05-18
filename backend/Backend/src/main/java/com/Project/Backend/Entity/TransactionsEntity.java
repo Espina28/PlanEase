@@ -1,7 +1,9 @@
 package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.sql.Date;
@@ -10,6 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "transactions")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "transaction_Id")
 public class TransactionsEntity {
 
     @Id

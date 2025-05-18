@@ -1,6 +1,8 @@
 package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.sql.Date;
@@ -10,6 +12,7 @@ import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "payments")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "paymentId")
 public class PaymentEntity {
 
     @Id
