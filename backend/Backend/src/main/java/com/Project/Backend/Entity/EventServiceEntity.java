@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "event_services")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subcontractor_id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "eventServices_id")
 public class EventServiceEntity {
 
     @Id
@@ -32,11 +32,19 @@ public class EventServiceEntity {
         this.eventServices_id = eventServices_id;
     }
 
-    public TransactionsEntity getTransactions() {
+    public SubcontractorEntity getSubcontractor() {
+        return subcontractor;
+    }
+
+    public void setSubcontractor(SubcontractorEntity subcontractor) {
+        this.subcontractor = subcontractor;
+    }
+
+    public TransactionsEntity getTransactionsId() {
         return transactionsId;
     }
 
-    public void setTransactions(TransactionsEntity transactionsId) {
+    public void setTransactionsId(TransactionsEntity transactionsId) {
         this.transactionsId = transactionsId;
     }
 }

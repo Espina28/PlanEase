@@ -10,7 +10,7 @@ import java.sql.Timestamp;
  
 @Entity
 @Table(name = "Unavailable_Dates")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "unavailableDate_id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "unavailableDate_id")
 public class UnavailableDates {
 
     @Id
@@ -28,6 +28,7 @@ public class UnavailableDates {
     private SubcontractorEntity subcontractor;
 
     // Getters and setters
+
     public int getUnavailableDate_id() {
         return unavailableDate_id;
     }
@@ -60,11 +61,11 @@ public class UnavailableDates {
         this.created_at = created_at;
     }
 
-    public SubcontractorEntity getSubcontractorEntity() {
+    public SubcontractorEntity getSubcontractor() {
         return subcontractor;
     }
 
-    public void setSubcontractorEntity(SubcontractorEntity subcontractor) {
+    public void setSubcontractor(SubcontractorEntity subcontractor) {
         this.subcontractor = subcontractor;
     }
 }

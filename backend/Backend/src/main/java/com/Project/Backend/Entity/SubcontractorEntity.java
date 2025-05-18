@@ -8,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Subcontractors")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subcontractor_id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subcontractor_Id")
 public class SubcontractorEntity {
 
     @Id
@@ -65,12 +65,12 @@ public class SubcontractorEntity {
         this.subcontractor_serviceName = subcontractor_serviceName;
     }
 
-    public UserEntity getUser() {
+    public UserEntity getUserId() {
         return userId;
     }
 
-    public void setUser(UserEntity user) {
-        this.userId = user;
+    public void setUserId(UserEntity userId) {
+        this.userId = userId;
     }
 
     public List<ShowcaseEntity> getShowcase() {

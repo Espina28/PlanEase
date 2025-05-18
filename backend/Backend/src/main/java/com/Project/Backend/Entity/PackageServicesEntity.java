@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "package_services")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "package_service_id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "package_service_id")
 public class PackageServicesEntity {
 
     @Id
@@ -40,4 +40,11 @@ public class PackageServicesEntity {
         this.packages = packages;
     }
 
+    public SubcontractorEntity getSubcontractor() {
+        return subcontractor;
+    }
+
+    public void setSubcontractor(SubcontractorEntity subcontractor) {
+        this.subcontractor = subcontractor;
+    }
 }

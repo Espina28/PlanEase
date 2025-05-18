@@ -78,12 +78,12 @@ public class ShowcaseMediaService {
     public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaDTO[] imageUrls, ShowcaseEntity showcase) {
         List<ShowcaseMediaEntity> savedMedia = new ArrayList<>();
         try {
-//            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcase);
+//            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcase.getShowcase_id());
             for (ShowcaseMediaDTO media : imageUrls) {
                 ShowcaseMediaEntity newMedia = new ShowcaseMediaEntity();
                 newMedia.setShowcaseMedia_imageurl(media.getImageUrl());
                 newMedia.setShowcaseMedia_fileName(media.getFileName());
-                newMedia.setShowcaseEntity(showcase);
+                newMedia.setShowcase(showcase);
                 savedMedia.add(showcaseMediaRepository.save(newMedia));
             }
             return savedMedia;

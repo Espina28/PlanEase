@@ -12,7 +12,7 @@ import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "payments")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "paymentId")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "paymentId")
 public class PaymentEntity {
 
     @Id
@@ -43,6 +43,14 @@ public class PaymentEntity {
 
     public void setPaymentId(int paymentId) {
         this.paymentId = paymentId;
+    }
+
+    public TransactionsEntity getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(TransactionsEntity transaction) {
+        this.transaction = transaction;
     }
 
     public Date getPaymentDatePaid() {

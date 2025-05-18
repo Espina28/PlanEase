@@ -12,7 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "transactions")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "transaction_Id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "transaction_Id")
 public class TransactionsEntity {
 
     @Id
@@ -80,11 +80,11 @@ public class TransactionsEntity {
         this.user = user;
     }
 
-    public EventEntity getEventEntity() {
+    public EventEntity getEvent() {
         return event;
     }
 
-    public void setEventEntity(EventEntity event) {
+    public void setEvent(EventEntity event) {
         this.event = event;
     }
 
@@ -96,12 +96,20 @@ public class TransactionsEntity {
         this.packages = packages;
     }
 
-    public List<EventServiceEntity> getEventService() {
+    public List<EventServiceEntity> getEventServices() {
         return eventServices;
     }
 
-    public void setEventService(List<EventServiceEntity> eventServices) {
+    public void setEventServices(List<EventServiceEntity> eventServices) {
         this.eventServices = eventServices;
+    }
+
+    public PaymentEntity getPayment() {
+        return payment;
+    }
+
+    public void setPayment(PaymentEntity payment) {
+        this.payment = payment;
     }
 
     public String getTransactionVenue() {
