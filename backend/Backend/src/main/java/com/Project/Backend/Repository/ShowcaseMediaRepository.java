@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface ShowcaseMediaRepository extends JpaRepository<ShowcaseMediaEntity, Integer> {
 
-    @Query("SELECT sm FROM ShowcaseMediaEntity sm WHERE sm.showcaseEntity.showcase_title = :showcase_title")
+    @Query("SELECT sm FROM ShowcaseMediaEntity sm WHERE sm.showcase.showcase_title = :showcase_title")
     List<ShowcaseMediaEntity> findByShowcaseMediaByShowcaseTitle(@Param("showcase_title") String showcase_title);
 
 //    @Query("SELECT sm FROM ShowcaseMediaEntity sm WHERE sm.image_url = :image_url")
