@@ -34,7 +34,7 @@ public class EventController {
         return ResponseEntity.ok(eventService.readById(id));
     }
 
-    @GetMapping
+    @GetMapping("/getEvents")
     public ResponseEntity<List<EventEntity>> readAll() {
         return ResponseEntity.ok(eventService.readAll());
     }

@@ -1,5 +1,6 @@
 package com.Project.Backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
@@ -15,7 +16,7 @@ public class EventEntity {
     private int id;
 
     @OneToMany(mappedBy = "eventEntity")
-    @JsonIgnoreProperties("event-transaction")
+    @JsonBackReference("event-transaction")
     private List<TransactionsEntity> transactionsEntity;
 
 
@@ -23,6 +24,7 @@ public class EventEntity {
     private String event_description;
     private boolean event_isAvailable;
     private double event_price;
+    private String event_image;
 
     public int getId() {
         return id;
@@ -71,4 +73,12 @@ public class EventEntity {
     public void setEvent_price(double event_price) {
         this.event_price = event_price;
     }
+    public String getEvent_image() {
+        return event_image;
+    }
+
+    public void setEvent_image(String event_image) {
+        this.event_image = event_image;
+    }
+    
 }
