@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "Transactions")
+@Table(name = "transactions")
 public class TransactionsEntity {
 
     @Id
@@ -19,22 +19,27 @@ public class TransactionsEntity {
 
     @JoinColumn(name = "user_id")
     @ManyToOne
-    @JsonManagedReference(value = "user-transaction")
+    @JsonBackReference(value = "user-transaction")
     private UserEntity user;
 
     @JoinColumn(name = "event_id")
-    @ManyToOne
-    @JsonBackReference(value = "event-transaction")
-    private EventEntity eventEntity;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "event-transaction")
+    private EventEntity event;
 
     @OneToOne
     @JoinColumn(name = "package_id")
     @JsonManagedReference(value = "transaction-package")
     private PackagesEntity packages;
 
-    @OneToMany
+    @OneToMany(mappedBy = "transactionsId")
     @JsonManagedReference(value = "transaction-event-service")
     private List<EventServiceEntity> eventServices;
+
+    //PAYMENT
+    @OneToOne(mappedBy = "transaction")
+    @JsonManagedReference(value = "transaction-payment")
+    private PaymentEntity payment;
 
     private String transactionVenue;
     private Status transactionStatus;
@@ -73,11 +78,11 @@ public class TransactionsEntity {
     }
 
     public EventEntity getEventEntity() {
-        return eventEntity;
+        return event;
     }
 
-    public void setEventEntity(EventEntity eventEntity) {
-        this.eventEntity = eventEntity;
+    public void setEventEntity(EventEntity event) {
+        this.event = event;
     }
 
     public PackagesEntity getPackages() {

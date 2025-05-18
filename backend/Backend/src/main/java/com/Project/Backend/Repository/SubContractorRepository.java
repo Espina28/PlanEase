@@ -10,6 +10,6 @@ import com.Project.Backend.Entity.SubcontractorEntity;
 @Repository
 public interface SubContractorRepository extends JpaRepository<SubcontractorEntity, Integer>{
 
-    @Query("SELECT s FROM SubcontractorEntity s WHERE s.user.email = :email")
+    @Query("SELECT s FROM SubcontractorEntity s WHERE s.userId.email = :email")
     SubcontractorEntity findByEmail(@Param("email") String email);
 }

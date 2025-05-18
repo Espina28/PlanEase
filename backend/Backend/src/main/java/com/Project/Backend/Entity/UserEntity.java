@@ -1,10 +1,10 @@
 package com.Project.Backend.Entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -12,6 +12,14 @@ public class UserEntity {
     @Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int userId;
+
+    @OneToOne(mappedBy = "userId")
+    @JsonBackReference("subcontractor-user")
+    private SubcontractorEntity subcontractor;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference("user-transaction")
+    private List<TransactionsEntity> transactions;
 
     private String firstname;
 
@@ -67,20 +75,20 @@ public class UserEntity {
         this.userId = userId;
     }
 
-    public String getEmail() {
-        return email;
+    public SubcontractorEntity getSubcontractor() {
+        return subcontractor;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setSubcontractor(SubcontractorEntity subcontractor) {
+        this.subcontractor = subcontractor;
     }
 
-    public String getPassword() {
-        return password;
+    public List<TransactionsEntity> getTransactions() {
+        return transactions;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setTransactions(List<TransactionsEntity> transactions) {
+        this.transactions = transactions;
     }
 
     public String getFirstname() {
@@ -99,36 +107,20 @@ public class UserEntity {
         this.lastname = lastname;
     }
 
-    public String getRole() {
-        return role;
+    public String getEmail() {
+        return email;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public String getProfilePicture() {
-        return profilePicture;
+    public String getPassword() {
+        return password;
     }
 
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
-    public Boolean getIsGoogle() {
-        return isGoogle;
-    }
-
-    public void setIsGoogle(Boolean isGoogle) {
-        this.isGoogle = isGoogle;
-    }
-
-    public Boolean getIsFacebook() {
-        return isFacebook;
-    }
-
-    public void setIsFacebook(Boolean isFacebook) {
-        this.isFacebook = isFacebook;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getPhoneNumber() {
@@ -171,13 +163,35 @@ public class UserEntity {
         this.barangay = barangay;
     }
 
-    
+    public String getRole() {
+        return role;
+    }
 
-    
+    public void setRole(String role) {
+        this.role = role;
+    }
 
-    
-    
-    
+    public String getProfilePicture() {
+        return profilePicture;
+    }
 
-    
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public Boolean getGoogle() {
+        return isGoogle;
+    }
+
+    public void setGoogle(Boolean google) {
+        isGoogle = google;
+    }
+
+    public Boolean getFacebook() {
+        return isFacebook;
+    }
+
+    public void setFacebook(Boolean facebook) {
+        isFacebook = facebook;
+    }
 }

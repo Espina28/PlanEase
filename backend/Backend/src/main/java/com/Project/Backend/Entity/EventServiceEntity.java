@@ -1,5 +1,6 @@
 package com.Project.Backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -11,12 +12,14 @@ public class EventServiceEntity {
     private int eventServices_id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "serviceOffered_id")
-    private ServiceOfferedEntity serviceOffered;
+    @JoinColumn(name = "subcontractor_id")
+    private SubcontractorEntity subcontractor;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_id")
-    private TransactionsEntity transactions;
+    @JsonBackReference("transaction-event-service")
+    private TransactionsEntity transactionsId;
 
     public int getEventServices_id() {
         return eventServices_id;
@@ -26,19 +29,11 @@ public class EventServiceEntity {
         this.eventServices_id = eventServices_id;
     }
 
-    public ServiceOfferedEntity getServiceOffered() {
-        return serviceOffered;
-    }
-
-    public void setServiceOffered(ServiceOfferedEntity serviceOffered) {
-        this.serviceOffered = serviceOffered;
-    }
-
     public TransactionsEntity getTransactions() {
-        return transactions;
+        return transactionsId;
     }
 
-    public void setTransactions(TransactionsEntity transactions) {
-        this.transactions = transactions;
+    public void setTransactions(TransactionsEntity transactionsId) {
+        this.transactionsId = transactionsId;
     }
 }

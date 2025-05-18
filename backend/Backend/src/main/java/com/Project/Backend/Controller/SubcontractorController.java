@@ -4,14 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.Project.Backend.DTO.SubcontractorDescriptionDTO;
-import com.Project.Backend.Entity.ServiceOfferedEntity;
-import com.Project.Backend.Service.ServiceOfferedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.Project.Backend.DTO.CreateSubcontractorRequest;
 import com.Project.Backend.Entity.SubcontractorEntity;
 import com.Project.Backend.Service.SubcontractorService;
 
@@ -22,9 +19,6 @@ public class SubcontractorController {
 
     @Autowired
     private SubcontractorService subcontractorService;
-
-    @Autowired
-    private ServiceOfferedService serviceOfferedService;
 
     @GetMapping("/getall")
     public ResponseEntity<List<SubcontractorEntity>> getAllSubcontractors() {

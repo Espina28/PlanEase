@@ -2,6 +2,7 @@ package com.Project.Backend.Service;
 
 import com.Project.Backend.DTO.CreateShowcaseMedia;
 import com.Project.Backend.DTO.ShowcaseDTO;
+import com.Project.Backend.DTO.ShowcaseMediaDTO;
 import com.Project.Backend.Entity.ShowcaseEntity;
 import com.Project.Backend.Entity.ShowcaseMediaEntity;
 import com.Project.Backend.Repository.ShowcaseMediaRepository;
@@ -74,17 +75,16 @@ public class ShowcaseMediaService {
         return null; // Waiting for more chunks
     }
 
-    public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaEntity[] imageUrls, int showcaseId) {
+    public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaDTO[] imageUrls, ShowcaseEntity showcase) {
         List<ShowcaseMediaEntity> savedMedia = new ArrayList<>();
         try {
-            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcaseId);
-            for (ShowcaseMediaEntity media : imageUrls) {
+//            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcase);
+            for (ShowcaseMediaDTO media : imageUrls) {
                 ShowcaseMediaEntity newMedia = new ShowcaseMediaEntity();
-                newMedia.setShowcaseMedia_imageurl(media.getShowcaseMedia_imageurl());
-                newMedia.setShowcaseMedia_fileName(media.getShowcaseMedia_fileName());
+                newMedia.setShowcaseMedia_imageurl(media.getImageUrl());
+                newMedia.setShowcaseMedia_fileName(media.getFileName());
                 newMedia.setShowcaseEntity(showcase);
                 savedMedia.add(showcaseMediaRepository.save(newMedia));
-                System.out.println("Saved media: " + savedMedia);
             }
             return savedMedia;
         } catch (Exception e) {

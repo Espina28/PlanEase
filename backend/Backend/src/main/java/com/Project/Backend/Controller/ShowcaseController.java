@@ -10,6 +10,7 @@ import org.apache.coyote.Response;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,11 +28,11 @@ public class ShowcaseController {
     private ShowcaseMediaService showcaseMediaService;
 
 
-    @PostMapping("/create-showcase")
+    @PostMapping(value = "/create-showcase")
     public ResponseEntity<?> addNewShowcase(@RequestBody ShowcaseDTO showcaseDTO) {
        try {
            ShowcaseEntity showcase = showcaseService.createShowcase(showcaseDTO);
-           List<ShowcaseMediaEntity> showcaseMedia = showcaseMediaService.createShowcaseMedia(showcaseDTO.getImageUrls(), showcase.getShowcase_id());
+           showcaseMediaService.createShowcaseMedia(showcaseDTO.getImageUrls(),showcase);
            return ResponseEntity.ok().body(showcase);
        }catch (Exception e){
            return ResponseEntity.badRequest().body(e.getMessage());

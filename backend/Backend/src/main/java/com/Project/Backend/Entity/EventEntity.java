@@ -2,6 +2,7 @@ package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.sql.Date;
@@ -17,7 +18,7 @@ public class EventEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int event_Id;
 
-    @OneToMany(mappedBy = "eventEntity")
+    @OneToMany(mappedBy = "event")
     @JsonBackReference("event-transaction")
     private List<TransactionsEntity> transactions;
 
@@ -34,11 +35,11 @@ public class EventEntity {
         this.event_Id = event_Id;
     }
 
-    public List<TransactionsEntity> getTransactionsEntity() {
+    public List<TransactionsEntity> getTransactions() {
         return transactions;
     }
 
-    public void setTransactionsEntity(List<TransactionsEntity> transactions) {
+    public void setTransactions(List<TransactionsEntity> transactions) {
         this.transactions = transactions;
     }
 

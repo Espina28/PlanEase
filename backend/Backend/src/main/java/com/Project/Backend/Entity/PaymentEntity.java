@@ -18,8 +18,8 @@ public class PaymentEntity {
 
     @OneToOne
     @JoinColumn(name = "transaction_id")
-    @JsonBackReference("transaction")
-    private TransactionsEntity transactions;
+    @JsonBackReference("transaction-payment")
+    private TransactionsEntity transaction;
 
     private Date paymentDatePaid;
     private String paymentNote;

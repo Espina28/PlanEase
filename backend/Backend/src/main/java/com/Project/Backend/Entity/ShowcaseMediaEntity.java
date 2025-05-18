@@ -2,11 +2,14 @@ package com.Project.Backend.Entity;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 
 @Entity
 @Table(name = "Showcase_Media")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "showcaseMedia_id")
 public class ShowcaseMediaEntity {
 
     @Id
