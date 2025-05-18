@@ -5,6 +5,7 @@ import com.Project.Backend.Entity.UserEntity;
 
 public class CreateSubcontractorRequest {
     private UserEntity user;
+    private int offeringServiceId;
     private String service;
     private String description;
 
@@ -14,6 +15,14 @@ public class CreateSubcontractorRequest {
 
     public void setUser(UserEntity user) {
         this.user = user;
+    }
+
+    public int getOfferingServiceId() {
+        return offeringServiceId;
+    }
+
+    public void setOfferingServiceId(int offeringServiceId) {
+        this.offeringServiceId = offeringServiceId;
     }
 
     public String getService() {

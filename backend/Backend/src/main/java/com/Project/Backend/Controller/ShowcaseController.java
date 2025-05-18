@@ -32,9 +32,6 @@ public class ShowcaseController {
        try {
            ShowcaseEntity showcase = showcaseService.createShowcase(showcaseDTO);
            List<ShowcaseMediaEntity> showcaseMedia = showcaseMediaService.createShowcaseMedia(showcaseDTO.getImageUrls(), showcase.getShowcase_id());
-           if (showcase == null) {
-               return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body("Failed to save showcase");
-           }
            return ResponseEntity.ok().body(showcase);
        }catch (Exception e){
            return ResponseEntity.badRequest().body(e.getMessage());

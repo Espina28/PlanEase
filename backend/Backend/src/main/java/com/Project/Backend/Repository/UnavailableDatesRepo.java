@@ -12,15 +12,16 @@ import java.util.List;
 
 @Repository
 public interface UnavailableDatesRepo extends JpaRepository<UnavailableDates, Integer> {
-    
-    List<UnavailableDates> findBySubcontractorEntity(SubcontractorEntity subcontractor);
-    
-    @Query("SELECT u FROM UnavailableDates u WHERE u.subcontractorEntity.id = :subcontractorId")
+
+    @Query("SELECT u FROM UnavailableDates u WHERE u.subcontractor = :subcontractor")
+    List<UnavailableDates> findBySubcontractorEntity(@Param("subcontractor") SubcontractorEntity subcontractor);
+
+    @Query("SELECT u FROM UnavailableDates u WHERE u.subcontractor.subcontractor_Id = :subcontractorId")
     List<UnavailableDates> findBySubcontractorId(@Param("subcontractorId") int subcontractorId);
     
-    @Query("SELECT u FROM UnavailableDates u WHERE u.subcontractorEntity.user.email = :email")
+    @Query("SELECT u FROM UnavailableDates u WHERE u.subcontractor.user.email = :email")
     List<UnavailableDates> findBySubcontractorEmail(@Param("email") String email);
-    
+
     // Check if a date already exists for a specific subcontractor
-    boolean existsBySubcontractorEntityAndDate(SubcontractorEntity subcontractor, Date date);
+    boolean existsBySubcontractorAndDate(@Param("subcontractor") SubcontractorEntity subcontractor, @Param("date") Date date);
 }

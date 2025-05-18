@@ -39,7 +39,7 @@ public class UnavailableDatesService {
         }
         
         // Check if the date already exists for this subcontractor
-        if (unavailableDatesRepo.existsBySubcontractorEntityAndDate(subcontractor, date)) {
+        if (unavailableDatesRepo.existsBySubcontractorAndDate(subcontractor, date)) {
             throw new RuntimeException("This date is already marked as unavailable");
         }
         
@@ -71,7 +71,7 @@ public class UnavailableDatesService {
         }
         
         List<UnavailableDates> savedDates = dates.stream()
-            .filter(date -> !unavailableDatesRepo.existsBySubcontractorEntityAndDate(subcontractor, date))
+            .filter(date -> !unavailableDatesRepo.existsBySubcontractorAndDate(subcontractor, date))
             .map(date -> {
                 UnavailableDates unavailableDate = new UnavailableDates();
                 unavailableDate.setSubcontractorEntity(subcontractor);
