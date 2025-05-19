@@ -32,6 +32,9 @@ public class ShowcaseController {
     public ResponseEntity<?> addNewShowcase(@RequestBody ShowcaseDTO showcaseDTO) {
        try {
            ShowcaseEntity showcase = showcaseService.createShowcase(showcaseDTO);
+           if(showcaseDTO.getImageUrls().isEmpty()){
+               System.out.println("No images");
+           }
            showcaseMediaService.createShowcaseMedia(showcaseDTO.getImageUrls(),showcase);
            return ResponseEntity.ok().body(showcase);
        }catch (Exception e){
@@ -63,19 +66,22 @@ public class ShowcaseController {
     return ResponseEntity.ok(message);
     }
 
-//    @PutMapping("edit-showcase/{showcase_id}")
-//    public ResponseEntity<?> editShowcase(
-//                                            @RequestBody ShowcaseDTO showcaseDTO,
-//                                            @PathVariable int showcase_id){
-//        try {
-//            ShowcaseEntity showcase = showcaseService.editShowcase(showcase_id,showcaseDTO);
-//            showcaseMediaService.createShowcaseMedia(showcaseDTO.getImageUrls(), showcase.getShowcase_id());
-//            if (showcase == null) {
-//                return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body("Failed to save showcase");
-//            }
-//            return ResponseEntity.ok().body(showcase);
-//        }catch (Exception e){
-//            return ResponseEntity.badRequest().body(e.getMessage());
-//        }
-//    }
+    @PutMapping("/edit-showcase/{showcase_id}")
+    public ResponseEntity<?> editShowcase(
+            @RequestBody ShowcaseDTO showcaseDTO,
+            @PathVariable int showcase_id) {
+        System.out.println(showcaseDTO.getDeletedFileIds());
+        try {
+            ShowcaseEntity updatedShowcase = showcaseService.editShowcase(showcaseDTO, showcase_id);
+
+            if (showcaseDTO.getDeletedFileIds() != null) {
+                showcaseMediaService.deleteMediaByIds(showcaseDTO.getDeletedFileIds());
+            }
+            showcaseMediaService.createShowcaseMedia(showcaseDTO.getImageUrls(), updatedShowcase);
+
+            return ResponseEntity.ok().body(updatedShowcase);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

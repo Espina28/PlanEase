@@ -9,6 +9,7 @@ public class ShowcaseDTO {
     private String title;
     private String description;
     private List<ShowcaseMediaDTO> imageUrls;
+    private List<Integer> deletedFileIds;
 
     public String getEmail() {
         return email;
@@ -40,5 +41,13 @@ public class ShowcaseDTO {
 
     public void setImageUrls(List<ShowcaseMediaDTO> imageUrls) {
         this.imageUrls = imageUrls;
+    }
+
+    public List<Integer> getDeletedFileIds() {
+        return deletedFileIds;
+    }
+
+    public void setDeletedFileIds(List<Integer> deletedFileIds) {
+        this.deletedFileIds = deletedFileIds;
     }
 }

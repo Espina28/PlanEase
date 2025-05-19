@@ -23,3 +23,20 @@
   font-family: "Open Sans", sans-serif;
 }
 
+
+
+/*This is for the Big Calendar*/
+/* For month view day cells */
+.rbc-month-view .rbc-date-cell {
+  cursor: pointer;
+}
+
+/* Optional: also apply to the whole day slot area */
+.rbc-month-view .rbc-day-bg:hover {
+  cursor: pointer;
+}
+
+.rbc-month-view .rbc-day-bg:hover {
+  background-color: rgba(0, 123, 255, 0.1); /* light blue on hover */
+  transition: background-color 0.2s;
+}
