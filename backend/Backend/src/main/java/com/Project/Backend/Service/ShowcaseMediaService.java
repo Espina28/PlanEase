@@ -75,7 +75,7 @@ public class ShowcaseMediaService {
         return null; // Waiting for more chunks
     }
 
-    public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaDTO[] imageUrls, ShowcaseEntity showcase) {
+    public List<ShowcaseMediaEntity> createShowcaseMedia(List<ShowcaseMediaDTO> imageUrls, ShowcaseEntity showcase) {
         List<ShowcaseMediaEntity> savedMedia = new ArrayList<>();
         try {
 //            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcase.getShowcase_id());

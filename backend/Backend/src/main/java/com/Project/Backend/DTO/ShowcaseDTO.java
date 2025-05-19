@@ -2,11 +2,13 @@ package com.Project.Backend.DTO;
 
 import com.Project.Backend.Entity.ShowcaseMediaEntity;
 
+import java.util.List;
+
 public class ShowcaseDTO {
     private String email;
     private String title;
     private String description;
-    private ShowcaseMediaDTO[] imageUrls;
+    private List<ShowcaseMediaDTO> imageUrls;
 
     public String getEmail() {
         return email;
@@ -32,11 +34,11 @@ public class ShowcaseDTO {
         this.description = description;
     }
 
-    public ShowcaseMediaDTO[] getImageUrls() {
+    public List<ShowcaseMediaDTO> getImageUrls() {
         return imageUrls;
     }
 
-    public void setImageUrls(ShowcaseMediaDTO[] imageUrls) {
+    public void setImageUrls(List<ShowcaseMediaDTO> imageUrls) {
         this.imageUrls = imageUrls;
     }
 }
