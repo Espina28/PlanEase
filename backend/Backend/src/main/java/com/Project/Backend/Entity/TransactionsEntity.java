@@ -27,7 +27,7 @@ public class TransactionsEntity {
 
     @JoinColumn(name = "event_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "event-transaction")
+    @JsonBackReference(value = "event-transaction")
     private EventEntity event;
 
     @OneToOne

@@ -16,7 +16,7 @@ public class UserEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int userId;
 
-    @OneToOne(mappedBy = "userId")
+    @OneToOne(mappedBy = "user")
     @JsonBackReference("subcontractor-user")
     private SubcontractorEntity subcontractor;
 

@@ -15,6 +15,7 @@ public class EventServiceEntity {
     private int eventServices_id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference("subcontractor-eventservice")
     @JoinColumn(name = "subcontractor_id")
     private SubcontractorEntity subcontractor;
 

@@ -19,7 +19,7 @@ public interface UnavailableDatesRepo extends JpaRepository<UnavailableDates, In
     @Query("SELECT u FROM UnavailableDates u WHERE u.subcontractor.subcontractor_Id = :subcontractorId")
     List<UnavailableDates> findBySubcontractorId(@Param("subcontractorId") int subcontractorId);
     
-    @Query("SELECT u FROM UnavailableDates u WHERE u.subcontractor.userId.email = :email")
+    @Query("SELECT u FROM UnavailableDates u WHERE u.subcontractor.user.email = :email")
     List<UnavailableDates> findBySubcontractorEmail(@Param("email") String email);
 
     // Check if a date already exists for a specific subcontractor

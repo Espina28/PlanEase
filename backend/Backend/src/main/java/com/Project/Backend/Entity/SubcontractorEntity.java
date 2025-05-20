@@ -22,7 +22,7 @@ public class SubcontractorEntity {
     @OneToOne
     @JoinColumn(name = "user_id")
     @JsonManagedReference("subcontractor-user")
-    private UserEntity userId;
+    private UserEntity user;
 
     //here
     @OneToMany(mappedBy = "subcontractor")
@@ -66,11 +66,11 @@ public class SubcontractorEntity {
     }
 
     public UserEntity getUserId() {
-        return userId;
+        return user;
     }
 
-    public void setUserId(UserEntity userId) {
-        this.userId = userId;
+    public void setUserId(UserEntity user) {
+        this.user = user;
     }
 
     public List<ShowcaseEntity> getShowcase() {

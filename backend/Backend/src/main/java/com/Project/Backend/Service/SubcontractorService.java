@@ -17,21 +17,9 @@ public class SubcontractorService {
     @Autowired
     private S3Service s3Service;
 
-//    public SubcontractorEntity saveSubcontractor(CreateSubcontractorRequest createSubcontractorRequest) {
-//        SubcontractorEntity subcontractorEntity = new SubcontractorEntity();
-//        ServiceOfferedEntity serviceOfferedEntity = null;
-//        try{
-//            serviceOfferedEntity = serviceOfferedService.findByServiceByName(createSubcontractorRequest.getService());
-//            if(serviceOfferedEntity == null){
-//                return null;
-//            }
-//            subcontractorEntity.setServiceName(serviceOfferedEntity);
-//            subcontractorEntity.setUser(createSubcontractorRequest.getUser());
-//        } catch (RuntimeException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//    }
+    public SubcontractorEntity saveSubcontractor(SubcontractorEntity subcontractor) {
+        return subContractorRepository.save(subcontractor);
+    }
 
     public List<SubcontractorEntity> getAllSubcontractors() {
         return subContractorRepository.findAll();

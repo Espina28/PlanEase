@@ -18,7 +18,7 @@ public class EventEntity {
     private int event_Id;
 
     @OneToMany(mappedBy = "event")
-    @JsonBackReference("event-transaction")
+    @JsonManagedReference("event-transaction")
     private List<TransactionsEntity> transactions;
 
     private String event_name;
