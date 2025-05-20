@@ -75,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/showcase/**").authenticated()
                         .requestMatchers("/showcasemedia/**").authenticated()
                         .requestMatchers("/serviceoffering/**").authenticated()
+                        .requestMatchers("/package/**").permitAll() //temporary
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
