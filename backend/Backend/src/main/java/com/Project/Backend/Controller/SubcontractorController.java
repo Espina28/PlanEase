@@ -3,15 +3,14 @@ package com.Project.Backend.Controller;
 import java.util.List;
 import java.util.Map;
 
+import com.Project.Backend.DTO.CreateSubcontractorRequest;
 import com.Project.Backend.DTO.SubcontractorDescriptionDTO;
-import com.Project.Backend.Entity.ServiceOfferedEntity;
-import com.Project.Backend.Service.ServiceOfferedService;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.Project.Backend.DTO.CreateSubcontractorRequest;
 import com.Project.Backend.Entity.SubcontractorEntity;
 import com.Project.Backend.Service.SubcontractorService;
 
@@ -22,9 +21,6 @@ public class SubcontractorController {
 
     @Autowired
     private SubcontractorService subcontractorService;
-
-    @Autowired
-    private ServiceOfferedService serviceOfferedService;
 
     @GetMapping("/getall")
     public ResponseEntity<List<SubcontractorEntity>> getAllSubcontractors() {
@@ -58,18 +54,21 @@ public class SubcontractorController {
     }
 
 
-//    @PostMapping("/create")
-//    public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {
-//        SubcontractorEntity subcontractor = new SubcontractorEntity();
-//        ServiceOfferedEntity serviceOffered = new ServiceOfferedEntity();
-//
-//        subcontractor.setUser(request.getUser());
-//        subcontractor.setAvailable(true);
-//        subcontractor.setDescription(request.getDescription());
-//        subcontractor.setService_name(request.getService());
-//        SubcontractorEntity savedSubcontractor = subcontractorService.saveSubcontractor(subcontractor);
-//        return ResponseEntity.ok(savedSubcontractor);
-//    }
+    @PostMapping("/create")
+    public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {
+        SubcontractorEntity subcontractor = new SubcontractorEntity();
+        subcontractor.setUserId(request.getUser());
+        subcontractor.setSubcontractor_description(request.getDescription());
+        subcontractor.setSubcontractor_serviceName(request.getService());
+        subcontractor.setUnavailableDates(null);
+
+        //create object for package service -> what package of tulip, cherry blossom, he's available
+
+        subcontractor.setEventName(null);
+        subcontractor.setShowcase(null);
+        SubcontractorEntity savedSubcontractor = subcontractorService.saveSubcontractor(subcontractor);
+        return ResponseEntity.ok(savedSubcontractor);
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSubcontractor(@PathVariable int id) {

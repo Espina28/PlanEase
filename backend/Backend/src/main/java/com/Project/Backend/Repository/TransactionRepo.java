@@ -11,7 +11,7 @@ import java.util.List;
 public interface TransactionRepo extends JpaRepository<TransactionsEntity, Integer> {
 
     // Change from findByEventEntity_Event_id to findByEventEntityId
-    @Query("SELECT t FROM TransactionsEntity t WHERE t.eventEntity.event_Id= :eventId")
+    @Query("SELECT t FROM TransactionsEntity t WHERE t.event.event_Id= :eventId")
     List<TransactionsEntity> findByEventEntityId(int eventId);
     
     // Change from findByTransaction_status to findByTransactionStatus

@@ -92,7 +92,7 @@ public class TransactionService {
         if (dto.getEventId() != null) {
             EventEntity eventEntity = eventRepository.findById(dto.getEventId())
                 .orElseThrow(() -> new RuntimeException("Event with id " + dto.getEventId() + " not found"));
-            entity.setEventEntity(eventEntity);
+            entity.setEvent(eventEntity);
         }
         
         entity.setTransactionVenue(dto.getVenue());

@@ -1,7 +1,9 @@
 package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.sql.Date;
@@ -9,7 +11,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "Transactions")
+@Table(name = "transactions")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "transaction_Id")
 public class TransactionsEntity {
 
     @Id
@@ -19,22 +22,27 @@ public class TransactionsEntity {
 
     @JoinColumn(name = "user_id")
     @ManyToOne
-    @JsonManagedReference(value = "user-transaction")
+    @JsonBackReference(value = "user-transaction")
     private UserEntity user;
 
     @JoinColumn(name = "event_id")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference(value = "event-transaction")
-    private EventEntity eventEntity;
+    private EventEntity event;
 
     @OneToOne
     @JoinColumn(name = "package_id")
     @JsonManagedReference(value = "transaction-package")
     private PackagesEntity packages;
 
-    @OneToMany
+    @OneToMany(mappedBy = "transactionsId")
     @JsonManagedReference(value = "transaction-event-service")
     private List<EventServiceEntity> eventServices;
+
+    //PAYMENT
+    @OneToOne(mappedBy = "transaction")
+    @JsonManagedReference(value = "transaction-payment")
+    private PaymentEntity payment;
 
     private String transactionVenue;
     private Status transactionStatus;
@@ -72,12 +80,12 @@ public class TransactionsEntity {
         this.user = user;
     }
 
-    public EventEntity getEventEntity() {
-        return eventEntity;
+    public EventEntity getEvent() {
+        return event;
     }
 
-    public void setEventEntity(EventEntity eventEntity) {
-        this.eventEntity = eventEntity;
+    public void setEvent(EventEntity event) {
+        this.event = event;
     }
 
     public PackagesEntity getPackages() {
@@ -88,12 +96,20 @@ public class TransactionsEntity {
         this.packages = packages;
     }
 
-    public List<EventServiceEntity> getEventService() {
+    public List<EventServiceEntity> getEventServices() {
         return eventServices;
     }
 
-    public void setEventService(List<EventServiceEntity> eventServices) {
+    public void setEventServices(List<EventServiceEntity> eventServices) {
         this.eventServices = eventServices;
+    }
+
+    public PaymentEntity getPayment() {
+        return payment;
+    }
+
+    public void setPayment(PaymentEntity payment) {
+        this.payment = payment;
     }
 
     public String getTransactionVenue() {

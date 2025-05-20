@@ -1,11 +1,14 @@
 package com.Project.Backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
 @Table(name = "Subcontractors")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subcontractor_Id")
 public class SubcontractorEntity {
 
     @Id
@@ -13,10 +16,12 @@ public class SubcontractorEntity {
     private int subcontractor_Id;
 
     @Column(columnDefinition = "TEXT")
-    private String description;
+    private String subcontractor_description;
+    private String subcontractor_serviceName;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "userId")
+    @JoinColumn(name = "user_id")
+    @JsonManagedReference("subcontractor-user")
     private UserEntity user;
 
     //here
@@ -28,10 +33,13 @@ public class SubcontractorEntity {
     @JsonManagedReference(value = "subcontractor-unavailable-dates")
     private List<UnavailableDates> unavailableDates;
 
-    @OneToOne
-    @JoinColumn(name = "service_offered_id")
-    @JsonManagedReference("subcontractor-offering-service")
-    private ServiceOfferedEntity serviceName;
+    @OneToMany(mappedBy = "subcontractor")
+    @JsonManagedReference("subcontractor-eventservice")
+    private List<EventServiceEntity> eventName;
+
+    @OneToMany(mappedBy = "subcontractor")
+    @JsonManagedReference("subcontractor-package-service")
+    private List<PackageServicesEntity> packageServices;
 
     public int getSubcontractor_Id() {
         return subcontractor_Id;
@@ -41,19 +49,27 @@ public class SubcontractorEntity {
         this.subcontractor_Id = subcontractor_Id;
     }
 
-    public String getDescription() {
-        return description;
+    public String getSubcontractor_description() {
+        return subcontractor_description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setSubcontractor_description(String subcontractor_description) {
+        this.subcontractor_description = subcontractor_description;
     }
 
-    public UserEntity getUser() {
+    public String getSubcontractor_serviceName() {
+        return subcontractor_serviceName;
+    }
+
+    public void setSubcontractor_serviceName(String subcontractor_serviceName) {
+        this.subcontractor_serviceName = subcontractor_serviceName;
+    }
+
+    public UserEntity getUserId() {
         return user;
     }
 
-    public void setUser(UserEntity user) {
+    public void setUserId(UserEntity user) {
         this.user = user;
     }
 
@@ -73,11 +89,19 @@ public class SubcontractorEntity {
         this.unavailableDates = unavailableDates;
     }
 
-    public ServiceOfferedEntity getServiceName() {
-        return serviceName;
+    public List<EventServiceEntity> getEventName() {
+        return eventName;
     }
 
-    public void setServiceName(ServiceOfferedEntity serviceName) {
-        this.serviceName = serviceName;
+    public void setEventName(List<EventServiceEntity> eventName) {
+        this.eventName = eventName;
+    }
+
+    public List<PackageServicesEntity> getPackageServices() {
+        return packageServices;
+    }
+
+    public void setPackageServices(List<PackageServicesEntity> packageServices) {
+        this.packageServices = packageServices;
     }
 }

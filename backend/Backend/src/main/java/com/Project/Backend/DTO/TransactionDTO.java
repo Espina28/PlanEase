@@ -39,15 +39,15 @@ public class TransactionDTO {
         Double eventPrice = null;
         String eventDescription = null;
         
-        if (entity.getEventEntity() != null) {
-            eventName = entity.getEventEntity().getEvent_name();
-            eventPrice = entity.getEventEntity().getEvent_price();
-            eventDescription = entity.getEventEntity().getEvent_description();
+        if (entity.getEvent() != null) {
+            eventName = entity.getEvent().getEvent_name();
+            eventPrice = entity.getEvent().getEvent_price();
+            eventDescription = entity.getEvent().getEvent_description();
         }
         
         return new TransactionDTO(
             entity.getTransaction_Id(),
-            entity.getEventEntity() != null ? entity.getEventEntity().getEvent_Id() : null,
+            entity.getEvent() != null ? entity.getEvent().getEvent_Id() : null,
             entity.getTransactionVenue(),
             entity.getTransactionStatus(),
             entity.getTransactionDate(),

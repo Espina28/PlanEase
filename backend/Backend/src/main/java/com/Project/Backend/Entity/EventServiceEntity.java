@@ -1,9 +1,13 @@
 package com.Project.Backend.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "event_services")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "eventServices_id")
 public class EventServiceEntity {
 
     @Id
@@ -11,12 +15,15 @@ public class EventServiceEntity {
     private int eventServices_id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "serviceOffered_id")
-    private ServiceOfferedEntity serviceOffered;
+    @JsonBackReference("subcontractor-eventservice")
+    @JoinColumn(name = "subcontractor_id")
+    private SubcontractorEntity subcontractor;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_id")
-    private TransactionsEntity transactions;
+    @JsonBackReference("transaction-event-service")
+    private TransactionsEntity transactionsId;
 
     public int getEventServices_id() {
         return eventServices_id;
@@ -26,19 +33,19 @@ public class EventServiceEntity {
         this.eventServices_id = eventServices_id;
     }
 
-    public ServiceOfferedEntity getServiceOffered() {
-        return serviceOffered;
+    public SubcontractorEntity getSubcontractor() {
+        return subcontractor;
     }
 
-    public void setServiceOffered(ServiceOfferedEntity serviceOffered) {
-        this.serviceOffered = serviceOffered;
+    public void setSubcontractor(SubcontractorEntity subcontractor) {
+        this.subcontractor = subcontractor;
     }
 
-    public TransactionsEntity getTransactions() {
-        return transactions;
+    public TransactionsEntity getTransactionsId() {
+        return transactionsId;
     }
 
-    public void setTransactions(TransactionsEntity transactions) {
-        this.transactions = transactions;
+    public void setTransactionsId(TransactionsEntity transactionsId) {
+        this.transactionsId = transactionsId;
     }
 }

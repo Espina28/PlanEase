@@ -1,6 +1,8 @@
 package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.sql.Date;
@@ -10,6 +12,7 @@ import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "payments")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "paymentId")
 public class PaymentEntity {
 
     @Id
@@ -18,8 +21,8 @@ public class PaymentEntity {
 
     @OneToOne
     @JoinColumn(name = "transaction_id")
-    @JsonBackReference("transaction")
-    private TransactionsEntity transactions;
+    @JsonBackReference("transaction-payment")
+    private TransactionsEntity transaction;
 
     private Date paymentDatePaid;
     private String paymentNote;
@@ -40,6 +43,14 @@ public class PaymentEntity {
 
     public void setPaymentId(int paymentId) {
         this.paymentId = paymentId;
+    }
+
+    public TransactionsEntity getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(TransactionsEntity transaction) {
+        this.transaction = transaction;
     }
 
     public Date getPaymentDatePaid() {
