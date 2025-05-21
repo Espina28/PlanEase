@@ -29,6 +29,10 @@ public class EventService {
         return eventRepository.findAll();
     }
 
+    public EventEntity getEventByEventName(String eventName) {
+        return eventRepository.findByName(eventName);
+    }
+
     public EventEntity update(EventEntity event) {
         return eventRepository.save(event);
     }
@@ -36,6 +40,8 @@ public class EventService {
     public void deleteById(int id) {
         eventRepository.deleteById(id);
     }
+
+
 
 
     // public List<EventEntity> readAvailable() {

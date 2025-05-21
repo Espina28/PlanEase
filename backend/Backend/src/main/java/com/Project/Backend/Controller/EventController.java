@@ -34,12 +34,20 @@ public class EventController {
         return ResponseEntity.ok(eventService.readById(id));
     }
 
-    @GetMapping
+    @GetMapping("/event-details/{event_name}")
+    public ResponseEntity<EventEntity> readByEventName(@PathVariable String event_name) {
+        EventEntity event = eventService.getEventByEventName(event_name);
+        if(event == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(event);
+    }
+
+    @GetMapping("/getEvents")
     public ResponseEntity<List<EventEntity>> readAll() {
         return ResponseEntity.ok(eventService.readAll());
     }
 
-    
 
     @PutMapping
     public ResponseEntity<EventEntity> update(@RequestBody EventEntity event) {

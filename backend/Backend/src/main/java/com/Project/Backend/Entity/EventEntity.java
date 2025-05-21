@@ -23,8 +23,10 @@ public class EventEntity {
 
     private String event_name;
     private String event_description;
+    private String event_summary;
     private boolean event_isAvailable;
     private double event_price;
+    private String event_image;
 
     public int getEvent_Id() {
         return event_Id;
@@ -50,6 +52,14 @@ public class EventEntity {
         this.event_name = event_name;
     }
 
+    public String getEvent_summary() {
+        return event_summary;
+    }
+
+    public void setEvent_summary(String event_summary) {
+        this.event_summary = event_summary;
+    }
+
     public String getEvent_description() {
         return event_description;
     }
@@ -72,5 +82,13 @@ public class EventEntity {
 
     public void setEvent_price(double event_price) {
         this.event_price = event_price;
+    }
+
+    public String getEvent_image() {
+        return event_image;
+    }
+
+    public void setEvent_image(String event_image) {
+        this.event_image = event_image;
     }
 }
