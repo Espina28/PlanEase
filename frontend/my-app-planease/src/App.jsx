@@ -18,6 +18,8 @@ import InputDetailsPage from './Pages/inputdetails-page'
 import SelectServicePage from './Pages/selectservice-page'
 import PreviewBookingPage from './Pages/previewbooking-page'
 import PaymentProofPage from './Pages/paymentproof-page'
+import EventPage from './Pages/events-dashboard/events-dashboard.jsx'
+import EventDetails from './Pages/events-dashboard/event-details.jsx'
 
 
 function App() {
@@ -39,23 +41,45 @@ function App() {
           <Route path="/book/services" element={<SelectServicePage />} />
           <Route path="/book/preview" element={<PreviewBookingPage />} />
           <Route path="/book/payment" element={<PaymentProofPage />} />
+
+          <Route path="/events-dashboard" element={
+            <>
+              {/*<ProtectedRoute>*/}
+                <Navbar />
+                <EventPage />
+                <Footer />
+              {/*</ProtectedRoute>*/}
+            </>
+          }
+          />
+
+            <Route path="/event/:event_name" element={
+                <>
+                    <ProtectedRoute>
+                        <Navbar />
+                        <EventDetails />
+                        <Footer />
+                    </ProtectedRoute>
+                </>
+            }
+            />
           <Route path="/subcontractor/dashboard" element={
-            // <SubContractorProtectedRoute>
+             <SubContractorProtectedRoute>
                 <SubcontractorDashboard />  
-            // </SubContractorProtectedRoute>
+             </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/transactions" element={
-            // <SubContractorProtectedRoute>
+            <SubContractorProtectedRoute>
                 <SubcontractorBookings />
-            // </SubContractorProtectedRoute>
+             </SubContractorProtectedRoute>
             } />
           <Route path="/subcontractor/calendar" element={
-            // <SubContractorProtectedRoute>
+            <SubContractorProtectedRoute>
                 <SubcontractorCalendar />
-            // </SubContractorProtectedRoute>
+            </SubContractorProtectedRoute>
             } />
-          <Route path="/subcontractor/login" element={<SubcontractorLogin />
-        } />
+          <Route path="/subcontractor/login" element={<SubcontractorLogin />} />
+
 
           <Route path="/admin/subcontractors" element={
             <AdminProtectedRoute>
@@ -68,7 +92,7 @@ function App() {
               <>
                 <ProtectedRoute>
                   <Navbar />
-                    <HomePage />
+                    <EventPage />
                   <Footer />
                 </ProtectedRoute>
               </>
