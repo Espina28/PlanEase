@@ -72,10 +72,11 @@ public class SecurityConfig {
                         .requestMatchers("/subcontractor/create", "/subcontractor/login").permitAll()
                         .requestMatchers("/subcontractor/**").authenticated()
                         .requestMatchers("/api/transactions/**").permitAll()
+                        .requestMatchers("/api/events/**").authenticated()
                         .requestMatchers("/showcase/**").authenticated()
                         .requestMatchers("/showcasemedia/**").authenticated()
                         .requestMatchers("/serviceoffering/**").authenticated()
-                        .requestMatchers("/package/**").permitAll() //temporary
+                        .requestMatchers("/package/**").authenticated() //temporary
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
