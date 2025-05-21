@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -6,20 +6,22 @@ const EventDetails = () => {
     const { event_name } = useParams();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('token'); // Adjust if you're using sessionStorage
+        const token = localStorage.getItem('token');
 
-        axios.get(`http://localhost:8080/api/events/event-details/${event_name}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        })
-            .then(response => {
+        axios
+            .get(`http://localhost:8080/api/events/event-details/${event_name}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            .then((response) => {
                 setEvent(response.data);
                 setLoading(false);
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Error fetching event details:', error);
                 setLoading(false);
             });
@@ -29,23 +31,30 @@ const EventDetails = () => {
     if (!event) return <p className="p-10">Event not found</p>;
 
     return (
-        <div className="p-10">
+        <div className="p-6 md:p-10 mb-20">
+            {/* Breadcrumb */}
             <nav className="text-sm text-gray-500 mb-4">
-                Home / Events / <span className="text-black font-medium">{event.event_name}</span>
+        <span className="cursor-pointer hover:underline" onClick={() => navigate("/home")}>
+          Home /
+        </span>
+                <span className="text-gray-500"> {event_name}</span>
             </nav>
 
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Event content */}
+            <div className="flex flex-col md:flex-row gap-8">
                 <img
-                    src={event.event_image || 'https://via.placeholder.com/400x300'}
+                    src={event.event_image || 'https://talentclick.com/wp-content/uploads/2021/08/placeholder-image.png'}
                     alt={event.event_name || 'Event Image'}
-                    className="rounded-xl object-cover w-full h-full"
+                    className="rounded-xl object-cover w-full md:w-1/2 h-64 md:h-auto"
                 />
-                <div>
+
+                <div className="flex-1">
                     <h1 className="text-3xl font-bold mb-4">{event.event_name || 'Untitled Event'}</h1>
                     <p className="text-gray-600 mb-6">{event.event_description || 'No description available.'}</p>
                     <p className="text-xl font-semibold mb-4 text-green-600">
                         {event.event_price != null ? `₱${event.event_price.toLocaleString()}` : 'Price not available'}
                     </p>
+
                     {!event.event_isAvailable ? (
                         <button className="bg-gray-400 text-white px-6 py-2 rounded-md cursor-not-allowed" disabled>
                             Unavailable

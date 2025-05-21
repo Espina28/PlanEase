@@ -82,7 +82,8 @@ const EventPage = () => {
                                 </button>
                             ) : (
                                 <Link to={`/event/${event.event_name}`} className="mt-auto">
-                                    <button className="bg-black text-white w-full px-4 py-2 rounded-lg hover:bg-gray-800">
+                                    <button className="bg-gray-900 text-white w-full px-4 py-2 rounded-lg hover:bg-gray-800"
+                                        onClick={null}>
                                         See more
                                     </button>
                                 </Link>
@@ -91,6 +92,57 @@ const EventPage = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Wedding Packages Section */}
+            <section className="text-center my-10">
+                <p className="text-sm tracking-widest text-yellow-600 font-semibold mb-2">WE OFFER</p>
+                <h2 className="text-4xl font-bold text-gray-800 mb-8">WEDDING PACKAGES</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 justify-center px-4">
+                    {/* Rose Package */}
+                    <div className="bg-white shadow-md rounded-lg p-7 flex flex-col items-center">
+                        <img src="../../../public/rose.png" alt="Rose" className="rounded-full w-30 h-30 mb-4 object-cover" />
+                        <h3 className="text-xl font-bold text-gray-800">Rose</h3>
+                        <p className="text-gray-500 mb-2">₱350k</p>
+                        <p className="text-sm text-gray-700 p-5 text-center">Catering, Decorations, Bridal Entourage, 2 Tier Wedding Cake, Wine for toasting...</p>
+                        <Link to={`/package/Rose Package`} className="mt-auto">
+                            <button className="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800"
+                                onClick={null}>
+                                CLICK FOR MORE DETAILS
+                            </button>
+                        </Link>
+                    </div>
+
+                    {/* Tulip Package */}
+                    <div className="bg-white shadow-xl rounded-lg p-6 flex flex-col items-center ">
+                        <img src="../../../public/Tulip.png" alt="Tulip" className="rounded-full w-30 h-30 mb-4 object-cover" />
+                        <h3 className="text-xl font-bold text-gray-800">Tulip</h3>
+                        <p className="text-gray-500 mb-2">₱450k</p>
+                        <p className="text-sm text-gray-700 p-5 text-center">Catering, Decorations, 4 tier Wedding Cake and Cupcakes, 1 Lechon, Dessert station...</p>
+                        <Link to={`/package/Tulip Package`} className="mt-auto">
+                            <button className="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800"
+                                    onClick={null}>
+                                CLICK FOR MORE DETAILS
+                            </button>
+                        </Link>
+                    </div>
+
+                    {/* Cherry Blossom Package */}
+                    <div className="bg-white shadow-md rounded-lg p-6 flex flex-col items-center">
+                        <img src="../../../public/CherryBlossom.png" alt="Cherry Blossom" className="rounded-full w-30 h-30 mb-4 object-cover" />
+                        <h3 className="text-xl font-bold text-gray-800">Cherry Blossom</h3>
+                        <p className="text-gray-500 mb-2">₱300k</p>
+                        <p className="text-sm text-gray-700 p-5 text-center">Catering, Decorations, 3 tier Wedding Cake, Professional Host, Photobooth...</p>
+                        <Link to={`/package/Cherry Blossoms Package`} className="mt-auto">
+                            <button className="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800"
+                                    onClick={null}>
+                                CLICK FOR MORE DETAILS
+                            </button>
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
 
         </div>
     );
