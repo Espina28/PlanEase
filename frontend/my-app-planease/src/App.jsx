@@ -20,6 +20,7 @@ import PreviewBookingPage from './Pages/previewbooking-page'
 import PaymentProofPage from './Pages/paymentproof-page'
 import EventPage from './Pages/events-dashboard/events-dashboard.jsx'
 import EventDetails from './Pages/events-dashboard/event-details.jsx'
+import NotificationsPage from './Pages/NotificationsPage.jsx'
 import PackageDetails from './Pages/events-dashboard/package-details.jsx'
 
 
@@ -42,6 +43,12 @@ function App() {
           <Route path="/book/services" element={<SelectServicePage />} />
           <Route path="/book/preview" element={<PreviewBookingPage />} />
           <Route path="/book/payment" element={<PaymentProofPage />} />
+
+          <Route path="/notifications" element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+            } />
 
           <Route path="/events-dashboard" element={
             <>
