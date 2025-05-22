@@ -21,6 +21,7 @@ import PaymentProofPage from './Pages/paymentproof-page'
 import EventPage from './Pages/events-dashboard/events-dashboard.jsx'
 import EventDetails from './Pages/events-dashboard/event-details.jsx'
 import NotificationsPage from './Pages/NotificationsPage.jsx'
+import PackageDetails from './Pages/events-dashboard/package-details.jsx'
 
 
 function App() {
@@ -51,14 +52,25 @@ function App() {
 
           <Route path="/events-dashboard" element={
             <>
-              {/*<ProtectedRoute>*/}
+              <ProtectedRoute>
                 <Navbar />
                 <EventPage />
                 <Footer />
-              {/*</ProtectedRoute>*/}
+              </ProtectedRoute>
             </>
           }
           />
+
+            <Route path="/package/:package_name" element={
+                <>
+                    <ProtectedRoute>
+                        <Navbar />
+                        <PackageDetails />
+                        <Footer />
+                    </ProtectedRoute>
+                </>
+            }
+            />
 
             <Route path="/event/:event_name" element={
                 <>
