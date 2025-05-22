@@ -1,41 +1,68 @@
  package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.sun.net.httpserver.Authenticator;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
-import java.io.LineNumberReader;
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "Transactions")
+@Table(name = "transactions")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "transaction_Id")
 public class TransactionsEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int transaction_Id;
 
-    @JoinColumn(name = "event_id")
-    @ManyToOne
-    @JsonBackReference(value = "event-transaction")
-    private EventEntity eventEntity;
 
-    @OneToMany(mappedBy = "transactionsEntity", fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "transaction-event-service-provision")
-    private List<Event_ServiceProvisionEntity> eventServiceProvisionEntity;
+    @JoinColumn(name = "user_id")
+    @ManyToOne
+    @JsonBackReference(value = "user-transaction")
+    private UserEntity user;
+
+    @JoinColumn(name = "event_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference(value = "event-transaction")
+    private EventEntity event;
+
+    @OneToOne
+    @JoinColumn(name = "package_id")
+    @JsonManagedReference(value = "transaction-package")
+    private PackagesEntity packages;
+
+    @OneToMany(mappedBy = "transactionsId")
+    @JsonManagedReference(value = "transaction-event-service")
+    private List<EventServiceEntity> eventServices;
+
+    //PAYMENT
+    @OneToOne(mappedBy = "transaction")
+    @JsonManagedReference(value = "transaction-payment")
+    private PaymentEntity payment;
 
     private String transactionVenue;
     private Status transactionStatus;
     private Date transactionDate;
     private Boolean transactionIsActive;
+    private Boolean transactionisApprove;
 
     public enum Status {
-        SUCCESS, CANCELLED, PENDING
+        ACCEPTED, CANCELLED, PENDING
     }
 
     // Getters and Setters
+
+    @PrePersist //before it save to db this will run first to ensue the variables will not be empty
+    protected void onCreate() {
+        this.transactionDate = Date.valueOf(LocalDateTime.now().toLocalDate());
+        this.transactionIsActive = true;
+        this.transactionisApprove = false;
+        this.transactionStatus = Status.PENDING;
+    }
 
     public int getTransaction_Id() {
         return transaction_Id;
@@ -45,20 +72,44 @@ public class TransactionsEntity {
         this.transaction_Id = transaction_Id;
     }
 
-    public EventEntity getEventEntity() {
-        return eventEntity;
+    public UserEntity getUser() {
+        return user;
     }
 
-    public void setEventEntity(EventEntity eventEntity) {
-        this.eventEntity = eventEntity;
+    public void setUser(UserEntity user) {
+        this.user = user;
     }
 
-    public List<Event_ServiceProvisionEntity> getEventServiceProvisionEntity() {
-        return eventServiceProvisionEntity;
+    public EventEntity getEvent() {
+        return event;
     }
 
-    public void setEventServiceProvisionEntity(List<Event_ServiceProvisionEntity> eventServiceProvisionEntity) {
-        this.eventServiceProvisionEntity = eventServiceProvisionEntity;
+    public void setEvent(EventEntity event) {
+        this.event = event;
+    }
+
+    public PackagesEntity getPackages() {
+        return packages;
+    }
+
+    public void setPackages(PackagesEntity packages) {
+        this.packages = packages;
+    }
+
+    public List<EventServiceEntity> getEventServices() {
+        return eventServices;
+    }
+
+    public void setEventServices(List<EventServiceEntity> eventServices) {
+        this.eventServices = eventServices;
+    }
+
+    public PaymentEntity getPayment() {
+        return payment;
+    }
+
+    public void setPayment(PaymentEntity payment) {
+        this.payment = payment;
     }
 
     public String getTransactionVenue() {
@@ -91,5 +142,13 @@ public class TransactionsEntity {
 
     public void setTransactionIsActive(Boolean transactionIsActive) {
         this.transactionIsActive = transactionIsActive;
+    }
+
+    public Boolean getTransactionisApprove() {
+        return transactionisApprove;
+    }
+
+    public void setTransactionisApprove(Boolean transactionisApprove) {
+        this.transactionisApprove = transactionisApprove;
     }
 }

@@ -2,6 +2,7 @@ package com.Project.Backend.Service;
 
 import com.Project.Backend.DTO.CreateShowcaseMedia;
 import com.Project.Backend.DTO.ShowcaseDTO;
+import com.Project.Backend.DTO.ShowcaseMediaDTO;
 import com.Project.Backend.Entity.ShowcaseEntity;
 import com.Project.Backend.Entity.ShowcaseMediaEntity;
 import com.Project.Backend.Repository.ShowcaseMediaRepository;
@@ -74,15 +75,17 @@ public class ShowcaseMediaService {
         return null; // Waiting for more chunks
     }
 
-    public List<ShowcaseMediaEntity> createShowcaseMedia(ShowcaseMediaEntity[] showcaseMediaEntity, int showcaseId) {
+    public List<ShowcaseMediaEntity> createShowcaseMedia(List<ShowcaseMediaDTO> imageUrls, ShowcaseEntity showcase) {
         List<ShowcaseMediaEntity> savedMedia = new ArrayList<>();
         try {
-            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcaseId);
-            for (ShowcaseMediaEntity media : showcaseMediaEntity) {
+//            ShowcaseEntity showcase = showcaseService.findShowcaseById(showcase.getShowcase_id());
+            for (ShowcaseMediaDTO media : imageUrls) {
                 ShowcaseMediaEntity newMedia = new ShowcaseMediaEntity();
-                newMedia.setShowcaseMedia_imageurl(media.getShowcaseMedia_imageurl());
-                newMedia.setShowcaseMedia_fileName(media.getShowcaseMedia_fileName());
-                newMedia.setShowcaseEntity(showcase);
+                System.out.println(media.getImageUrl());
+                System.out.println(media.getFileName());
+                newMedia.setShowcaseMedia_imageurl(media.getImageUrl());
+                newMedia.setShowcaseMedia_fileName(media.getFileName());
+                newMedia.setShowcase(showcase);
                 savedMedia.add(showcaseMediaRepository.save(newMedia));
             }
             return savedMedia;
@@ -91,22 +94,12 @@ public class ShowcaseMediaService {
         }
     }
 
-//    public String updateShowcaseMedia(CreateShowcaseMedia createShowcaseMedia) {
-//        ShowcaseMediaEntity newShowcaseMedia = new ShowcaseMediaEntity();
-//        try {
-//            ShowcaseEntity showcase = showcaseService.findShowcaseById(createShowcaseMedia.getShowcase_id());
-//            if(showcase == null){
-//                throw new RuntimeException("Showcase not found with id: " + createShowcaseMedia.getShowcase_id());
-//            }
-//            newShowcaseMedia.setShowcaseMedia_imageurl(createShowcaseMedia.getImageUrl());
-//            newShowcaseMedia.setShowcaseMedia_fileName(createShowcaseMedia.getFileName());
-//            newShowcaseMedia.setShowcaseEntity(showcase);
-//            showcaseMediaRepository.save(newShowcaseMedia);
-//            return createShowcaseMedia.getImageUrl();
-//        }catch (Exception e){
-//            throw new RuntimeException("Error in saving showcase media");
-//        }
-//    }
+    public void deleteMediaByIds(List<Integer> mediaIds) {
+        for (Integer mediaId : mediaIds) {
+            System.out.println("deleting :" + mediaId);
+            showcaseMediaRepository.deleteById(mediaId);
+        }
+    }
 
 
     public List<ShowcaseMediaEntity> getShowcaseMediaByShowcaseTitle(String showcaseTitle) {
