@@ -42,8 +42,6 @@ public class EventService {
     }
 
 
-
-
     // public List<EventEntity> readAvailable() {
     //     return eventRepository.findByIsAvailableTrue();
     // }

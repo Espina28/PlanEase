@@ -14,13 +14,13 @@ public class EventServiceEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int eventServices_id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JsonBackReference("subcontractor-eventservice")
     @JoinColumn(name = "subcontractor_id")
     private SubcontractorEntity subcontractor;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne()
     @JoinColumn(name = "transaction_id")
     @JsonBackReference("transaction-event-service")
     private TransactionsEntity transactionsId;

@@ -22,6 +22,8 @@ import EventPage from './Pages/events-dashboard/events-dashboard.jsx'
 import EventDetails from './Pages/events-dashboard/event-details.jsx'
 import NotificationsPage from './Pages/NotificationsPage.jsx'
 import PackageDetails from './Pages/events-dashboard/package-details.jsx'
+import AdminPendingRequest from './Pages/admin-pages/admin-pendingrequest.jsx'
+import AdminBookings from "./Pages/admin-pages/admin-bookings.jsx";
 
 
 function App() {
@@ -100,10 +102,16 @@ function App() {
           <Route path="/subcontractor/login" element={<SubcontractorLogin />} />
 
 
-          <Route path="/admin/subcontractors" element={
-            <AdminProtectedRoute>
-                <AdminSubContractors/>
-            </AdminProtectedRoute>
+          <Route path="/admin/pendings" element={
+             <AdminProtectedRoute>
+                <AdminPendingRequest/>
+             </AdminProtectedRoute>
+            }/>
+
+            <Route path="/admin/bookings" element={
+                 <AdminProtectedRoute>
+                <AdminBookings/>
+                 </AdminProtectedRoute>
             }/>
 
           

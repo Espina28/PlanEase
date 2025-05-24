@@ -377,6 +377,7 @@ const SubcontractorDashboard = () => {
 
                     console.log("image title: ", img.title);
                     console.log("base url: ", baseUrl);
+                    console.log(presignedUrl)
 
                     urlFiles.push({
                         imageUrl: baseUrl,

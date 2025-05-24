@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
+import org.w3c.dom.Text;
 
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -35,12 +36,12 @@ public class TransactionsEntity {
     @JsonManagedReference(value = "transaction-package")
     private PackagesEntity packages;
 
-    @OneToMany(mappedBy = "transactionsId")
+    @OneToMany(mappedBy = "transactionsId", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     @JsonManagedReference(value = "transaction-event-service")
     private List<EventServiceEntity> eventServices;
 
     //PAYMENT
-    @OneToOne(mappedBy = "transaction")
+    @OneToOne(mappedBy = "transaction", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     @JsonManagedReference(value = "transaction-payment")
     private PaymentEntity payment;
 
@@ -49,19 +50,31 @@ public class TransactionsEntity {
     private Date transactionDate;
     private Boolean transactionIsActive;
     private Boolean transactionisApprove;
+    private Date transactionCreatedDdate;
+
+    @Column(columnDefinition = "TEXT")
+    private String transactionNote;
 
     public enum Status {
-        ACCEPTED, CANCELLED, PENDING
+        COMPLETED, DECLINED, CANCELLED, PENDING, ONGOING
     }
 
     // Getters and Setters
 
     @PrePersist //before it save to db this will run first to ensue the variables will not be empty
     protected void onCreate() {
-        this.transactionDate = Date.valueOf(LocalDateTime.now().toLocalDate());
+        this.transactionCreatedDdate = Date.valueOf(LocalDateTime.now().toLocalDate());
         this.transactionIsActive = true;
         this.transactionisApprove = false;
         this.transactionStatus = Status.PENDING;
+    }
+
+    public Date getTransactionCreatedDdate() {
+        return transactionCreatedDdate;
+    }
+
+    public void setTransactionCreatedDdate(Date transactionCreatedDdate) {
+        this.transactionCreatedDdate = transactionCreatedDdate;
     }
 
     public int getTransaction_Id() {
@@ -150,5 +163,13 @@ public class TransactionsEntity {
 
     public void setTransactionisApprove(Boolean transactionisApprove) {
         this.transactionisApprove = transactionisApprove;
+    }
+
+    public String getTransactionNote() {
+        return transactionNote;
+    }
+
+    public void setTransactionNote(String transactionNote) {
+        this.transactionNote = transactionNote;
     }
 }

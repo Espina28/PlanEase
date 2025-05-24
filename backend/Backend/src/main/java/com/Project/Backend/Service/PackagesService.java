@@ -55,6 +55,12 @@ public class PackagesService {
         }
     }
 
+    public PackagesEntity findByName(String packageName){
+        return packagesRepository.findPackageByPackageName(packageName);
+    }
+
+
+
     public List<ServicePackageDTO> getAllServiceByPackageName(String packageName){
         return packagesRepository.findServicePackagesByPackageName(packageName);
     }
