@@ -27,4 +27,7 @@ public interface PackagesRepository extends JpaRepository<PackagesEntity, Intege
             "JOIN ps.packages p ")
     List<ServicePackageDTO> findALlPackageServices();
 
+    @Query("SELECT p FROM PackagesEntity p WHERE p.packageName = :packageName")
+    PackagesEntity findPackageByPackageName(String packageName);
+
 }

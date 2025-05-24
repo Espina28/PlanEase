@@ -18,6 +18,7 @@ public class SubcontractorEntity {
     @Column(columnDefinition = "TEXT")
     private String subcontractor_description;
     private String subcontractor_serviceName;
+    private String subcontractor_serviceCategory;
 
     @OneToOne
     @JoinColumn(name = "user_id")
@@ -103,5 +104,21 @@ public class SubcontractorEntity {
 
     public void setPackageServices(List<PackageServicesEntity> packageServices) {
         this.packageServices = packageServices;
+    }
+
+    public String getSubcontractor_serviceCategory() {
+        return subcontractor_serviceCategory;
+    }
+
+    public void setSubcontractor_serviceCategory(String subcontractor_serviceCategory) {
+        this.subcontractor_serviceCategory = subcontractor_serviceCategory;
+    }
+
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public void setUser(UserEntity user) {
+        this.user = user;
     }
 }
