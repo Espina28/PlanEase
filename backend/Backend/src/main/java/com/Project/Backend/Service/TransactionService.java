@@ -1,14 +1,25 @@
 package com.Project.Backend.Service;
 
+import com.Project.Backend.DTO.BookingTransactionDTO;
 import com.Project.Backend.DTO.CreateTransactionDTO;
 import com.Project.Backend.DTO.GetTransactionDTO;
 import com.Project.Backend.Entity.*;
 import com.Project.Backend.Repository.EventRepository;
+import com.Project.Backend.Repository.EventServiceRepository;
+import com.Project.Backend.Repository.PackageServicesRepository;
+import com.Project.Backend.Repository.PackagesRepository;
+import com.Project.Backend.Repository.PaymentRepository;
 import com.Project.Backend.Repository.TransactionRepo;
+import com.Project.Backend.Repository.UserRepository;
+
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,17 +34,37 @@ public class TransactionService {
     
     @Autowired
     private EventRepository eventRepository;
+    
     @Autowired
     private SubcontractorService subcontractorService;
+    
     @Autowired
     private PackagesService packagesService;
+    
     @Autowired
-    private  EventServiceService eventServiceService;
+    private EventServiceService eventServiceService;
+    
     @Autowired
     private EventService eventService;
+    
     @Autowired
     UserService userService;
 
+    @Autowired
+    private S3Service s3Service;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PackagesRepository packageRepository;
+
+    @Autowired
+    private EventServiceRepository EventServiceRepository;
+
+    // ADD THIS - PaymentRepository injection
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     // Create a new transaction
     public TransactionsEntity create(CreateTransactionDTO createTransactionDTO) {
@@ -112,7 +143,6 @@ public class TransactionService {
         List<TransactionsEntity> existingTransactions = transactionRepo.findByTransactionStatusAndIsActive(TransactionsEntity.Status.PENDING, true);
         List<GetTransactionDTO> result = new ArrayList<>();
 
-
         for(TransactionsEntity transaction : existingTransactions){
             GetTransactionDTO getTransactionDTO = new GetTransactionDTO();
             getTransactionDTO.setTransaction_Id(transaction.getTransaction_Id());
@@ -137,8 +167,6 @@ public class TransactionService {
         }
         return result;
     }
-
-
 
     private List<Map<String, Object>>  getSubcontractors(List<EventServiceEntity> eventServices){
        return eventServices.stream()
@@ -163,7 +191,6 @@ public class TransactionService {
         List<TransactionsEntity> existingTransactions = transactionRepo.findAll();
         List<GetTransactionDTO> result = new ArrayList<>();
 
-
         for(TransactionsEntity transaction : existingTransactions){
             GetTransactionDTO getTransactionDTO = new GetTransactionDTO();
             getTransactionDTO.setTransaction_Id(transaction.getTransaction_Id());
@@ -187,23 +214,7 @@ public class TransactionService {
             result.add(getTransactionDTO);
         }
         return result;
-
     }
-
-    // Update transaction
-//    public CreateTransactionDTO update(CreateTransactionDTO transactionDTO) {
-//        if (transactionDTO.getTransaction_Id() == null) {
-//            throw new RuntimeException("Transaction ID cannot be null for update operation");
-//        }
-//
-//        // Check if transaction exists
-//        transactionRepo.findById(transactionDTO.getTransaction_Id())
-//                .orElseThrow(() -> new RuntimeException("Transaction with id " + transactionDTO.getTransactionId() + " not found"));
-//
-//        TransactionsEntity transaction = convertToEntity(transactionDTO);
-//        TransactionsEntity updatedTransaction = transactionRepo.save(transaction);
-//        return CreateTransactionDTO.fromEntity(updatedTransaction);
-//    }
 
     // Delete transaction
     public void delete(int id) {
@@ -222,5 +233,162 @@ public class TransactionService {
     public List<TransactionsEntity> getByStatus(String status) {
         return transactionRepo.findByTransactionStatusAndIsActive(TransactionsEntity.Status.valueOf(status), true);
     }
+
+    // MODIFIED METHOD - Solution 1 Implementation
+    @Transactional
+    public TransactionsEntity createBookingTransaction(BookingTransactionDTO bookingData, MultipartFile paymentProof) throws IOException {
+        
+        System.out.println("=== TRANSACTION SERVICE DEBUG ===");
+        System.out.println("Looking for user with email: " + bookingData.getUserEmail());
+        
+        try {
+            // 1. Find the user by email
+            UserEntity user = userRepository.findByEmail(bookingData.getUserEmail());
+            if (user == null) {
+                System.out.println("ERROR: User not found with email: " + bookingData.getUserEmail());
+                throw new RuntimeException("User not found with email: " + bookingData.getUserEmail());
+            }
+            System.out.println("Found user: " + user.getFirstname() + " " + user.getLastname());
+            
+            // 2. Find the event by ID
+            System.out.println("Looking for event with ID: " + bookingData.getEventId());
+            EventEntity event = eventRepository.findById(bookingData.getEventId())
+                .orElseThrow(() -> new RuntimeException("Event not found with ID: " + bookingData.getEventId()));
+            System.out.println("Found event: " + event.getEvent_name());
+            
+            // 3. Validate that it's either package OR custom services, not both
+            boolean hasPackage = "PACKAGE".equals(bookingData.getServiceType()) && bookingData.getPackageId() != null;
+            boolean hasCustomServices = "CUSTOM".equals(bookingData.getServiceType()) && 
+                                    bookingData.getServiceIds() != null && 
+                                    !bookingData.getServiceIds().isEmpty();
+            
+            System.out.println("Has package: " + hasPackage);
+            System.out.println("Has custom services: " + hasCustomServices);
+            
+            if (hasPackage && hasCustomServices) {
+                throw new RuntimeException("Cannot have both package and custom services in the same booking");
+            }
+            
+            if (!hasPackage && !hasCustomServices) {
+                throw new RuntimeException("Must select either a package or custom services");
+            }
+            
+            // 4. Upload payment proof to S3
+            String paymentReceiptUrl = null;
+            if (paymentProof != null && !paymentProof.isEmpty()) {
+                System.out.println("Uploading payment proof to S3...");
+                try {
+                    File convFile = File.createTempFile("payment_proof", paymentProof.getOriginalFilename());
+                    paymentProof.transferTo(convFile);
+                    paymentReceiptUrl = s3Service.upload(convFile, "payment_proofs", paymentProof.getOriginalFilename());
+                    convFile.delete();
+                    System.out.println("Payment proof uploaded successfully: " + paymentReceiptUrl);
+                } catch (Exception e) {
+                    System.out.println("ERROR: Failed to upload payment proof: " + e.getMessage());
+                    throw new IOException("Failed to upload payment proof: " + e.getMessage());
+                }
+            }
+            
+            // 5. Create Transaction (without payment initially)
+            System.out.println("Creating transaction...");
+            TransactionsEntity transaction = new TransactionsEntity();
+            transaction.setUser(user);
+            transaction.setEvent(event);
+            transaction.setTransactionVenue(bookingData.getTransactionVenue());
+            transaction.setTransactionDate(bookingData.getTransactionDate());
+            transaction.setTransactionNote(bookingData.getTransactionNote());
+            transaction.setTransactionStatus(TransactionsEntity.Status.PENDING);
+            transaction.setTransactionIsActive(true);
+            transaction.setTransactionisApprove(false);
+            
+            // Don't set payment yet - we'll do this after saving the transaction
+            transaction.setPayment(null);
+            
+            // 6. Handle Package OR Custom Services (mutually exclusive)
+            if (hasPackage) {
+                System.out.println("Processing package booking...");
+                PackagesEntity packageEntity = packageRepository.findById(bookingData.getPackageId())
+                    .orElseThrow(() -> new RuntimeException("Package not found with ID: " + bookingData.getPackageId()));
+                transaction.setPackages(packageEntity);
+                transaction.setEventServices(null);
+                System.out.println("Package set: " + packageEntity.getPackageName());
+                
+            } else if (hasCustomServices) {
+                System.out.println("Processing custom services booking...");
+                transaction.setPackages(null);
+                // EventServices will be created after transaction is saved
+            }
+            
+            // 7. Save transaction first (without payment)
+            System.out.println("Saving transaction (without payment)...");
+            TransactionsEntity savedTransaction = transactionRepo.save(transaction);
+            System.out.println("Transaction saved with ID: " + savedTransaction.getTransaction_Id());
+            
+            // 8. Handle custom services after transaction is saved
+            if (hasCustomServices) {
+                System.out.println("Creating EventService records...");
+                List<EventServiceEntity> eventServices = new ArrayList<>();
+                for (int serviceId : bookingData.getServiceIds()) {
+                    System.out.println("Creating EventService for service ID: " + serviceId);
+                    EventServiceEntity eventService = new EventServiceEntity();
+                    eventService.setTransactionsId(savedTransaction);
+                    
+                    // Try to find the subcontractor by ID
+                    try {
+                        SubcontractorEntity subcontractor = subcontractorService.getSubcontractorById(serviceId);
+                        eventService.setSubcontractor(subcontractor);
+                        System.out.println("Assigned subcontractor: " + subcontractor.getSubcontractor_serviceName());
+                    } catch (Exception e) {
+                        System.out.println("WARNING: Subcontractor not found for ID " + serviceId + ", will be assigned later by admin");
+                        eventService.setSubcontractor(null); // Will be assigned later by admin
+                    }
+                    
+                    eventServices.add(eventService);
+                }
+                
+                // Save the EventService records
+                eventServices = EventServiceRepository.saveAll(eventServices);
+                savedTransaction.setEventServices(eventServices);
+                System.out.println("Created " + eventServices.size() + " event services");
+            }
+            
+            // 9. Create and save payment separately
+            System.out.println("Creating payment record...");
+            PaymentEntity payment = new PaymentEntity();
+            payment.setTransaction(savedTransaction);  // Set the saved transaction
+            payment.setPaymentReceipt(paymentReceiptUrl);
+            payment.setPaymentNote(bookingData.getPaymentNote());
+            payment.setPaymentStatus(PaymentEntity.STATUS.ACCEPTED);
+            
+            try {
+                payment.setPaymentReferenceNumber(Integer.parseInt(bookingData.getPaymentReferenceNumber()));
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Invalid payment reference number format: " + bookingData.getPaymentReferenceNumber());
+            }
+            
+            // Save payment separately
+            System.out.println("Saving payment...");
+            PaymentEntity savedPayment = paymentRepository.save(payment);
+            System.out.println("Payment saved with ID: " + savedPayment.getPaymentId());
+            
+            // 10. Update transaction with saved payment
+            System.out.println("Updating transaction with payment...");
+            savedTransaction.setPayment(savedPayment);
+            savedTransaction = transactionRepo.save(savedTransaction);
+            
+            System.out.println("Transaction completed successfully with ID: " + savedTransaction.getTransaction_Id());
+            return savedTransaction;
+            
+        } catch (Exception e) {
+            System.out.println("ERROR: Exception in createBookingTransaction: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to create booking transaction: " + e.getMessage(), e);
+        }
+    }
+
+public List<TransactionsEntity> getReservationsByUserId(int userId) {
+    return transactionRepo.findByUserId(userId);
+}
+
 
 }
