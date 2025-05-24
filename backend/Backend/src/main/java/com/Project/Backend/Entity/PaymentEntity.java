@@ -1,22 +1,17 @@
 package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "payments")
-//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "paymentId")
 public class PaymentEntity {
 
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int paymentId;
 
     @OneToOne
@@ -26,9 +21,11 @@ public class PaymentEntity {
 
     private Date paymentDatePaid;
     private String paymentNote;
+    private String paymentReceipt; // Added this field to match ERD
     private STATUS paymentStatus = STATUS.ACCEPTED;
+    private int paymentReferenceNumber; // Added this field to match ERD
 
-    @PrePersist //before it save to db this will run first to ensue the variables will not be empty
+    @PrePersist
     protected void onCreate() {
         this.paymentDatePaid = Date.valueOf(LocalDateTime.now().toLocalDate());
     }
@@ -37,6 +34,7 @@ public class PaymentEntity {
         ACCEPTED, REJECTED, RETURNED
     }
 
+    // Getters and Setters
     public int getPaymentId() {
         return paymentId;
     }
@@ -69,11 +67,27 @@ public class PaymentEntity {
         this.paymentNote = paymentNote;
     }
 
+    public String getPaymentReceipt() {
+        return paymentReceipt;
+    }
+
+    public void setPaymentReceipt(String paymentReceipt) {
+        this.paymentReceipt = paymentReceipt;
+    }
+
     public STATUS getPaymentStatus() {
         return paymentStatus;
     }
 
     public void setPaymentStatus(STATUS paymentStatus) {
         this.paymentStatus = paymentStatus;
+    }
+
+    public int getPaymentReferenceNumber() {
+        return paymentReferenceNumber;
+    }
+
+    public void setPaymentReferenceNumber(int paymentReferenceNumber) {
+        this.paymentReferenceNumber = paymentReferenceNumber;
     }
 }

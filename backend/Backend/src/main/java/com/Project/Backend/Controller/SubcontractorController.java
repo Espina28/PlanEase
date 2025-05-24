@@ -61,6 +61,8 @@ public class SubcontractorController {
         subcontractor.setSubcontractor_description(request.getDescription());
         subcontractor.setSubcontractor_serviceName(request.getService());
         subcontractor.setUnavailableDates(null);
+        subcontractor.setSubcontractor_serviceCategory(request.getServiceCategory());
+        subcontractor.setSubcontractor_service_price(request.getServicePrice());
 
         //create object for package service -> what package of tulip, cherry blossom, he's available
 
