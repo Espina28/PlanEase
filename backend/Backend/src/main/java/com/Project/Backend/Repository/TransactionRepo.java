@@ -27,4 +27,7 @@ public interface TransactionRepo extends JpaRepository<TransactionsEntity, Integ
             "LEFT JOIN FETCH es.subcontractor")
     List<TransactionsEntity> findAllWithRelations();
 
+    @org.springframework.data.jpa.repository.Query("SELECT t FROM TransactionsEntity t WHERE t.user.userId = :userId")
+    List<TransactionsEntity> findByUserId(int userId);
+
 }
