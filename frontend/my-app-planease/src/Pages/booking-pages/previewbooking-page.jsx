@@ -16,9 +16,9 @@ const PreviewBookingPage = () => {
   // Load data using the bookingStorage utility
   const [bookingData, setBookingData] = useState(getCompleteBookingData)
 
-  // Refresh booking data when component mounts
   useEffect(() => {
     setBookingData(getCompleteBookingData())
+    console.log("bookingData.servicesData.activeTab: ", bookingData.servicesData.activeTab)
   }, [])
 
   // Get the current event name
@@ -123,7 +123,7 @@ const PreviewBookingPage = () => {
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/">Home</Link> /
+          <Link to="/events-dashboard">Home</Link> /
           <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> /<span>Book Now</span>
         </div>
 

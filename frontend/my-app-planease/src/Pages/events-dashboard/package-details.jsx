@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import Rose from '../../../public/Rose.png';
 import Tulip from '../../../public/Tulip_1-removebg-preview.png';
 import CherryBlossom from '../../../public/CherryBlossom.png';
+import { saveServicesData } from '../booking-pages/utils/booking-storage.js'
 
 const PackageDetails = () => {
 
@@ -178,7 +179,7 @@ const PackageDetails = () => {
                     </div>
 
                     <button className="mt-6 w-full lg:w-auto bg-black text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-gray-800 transition hover:cursor-pointer"
-                    onClick={() => navigate("/book/inputdetails")}>
+                    onClick={() => navigate(`/book/${package_name}/inputdetails`)}>
                         BOOK A WEDDING
                     </button>
                 </div>
