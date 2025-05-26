@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.Project.Backend.Service.TransactionService;
+import com.Project.Backend.Service.EventServiceService;
+import com.Project.Backend.DTO.GetTransactionDTO;
 
 import com.Project.Backend.Entity.SubcontractorEntity;
 import com.Project.Backend.Service.SubcontractorService;
@@ -23,6 +26,10 @@ public class SubcontractorController {
 
     @Autowired
     private SubcontractorService subcontractorService;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private EventServiceService eventServiceService;
 
     @GetMapping("/getall")
     public ResponseEntity<List<SubcontractorEntity>> getAllSubcontractors() {
@@ -52,6 +59,7 @@ public class SubcontractorController {
         }
         return ResponseEntity.ok(subcontractors);
     }
+
 
     @PutMapping("/edit-description")
     public ResponseEntity<?> editSubcontractorDescription(

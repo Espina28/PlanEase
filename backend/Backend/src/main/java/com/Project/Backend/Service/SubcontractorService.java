@@ -57,6 +57,8 @@ public class SubcontractorService {
         return subContractorRepository.findByEmail(email);
     }
 
+
+
     public void deleteSubcontractor(int id) {
         subContractorRepository.deleteById(id);
     }

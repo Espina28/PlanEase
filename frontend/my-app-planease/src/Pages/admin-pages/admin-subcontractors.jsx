@@ -607,7 +607,7 @@ const AdminSubContractors = () => {
 
   return (
     <div className="h-screen grid grid-rows-[auto_1fr]">
-      <Navbar />
+      <AdminSideBar />
       <div className="grid lg:grid-cols-[1fr_3fr]">
         <div className="shadow hidden lg:block p-5">
           <AdminSideBar />
