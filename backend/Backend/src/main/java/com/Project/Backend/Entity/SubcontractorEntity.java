@@ -19,7 +19,7 @@ public class SubcontractorEntity {
     private String subcontractor_description;
     private String subcontractor_serviceName;
     private String subcontractor_serviceCategory;
-    private int subcontractor_service_price;
+    private double subcontractor_service_price;
 
     @OneToOne
     @JoinColumn(name = "user_id")
@@ -123,11 +123,11 @@ public class SubcontractorEntity {
         this.user = user;
     }
 
-    public int getSubcontractor_service_price() {
+    public double getSubcontractor_service_price() {
         return subcontractor_service_price;
     }
 
-    public void setSubcontractor_service_price(int subcontractor_service_price) {
+    public void setSubcontractor_service_price(double subcontractor_service_price) {
         this.subcontractor_service_price = subcontractor_service_price;
     }
 }
