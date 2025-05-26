@@ -1,9 +1,11 @@
 package com.Project.Backend.Controller;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 
 import com.Project.Backend.DTO.CreateSubcontractorRequest;
+import com.Project.Backend.DTO.GetSubcontractor;
 import com.Project.Backend.DTO.SubcontractorDescriptionDTO;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,15 @@ public class SubcontractorController {
     public ResponseEntity<SubcontractorEntity> getSubcontractorById(@PathVariable int id) {
         SubcontractorEntity subcontractor = subcontractorService.getSubcontractorById(id);
         return ResponseEntity.ok(subcontractor);
+    }
+
+    @GetMapping("/available/{date}")
+    public ResponseEntity<List<GetSubcontractor>> getAvailableSubcontractorByDate(@PathVariable Date date) {
+        List<GetSubcontractor> subcontractors = subcontractorService.getAvailableSubcontractors(date);
+        if(subcontractors.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(subcontractors);
     }
 
     @PutMapping("/edit-description")
