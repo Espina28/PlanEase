@@ -46,7 +46,6 @@ public class SubcontractorService {
                         subcontractor.getShowcase()
                 ))
                 .toList();
-
     }
 
     public SubcontractorEntity getSubcontractorById(int id) {

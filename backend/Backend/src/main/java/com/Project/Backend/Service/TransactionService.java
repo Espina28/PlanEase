@@ -86,7 +86,6 @@ public class TransactionService {
             transactions.setUser(userService.getUserByEmail(createTransactionDTO.getUserEmail()));
             transactionRepo.save(transactions);
             assignedEventService(createTransactionDTO.getServices(), transactions);
-
             return transactions;
         }catch(Exception e){
             throw new RuntimeException("Failed to create transaction: ", e);

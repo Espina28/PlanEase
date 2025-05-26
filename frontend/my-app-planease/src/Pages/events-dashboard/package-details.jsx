@@ -1,13 +1,17 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Rose from '../../../public/Rose.png';
 import Tulip from '../../../public/Tulip_1-removebg-preview.png';
 import CherryBlossom from '../../../public/CherryBlossom.png';
-import { saveServicesData } from '../booking-pages/utils/booking-storage.js'
+import { getActiveTab, getSelectedPackage } from '../booking-pages/utils/booking-storage'
+
 
 const PackageDetails = () => {
-
     const { package_name } = useParams();
+    const [activeTab, setActiveTab] = useState(getActiveTab)
+    const [selectedPackage, setSelectedPackage] = useState(getSelectedPackage)
+    
+    
     const navigate = useNavigate();
 
     const packages = [
@@ -77,8 +81,19 @@ const PackageDetails = () => {
         "Photography & Videography (PreNup & Wedding Day)"
     ];
 
+    const handleSelectedPackage = (package_name) => {
+        if(package_name === "Tulip Package"){
+            setSelectedPackage("tulip")
+        }else if(package_name === "Cherry Blossoms Package"){
+            setSelectedPackage("cherry-blossom")
+        }else if(package_name === "Rose Package"){
+            setSelectedPackage("rose")
+        }
+    }
+
     useEffect(()=>{
-        console.log(package_name);
+        setActiveTab("package")
+        handleSelectedPackage(package_name)
     },[])
 
     return (

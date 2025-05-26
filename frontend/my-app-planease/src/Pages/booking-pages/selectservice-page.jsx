@@ -15,6 +15,7 @@ import {
   saveServicesData,
   saveAvailableServices,
   PACKAGES,
+  clearBookingData,
 } from "./utils/booking-storage"
 import axios from "axios"
 
@@ -146,7 +147,7 @@ const SelectServicePage = () => {
   const handleTabChange = (tab) => {
     setActiveTab(tab)
 
-    // Clear the other option when switching tabs
+      // Clear the other option when switching tabs
     if (tab === "package") {
       // Switching to package tab - clear all custom services
       const clearedServices = {}
@@ -227,7 +228,7 @@ const SelectServicePage = () => {
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/events-dashboard">Home</Link> /{" "}
+          <Link to="/events-dashboard" onClick={() => clearBookingData()}>Home</Link> /{" "}
           <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> / <span>Book Now</span>
         </div>
 
@@ -257,7 +258,7 @@ const SelectServicePage = () => {
               <div className="step">
                 <div className="step-number">4</div>
                 <div className="step-label">Payment</div>
-              </div>
+              </div>  
             </div>
 
             {/* Services Selection */}
