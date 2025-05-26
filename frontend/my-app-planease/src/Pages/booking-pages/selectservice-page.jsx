@@ -6,10 +6,12 @@ import "./styles/selectservice-page.css"
 import Navbar from "../../Components/Navbar"
 import Footer from "../../Components/Footer"
 import BookingSidePanel from "../../Components/Booking-sidepanel"
+import ShocaseModal from "../../Components/showcaseModal.jsx"
 import {
   getActiveTab,
   getSelectedServices,
   getSelectedPackage,
+  getEventDetails,
   saveServicesData,
   saveAvailableServices,
   PACKAGES,
@@ -29,6 +31,8 @@ const SelectServicePage = () => {
   const [expandedPackage, setExpandedPackage] = useState(null)
   const [selectedPackage, setSelectedPackage] = useState(getSelectedPackage)
 
+  const [showcaseData, setShowcaseData] = useState({ visible: false, id: null, title: "" });
+
   // New state for subcontractor services
   const [subcontractorServices, setSubcontractorServices] = useState([])
   const [isLoadingServices, setIsLoadingServices] = useState(true)
@@ -41,6 +45,8 @@ const SelectServicePage = () => {
       selectedPackage,
       availableServices: subcontractorServices,
     })
+
+    console.log("date: ", getEventDetails().eventDate)
   }, [activeTab, selectedServices, selectedPackage, subcontractorServices])
 
   // Fetch subcontractor services on component mount
@@ -48,7 +54,7 @@ const SelectServicePage = () => {
     const fetchSubcontractorServices = async () => {
       try {
         const token = localStorage.getItem("token")
-        const response = await axios.get("http://localhost:8080/subcontractor/getall", {
+        const response = await axios.get(`http://localhost:8080/subcontractor/available/${getEventDetails().eventDate}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -56,10 +62,10 @@ const SelectServicePage = () => {
 
         // Transform subcontractor data to service format
         const services = response.data.map((subcontractor) => ({
-          id: subcontractor.subcontractor_Id,
-          name: subcontractor.subcontractor_serviceName,
-          price: subcontractor.subcontractor_service_price,
-          icon: getServiceIcon(subcontractor.subcontractor_serviceName),
+          id: subcontractor.subcontractorId,
+          name: subcontractor.serviceName,
+          price: subcontractor.servicePrice,
+          icon: getServiceIcon(subcontractor.serviceName),
           subcontractorName:
             subcontractor.user?.firstname && subcontractor.user?.lastname
               ? `${subcontractor.user.firstname} ${subcontractor.user.lastname}`
@@ -86,7 +92,6 @@ const SelectServicePage = () => {
         }))
       } catch (error) {
         console.error("Error fetching subcontractor services:", error)
-        alert("Failed to load available services. Please refresh the page and try again.")
         setSubcontractorServices([])
       } finally {
         setIsLoadingServices(false)
@@ -222,7 +227,7 @@ const SelectServicePage = () => {
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/">Home</Link> /{" "}
+          <Link to="/events-dashboard">Home</Link> /{" "}
           <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> / <span>Book Now</span>
         </div>
 
@@ -299,6 +304,15 @@ const SelectServicePage = () => {
                             <div className="service-provider">by {service.subcontractorName}</div>
                             <div className="service-price">{formatAsPeso(service.price)}</div>
                           </div>
+                          <div
+                              className="view-showcase hover:cursor-pointer hover:text-[#FFB22C]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowcaseData({ visible: true, id: service.id, title: service.name });
+                              }}
+                          >
+                            See Details
+                          </div>
                           <div className="service-checkbox-container">
                             <input
                               type="checkbox"
@@ -364,6 +378,13 @@ const SelectServicePage = () => {
           </div>
         </div>
       </div>
+      {showcaseData.visible && (
+          <ShocaseModal
+              title={showcaseData.title}
+              subcontractorId={showcaseData.id}
+              onClose={() => setShowcaseData({ visible: false, id: null, title: "" })}
+          />
+      )}
       <Footer />
     </>
   )

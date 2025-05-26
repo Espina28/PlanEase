@@ -133,12 +133,12 @@ const InputDetailsPage = () => {
 
     console.log("Personal Info:", personalInfo)
     console.log("Event Details:", eventDetails)
-
+    console.log("Event Name:", eventName.toLowerCase())
     // Navigate to services page with event name
-    if (eventName) {
+    if (!eventName.toLowerCase().includes("package")) {
       navigate(`/book/${encodeURIComponent(eventName)}/services`)
-    } else {
-      navigate("/book/services")
+    } else{
+      navigate(`/book/${encodeURIComponent(eventName)}/preview`)
     }
   }
 
@@ -164,7 +164,9 @@ const InputDetailsPage = () => {
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/">Home</Link> /{" "}
+          <Link to="/events-dashboard"
+          onClick={}
+          >Home</Link> /
           <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> / <span>Book Now</span>
         </div>
 
