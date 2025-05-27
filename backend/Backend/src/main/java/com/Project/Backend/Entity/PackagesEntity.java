@@ -18,6 +18,7 @@ public class PackagesEntity {
     private int packageId;
     private String packageName;
     private double packagePrice;
+    private String packageDescription;
 
     @OneToMany(mappedBy = "packages")
     @JsonManagedReference("package-service")
@@ -67,4 +68,13 @@ public class PackagesEntity {
     public void setTransactionsEntity(TransactionsEntity transactionsEntity) {
         this.transactionsEntity = transactionsEntity;
     }
+
+    public String getPackageDescription() {
+        return packageDescription;
+    }
+
+    public void setPackageDescription(String packageDescription) {
+        this.packageDescription = packageDescription;
+    }
+    
 }

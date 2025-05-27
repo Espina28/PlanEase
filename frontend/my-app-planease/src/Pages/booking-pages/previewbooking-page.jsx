@@ -6,7 +6,7 @@ import "./styles/previewbooking-page.css"
 import Navbar from "../../Components/Navbar"
 import Footer from "../../Components/Footer"
 import BookingSidePanel from "../../Components/Booking-sidepanel"
-import { getCompleteBookingData, PACKAGES, clearBookingData } from "./utils/booking-storage"
+import { getCompleteBookingData, clearBookingData } from "./utils/booking-storage"
 
 const PreviewBookingPage = () => {
   const navigate = useNavigate()

@@ -7,37 +7,62 @@ import Navbar from "../../Components/Navbar"
 import BookingSidePanel from "../../Components/Booking-sidepanel"
 import Footer from "../../Components/Footer"
 import DatePickerWithRestriction from "../../Components/DatePickerWithRestriction"
-import { getPersonalInfo, getEventDetails, savePersonalInfo, saveEventDetails, clearBookingData } from "./utils/booking-storage"
+import {
+  getPersonalInfo,
+  getEventDetails,
+  savePersonalInfo,
+  saveEventDetails,
+  clearBookingData,
+  saveServicesData,
+} from "./utils/booking-storage"
 import axios from "axios"
 
-
-const InputDetailsPage = () => {
+const InputDetailsPagePackage = () => {
   const navigate = useNavigate()
-  const { eventName } = useParams()
+  const { packageName } = useParams()
 
-  // Get event name from params or sessionStorage as fallback
-  const currentEventName = eventName || sessionStorage.getItem("currentEventName") || "Event"
+  // Get package name from params or sessionStorage as fallback
+  const currentPackageName = packageName || sessionStorage.getItem("currentPackageName") || "Package"
 
   // Initialize form data from bookingStorage utility - separate personal and event data
   const [personalInfo, setPersonalInfo] = useState(getPersonalInfo)
   const [eventDetails, setEventDetails] = useState(getEventDetails)
   const [isLoadingUserData, setIsLoadingUserData] = useState(true)
 
-  const [activeTab, setActiveTab] = useState(getActiveTab)
-  const [selectedServices, setSelectedServices] = useState(getSelectedServices)
-
-
-  // Store current event name in sessionStorage
+  // Store current package name in sessionStorage
   useEffect(() => {
-    if (currentEventName) {
-      sessionStorage.setItem("currentEventName", currentEventName)
+    if (currentPackageName) {
+      sessionStorage.setItem("currentPackageName", currentPackageName)
+      sessionStorage.setItem("currentEventName", currentPackageName)
     }
-  }, [currentEventName])
+  }, [currentPackageName])
 
-
-    const handleRemoveData = () => {
-        clearBookingData();
+  // Set up package selection in booking storage
+  useEffect(() => {
+    // Determine package ID based on package name
+    let packageId = null
+    if (currentPackageName.toLowerCase().includes("tulip")) {
+      packageId = "tulip"
+    } else if (currentPackageName.toLowerCase().includes("cherry")) {
+      packageId = "cherry-blossom"
+    } else if (currentPackageName.toLowerCase().includes("rose")) {
+      packageId = "rose"
     }
+
+    // Save package selection to storage
+    if (packageId) {
+      saveServicesData({
+        activeTab: "package",
+        selectedServices: {},
+        selectedPackage: packageId,
+        availableServices: [],
+      })
+    }
+  }, [currentPackageName])
+
+  const handleRemoveData = () => {
+    clearBookingData()
+  }
 
   // Auto-fill user data on component mount
   useEffect(() => {
@@ -143,13 +168,21 @@ const InputDetailsPage = () => {
 
     console.log("Personal Info:", personalInfo)
     console.log("Event Details:", eventDetails)
-    console.log("Event Name:", eventName.toLowerCase())
-    // Navigate to services page with event name
-    if (!eventName.toLowerCase().includes("package")) {
-      navigate(`/book/${encodeURIComponent(eventName)}/services`)
-    } else{
-      navigate(`/book/${encodeURIComponent(eventName)}/preview`)
+    console.log("Package Name:", packageName)
+
+    // Ensure we have a valid package name for navigation
+    const validPackageName = packageName || currentPackageName || sessionStorage.getItem("currentPackageName")
+
+    if (!validPackageName) {
+      alert("Package information is missing. Please try again.")
+      return
     }
+
+    // Store the package name to ensure it persists
+    sessionStorage.setItem("currentPackageName", validPackageName)
+
+    // Navigate directly to preview page for packages (skip services)
+    navigate(`/book/${encodeURIComponent(validPackageName)}/package/preview`)
   }
 
   // Show loading state while fetching user data
@@ -174,10 +207,11 @@ const InputDetailsPage = () => {
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/events-dashboard"
-          onClick={()=> handleRemoveData()}
-          >Home</Link> /
-          <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> / <span>Book Now</span>
+          <Link to="/events-dashboard" onClick={() => handleRemoveData()}>
+            Home
+          </Link>{" "}
+          /<Link to={`/package/${encodeURIComponent(currentPackageName)}`}>{currentPackageName}</Link> /{" "}
+          <span>Book Now</span>
         </div>
 
         <div className="booking-content">
@@ -186,7 +220,7 @@ const InputDetailsPage = () => {
 
           {/* Main Content */}
           <div className="main-form-content">
-            {/* Step Indicator */}
+            {/* Step Indicator - Modified for package flow (3 steps instead of 4) */}
             <div className="step-indicator">
               <div className="step active">
                 <div className="step-number">1</div>
@@ -195,16 +229,11 @@ const InputDetailsPage = () => {
               <div className="step-line"></div>
               <div className="step">
                 <div className="step-number">2</div>
-                <div className="step-label">Services</div>
-              </div>
-              <div className="step-line"></div>
-              <div className="step">
-                <div className="step-number">3</div>
                 <div className="step-label">Preview</div>
               </div>
               <div className="step-line"></div>
               <div className="step">
-                <div className="step-number">4</div>
+                <div className="step-number">3</div>
                 <div className="step-label">Payment</div>
               </div>
             </div>
@@ -288,7 +317,7 @@ const InputDetailsPage = () => {
                       type="text"
                       id="eventType"
                       name="eventType"
-                      value={currentEventName}
+                      value={currentPackageName}
                       readOnly
                       className="readonly-input"
                     />
@@ -361,4 +390,4 @@ const InputDetailsPage = () => {
   )
 }
 
-export default InputDetailsPage
+export default InputDetailsPagePackage

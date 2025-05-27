@@ -194,7 +194,7 @@ const PackageDetails = () => {
                     </div>
 
                     <button className="mt-6 w-full lg:w-auto bg-black text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-gray-800 transition hover:cursor-pointer"
-                    onClick={() => navigate(`/book/${package_name}/inputdetails`)}>
+                    onClick={() => navigate(`/book/${package_name}/package/inputdetails`)}>
                         BOOK A WEDDING
                     </button>
                 </div>

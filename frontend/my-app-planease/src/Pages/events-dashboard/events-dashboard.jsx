@@ -105,7 +105,7 @@ const EventPage = () => {
                         <h3 className="text-xl font-bold text-gray-800">Rose</h3>
                         <p className="text-gray-500 mb-2">₱350k</p>
                         <p className="text-sm text-gray-700 p-5 text-center">Catering, Decorations, Bridal Entourage, 2 Tier Wedding Cake, Wine for toasting...</p>
-                        <Link to={`/package/Rose Package`} className="mt-auto">
+                        <Link to={`/package/rose`} className="mt-auto">
                             <button className="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800"
                                 onClick={null}>
                                 CLICK FOR MORE DETAILS
@@ -119,7 +119,7 @@ const EventPage = () => {
                         <h3 className="text-xl font-bold text-gray-800">Tulip</h3>
                         <p className="text-gray-500 mb-2">₱450k</p>
                         <p className="text-sm text-gray-700 p-5 text-center">Catering, Decorations, 4 tier Wedding Cake and Cupcakes, 1 Lechon, Dessert station...</p>
-                        <Link to={`/package/Tulip Package`} className="mt-auto">
+                        <Link to={`/package/tulip`} className="mt-auto">
                             <button className="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800"
                                     onClick={null}>
                                 CLICK FOR MORE DETAILS
@@ -133,7 +133,7 @@ const EventPage = () => {
                         <h3 className="text-xl font-bold text-gray-800">Cherry Blossom</h3>
                         <p className="text-gray-500 mb-2">₱300k</p>
                         <p className="text-sm text-gray-700 p-5 text-center">Catering, Decorations, 3 tier Wedding Cake, Professional Host, Photobooth...</p>
-                        <Link to={`/package/Cherry Blossoms Package`} className="mt-auto">
+                        <Link to={`/package/cherry-blossom`} className="mt-auto">
                             <button className="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800"
                                     onClick={null}>
                                 CLICK FOR MORE DETAILS
