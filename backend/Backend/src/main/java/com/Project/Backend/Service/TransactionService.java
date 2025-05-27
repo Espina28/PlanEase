@@ -176,8 +176,8 @@ public class TransactionService {
 
                    Map<String, Object> subcontractorDetails = new HashMap<>();
                    subcontractorDetails.put("subcontractorId", subcontractor.getSubcontractor_Id());
-                   subcontractorDetails.put("subcontractorName", subcontractor.getUserId().getFirstname() + " " + subcontractor.getUserId().getLastname());
-                   subcontractorDetails.put("subcontractorEmail", subcontractor.getUserId().getEmail());
+                   subcontractorDetails.put("subcontractorName", subcontractor.getUser().getFirstname() + " " + subcontractor.getUser().getLastname());
+                   subcontractorDetails.put("subcontractorEmail", subcontractor.getUser().getEmail());
                    subcontractorDetails.put("serviceName", subcontractor.getSubcontractor_serviceName());
                    subcontractorDetails.put("serviceCategory", subcontractor.getSubcontractor_serviceCategory());
                    //add the category here

@@ -28,7 +28,7 @@ public class EventService {
 
     public EventEntity readById(int id) {
         return eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(() -> new RuntimeException("Event not found!"));
     }
 
     public List<EventEntity> readAll() {

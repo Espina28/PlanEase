@@ -76,7 +76,7 @@ public class SubcontractorController {
     @PostMapping("/create")
     public ResponseEntity<SubcontractorEntity> createSubcontractor(@RequestBody CreateSubcontractorRequest request) {
         SubcontractorEntity subcontractor = new SubcontractorEntity();
-        subcontractor.setUserId(request.getUser());
+        subcontractor.setUser(request.getUser());
         subcontractor.setSubcontractor_description(request.getDescription());
         subcontractor.setSubcontractor_serviceName(request.getService());
         subcontractor.setUnavailableDates(null);
