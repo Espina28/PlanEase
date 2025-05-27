@@ -20,6 +20,7 @@ const AdminBookings = () => {
         axios.get('http://localhost:8080/api/transactions/getAllTransactions')
             .then((res) => {
                 setTransactions(res.data)
+                console.log(res.data);
             })
             .catch((err) => {
                 if (err.response) {
@@ -33,20 +34,19 @@ const AdminBookings = () => {
     }
 
     const ValidateTransaction = (validate) => {
-
-        axios.put(axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`)
-        )
+        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`)
             .then((response) => {
                 console.log(response.data);
-                // Additional logic after successful validation
                 fetchData();
-                setSelectedRequest(null);
-                setViewServicesModal(false);
-                setViewPaymentModal(false);
             })
             .catch((error) => {
                 console.error(error.response?.data || error.message);
-                // Handle the error
+                // Optionally show an error message here
+            })
+            .finally(() => {
+                setSelectedRequest(null);
+                setViewServicesModal(false);
+                setViewPaymentModal(false);
             });
     }
 
@@ -173,13 +173,14 @@ const AdminBookings = () => {
                                         <textarea readOnly className="w-full border p-3 rounded text-sm text-gray-600" value={selectedRequest.transactionNote}></textarea>
                                     </div>
                                 </div>
-
-                                <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4">
-                                    <button className="bg-red-500 text-white px-4 py-2 rounded w-full sm:w-auto"
-                                            onClick={()=> ValidateTransaction("CANCELED")}>CANCEL</button>
-                                    <button className="bg-green-500 text-white px-4 py-2 rounded w-full sm:w-auto"
-                                            onClick={()=> ValidateTransaction("COMPLETED")}>COMPLETE</button>
-                                </div>
+                                {selectedRequest && !["CANCELLED", "COMPLETED", "DECLINED"].includes(selectedRequest.transactionStatus) && (
+                                    <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4">
+                                        <button className="bg-red-500 text-white px-4 py-2 rounded w-full sm:w-auto"
+                                                onClick={()=> ValidateTransaction("CANCELLED")}>CANCEL</button>
+                                        <button className="bg-green-500 text-white px-4 py-2 rounded w-full sm:w-auto"
+                                                onClick={()=> ValidateTransaction("COMPLETED")}>COMPLETE</button>
+                                    </div>
+                                )}
                             </>
                         )}
                     </Dialog.Panel>
@@ -233,7 +234,7 @@ const AdminBookings = () => {
                         <div className="mt-6">
                             <h4 className="text-[#F79009] font-semibold mb-4">Payment Details</h4>
                             <div className="flex justify-center items-center bg-gray-100 p-4 rounded">
-                                <img src={selectedRequest?.paymentImage} alt="Payment Proof" className="max-h-[500px] rounded" />
+                                <img src={selectedRequest?.payment?.paymentReceipt} alt="Payment Proof" className="max-h-[500px] rounded" />
                             </div>
                         </div>
                         <div className="flex justify-end pt-6">

@@ -20,6 +20,7 @@ const AdminPendingRequest = () => {
         axios.get('http://localhost:8080/api/transactions/getAllPendingTransactions')
             .then((res) => {
                     setTransactions(res.data);
+                    console.log(res.data);
             })
             .catch((err) => {
                 console.log(err)
@@ -27,18 +28,12 @@ const AdminPendingRequest = () => {
     }
     
     const ValidateTransaction = (validate) => {
-
-        axios.put(axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`)
-        )
+        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`)
             .then((response) => {
                 console.log(response.data);
-                // Additional logic after successful validation
                 fetchData();
-                setSelectedRequest(null);
-                setViewServicesModal(false);
-                setViewPaymentModal(false);
             })
-            .catch((error) => {
+            .catch((err) => {
                 if (err.response) {
                     console.log(`[ERROR] Status: ${err.response.status}, Message: ${err.response.data?.message || 'No message'}`);
                 } else if (err.request) {
@@ -46,7 +41,11 @@ const AdminPendingRequest = () => {
                 } else {
                     console.log(`[ERROR] ${err.message}`);
                 }
-                // Handle the error
+            })
+            .finally(() => {
+                setSelectedRequest(null);
+                setViewServicesModal(false);
+                setViewPaymentModal(false);
             });
     }
 
@@ -222,7 +221,7 @@ const AdminPendingRequest = () => {
                         <div className="mt-6">
                             <h4 className="text-[#F79009] font-semibold mb-4">Payment Details</h4>
                             <div className="flex justify-center items-center bg-gray-100 p-4 rounded">
-                                <img src={selectedRequest?.paymentImage} alt="Payment Proof" className="max-h-[500px] rounded" />
+                                <img src={selectedRequest?.payment.paymentReceipt} alt="Payment Proof" className="max-h-[500px] rounded" />
                             </div>
                         </div>
                         <div className="flex justify-end pt-6">

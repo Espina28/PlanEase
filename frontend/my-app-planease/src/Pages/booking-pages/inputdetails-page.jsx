@@ -7,8 +7,14 @@ import Navbar from "../../Components/Navbar"
 import BookingSidePanel from "../../Components/Booking-sidepanel"
 import Footer from "../../Components/Footer"
 import DatePickerWithRestriction from "../../Components/DatePickerWithRestriction"
-import { getPersonalInfo, getEventDetails, savePersonalInfo, saveEventDetails } from "./utils/booking-storage"
+import { getPersonalInfo, getEventDetails, savePersonalInfo, saveEventDetails, clearBookingData } from "./utils/booking-storage"
 import axios from "axios"
+import {
+  getActiveTab,
+  getSelectedServices,
+  getSelectedPackage,
+  PACKAGES,
+} from "../booking-pages/utils/booking-storage"
 
 const InputDetailsPage = () => {
   const navigate = useNavigate()
@@ -22,12 +28,21 @@ const InputDetailsPage = () => {
   const [eventDetails, setEventDetails] = useState(getEventDetails)
   const [isLoadingUserData, setIsLoadingUserData] = useState(true)
 
+  const [activeTab, setActiveTab] = useState(getActiveTab)
+  const [selectedServices, setSelectedServices] = useState(getSelectedServices)
+
+
   // Store current event name in sessionStorage
   useEffect(() => {
     if (currentEventName) {
       sessionStorage.setItem("currentEventName", currentEventName)
     }
   }, [currentEventName])
+
+
+    const handleRemoveData = () => {
+        clearBookingData();
+    }
 
   // Auto-fill user data on component mount
   useEffect(() => {
@@ -133,12 +148,12 @@ const InputDetailsPage = () => {
 
     console.log("Personal Info:", personalInfo)
     console.log("Event Details:", eventDetails)
-
+    console.log("Event Name:", eventName.toLowerCase())
     // Navigate to services page with event name
-    if (eventName) {
+    if (!eventName.toLowerCase().includes("package")) {
       navigate(`/book/${encodeURIComponent(eventName)}/services`)
-    } else {
-      navigate("/book/services")
+    } else{
+      navigate(`/book/${encodeURIComponent(eventName)}/preview`)
     }
   }
 
@@ -164,7 +179,9 @@ const InputDetailsPage = () => {
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/">Home</Link> /{" "}
+          <Link to="/events-dashboard"
+          onClick={()=> handleRemoveData()}
+          >Home</Link> /
           <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> / <span>Book Now</span>
         </div>
 

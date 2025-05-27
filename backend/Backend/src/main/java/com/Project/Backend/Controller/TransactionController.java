@@ -83,6 +83,12 @@ public class TransactionController {
             return ResponseEntity.notFound().build();
         }
     }
+    
+    @GetMapping("/getTransactionByEmail/{email}")
+    public ResponseEntity<List<GetTransactionDTO>> getTransactionByEmail(@PathVariable String email) {
+        List<GetTransactionDTO> transactions = transactionService.getEventServicesByEmail(email);
+        return ResponseEntity.ok(transactions);
+    }
 
     @GetMapping("/getAllTransactions")
     public ResponseEntity<?> getAllTranscations() {
@@ -94,17 +100,6 @@ public class TransactionController {
     }
 
    
-//    @PutMapping("/{id}")
-//    public ResponseEntity<TransactionsEntity> updateTransaction(@PathVariable int id, @RequestBody CreateTransactionDTO transactionDTO) {
-//        try {
-//            // Make sure the path ID and the DTO ID match
-//            transactionDTO.setTransaction_Id(id);
-//            CreateTransactionDTO updatedTransaction = transactionService.update(transactionDTO);
-//            return ResponseEntity.ok(updatedTransaction);
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.notFound().build();
-//        }
-//    }
 
    
     @DeleteMapping("/{id}")

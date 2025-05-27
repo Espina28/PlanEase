@@ -24,14 +24,14 @@ public class PaymentEntity {
     private String paymentReceipt; // Added this field to match ERD
     private STATUS paymentStatus = STATUS.ACCEPTED;
     private int paymentReferenceNumber; // Added this field to match ERD
-
+    
     @PrePersist
     protected void onCreate() {
         this.paymentDatePaid = Date.valueOf(LocalDateTime.now().toLocalDate());
     }
 
     public enum STATUS {
-        ACCEPTED, REJECTED, RETURNED
+        ACCEPTED, REJECTED, RETURNED, PENDING
     }
 
     // Getters and Setters

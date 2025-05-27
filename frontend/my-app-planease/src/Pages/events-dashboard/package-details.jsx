@@ -1,12 +1,17 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Rose from '../../../public/Rose.png';
 import Tulip from '../../../public/Tulip_1-removebg-preview.png';
 import CherryBlossom from '../../../public/CherryBlossom.png';
+import { getActiveTab, getSelectedPackage } from '../booking-pages/utils/booking-storage'
+
 
 const PackageDetails = () => {
-
     const { package_name } = useParams();
+    const [activeTab, setActiveTab] = useState(getActiveTab)
+    const [selectedPackage, setSelectedPackage] = useState(getSelectedPackage)
+    
+    
     const navigate = useNavigate();
 
     const packages = [
@@ -76,8 +81,19 @@ const PackageDetails = () => {
         "Photography & Videography (PreNup & Wedding Day)"
     ];
 
+    const handleSelectedPackage = (package_name) => {
+        if(package_name === "Tulip Package"){
+            setSelectedPackage("tulip")
+        }else if(package_name === "Cherry Blossoms Package"){
+            setSelectedPackage("cherry-blossom")
+        }else if(package_name === "Rose Package"){
+            setSelectedPackage("rose")
+        }
+    }
+
     useEffect(()=>{
-        console.log(package_name);
+        setActiveTab("package")
+        handleSelectedPackage(package_name)
     },[])
 
     return (
@@ -178,7 +194,7 @@ const PackageDetails = () => {
                     </div>
 
                     <button className="mt-6 w-full lg:w-auto bg-black text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-gray-800 transition hover:cursor-pointer"
-                    onClick={() => navigate("/book/inputdetails")}>
+                    onClick={() => navigate(`/book/${package_name}/inputdetails`)}>
                         BOOK A WEDDING
                     </button>
                 </div>

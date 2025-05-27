@@ -1,15 +1,20 @@
 package com.Project.Backend.Controller;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 
 import com.Project.Backend.DTO.CreateSubcontractorRequest;
+import com.Project.Backend.DTO.GetSubcontractor;
 import com.Project.Backend.DTO.SubcontractorDescriptionDTO;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.Project.Backend.Service.TransactionService;
+import com.Project.Backend.Service.EventServiceService;
+import com.Project.Backend.DTO.GetTransactionDTO;
 
 import com.Project.Backend.Entity.SubcontractorEntity;
 import com.Project.Backend.Service.SubcontractorService;
@@ -21,6 +26,10 @@ public class SubcontractorController {
 
     @Autowired
     private SubcontractorService subcontractorService;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private EventServiceService eventServiceService;
 
     @GetMapping("/getall")
     public ResponseEntity<List<SubcontractorEntity>> getAllSubcontractors() {
@@ -41,6 +50,16 @@ public class SubcontractorController {
         SubcontractorEntity subcontractor = subcontractorService.getSubcontractorById(id);
         return ResponseEntity.ok(subcontractor);
     }
+
+    @GetMapping("/available/{date}")
+    public ResponseEntity<List<GetSubcontractor>> getAvailableSubcontractorByDate(@PathVariable Date date) {
+        List<GetSubcontractor> subcontractors = subcontractorService.getAvailableSubcontractors(date);
+        if(subcontractors.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(subcontractors);
+    }
+
 
     @PutMapping("/edit-description")
     public ResponseEntity<?> editSubcontractorDescription(
