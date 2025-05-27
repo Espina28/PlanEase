@@ -46,7 +46,6 @@ public class SubcontractorService {
                         subcontractor.getShowcase()
                 ))
                 .toList();
-
     }
 
     public SubcontractorEntity getSubcontractorById(int id) {
@@ -57,6 +56,8 @@ public class SubcontractorService {
     public SubcontractorEntity getSubcontractorByEmail(String email) {
         return subContractorRepository.findByEmail(email);
     }
+
+
 
     public void deleteSubcontractor(int id) {
         subContractorRepository.deleteById(id);

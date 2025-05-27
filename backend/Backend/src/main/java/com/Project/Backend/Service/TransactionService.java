@@ -86,7 +86,6 @@ public class TransactionService {
             transactions.setUser(userService.getUserByEmail(createTransactionDTO.getUserEmail()));
             transactionRepo.save(transactions);
             assignedEventService(createTransactionDTO.getServices(), transactions);
-
             return transactions;
         }catch(Exception e){
             throw new RuntimeException("Failed to create transaction: ", e);
@@ -386,9 +385,14 @@ public class TransactionService {
         }
     }
 
-public List<TransactionsEntity> getReservationsByUserId(int userId) {
-    return transactionRepo.findByUserId(userId);
-}
+    public List<TransactionsEntity> getReservationsByUserId(int userId) {
+        return transactionRepo.findByUserId(userId);
+    }
 
-
+    public List<GetTransactionDTO> getEventServicesByEmail(String email) {
+        List<TransactionsEntity> transactions = transactionRepo.getAllTransactionsByEventService(email);
+        return transactions.stream().filter(t -> !t.getTransactionStatus().equals(TransactionsEntity.Status.PENDING) && !t.getTransactionStatus().equals(TransactionsEntity.Status.CANCELLED) && !t.getTransactionStatus().equals(TransactionsEntity.Status.DECLINED))
+            .map(GetTransactionDTO::new)
+            .collect(Collectors.toList());
+    }
 }
