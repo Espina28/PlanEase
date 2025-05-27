@@ -175,6 +175,7 @@ const AdminSubContractors = () => {
           Authorization: `Bearer ${token}`,
         },
       })
+      console.log(response.data)
       setSubcontractors(response.data || [])
       setError(null)
     } catch (err) {
@@ -446,7 +447,7 @@ const AdminSubContractors = () => {
         cityAndMul: selectedCityMunicipalityName,
         barangay: selectedBarangayName,
         role: "SubContractor",
-        profilePicture: null,
+        profilePicture: "https://example.com/profile-pic.jpg",
         isGoogle: false,
         isFacebook: false,
       }
@@ -607,7 +608,7 @@ const AdminSubContractors = () => {
 
   return (
     <div className="h-screen grid grid-rows-[auto_1fr]">
-      <AdminSideBar />
+      <Navbar />
       <div className="grid lg:grid-cols-[1fr_3fr]">
         <div className="shadow hidden lg:block p-5">
           <AdminSideBar />
@@ -704,48 +705,58 @@ const AdminSubContractors = () => {
                           >
                             <CloseIcon fontSize="small" />
                           </IconButton>
-
+                  
                           <Avatar
-                            src={subcontractor.user.profilePicture || "/placeholder.svg?height=200&width=200"}
-                            alt={`${subcontractor.user.firstname} ${subcontractor.user.lastname}`}
+                            src={
+                              subcontractor.user?.profilePicture
+                                ? subcontractor.user.profilePicture
+                                : "/placeholder.svg?height=200&width=200"
+                            }
+                            alt={
+                              subcontractor.user
+                                ? `${subcontractor.user.firstname} ${subcontractor.user.lastname}`
+                                : "Subcontractor"
+                            }
                             sx={{ width: 100, height: 100, mb: 2 }}
                           />
                           <Typography variant="h6" component="h3" gutterBottom>
-                            {subcontractor.user.firstname} {subcontractor.user.lastname}
+                            {subcontractor.user
+                              ? `${subcontractor.user.firstname} ${subcontractor.user.lastname}`
+                              : "No Name"}
                           </Typography>
                           <Typography variant="body2" color="text.secondary" gutterBottom>
                             {subcontractor.service}
                           </Typography>
-                          {/* Display service category if available */}
                           {subcontractor.serviceCategory && (
                             <Typography variant="caption" color="primary" gutterBottom sx={{ fontWeight: 500 }}>
                               {subcontractor.serviceCategory}
                             </Typography>
                           )}
-                          {/* Display service price if available */}
                           {subcontractor.servicePrice && (
                             <Typography variant="h6" color="success.main" gutterBottom sx={{ fontWeight: 600 }}>
                               {formatPrice(subcontractor.servicePrice)}
                             </Typography>
                           )}
                           <Typography variant="body2" color="text.secondary" gutterBottom>
-                            {subcontractor.user.email}
+                            {subcontractor.user?.email || "No email"}
                           </Typography>
                           <Typography variant="body2" color="text.secondary" gutterBottom>
-                            {subcontractor.user.phoneNumber}
+                            {subcontractor.user?.phoneNumber || "No phone"}
                           </Typography>
                           <Button
                             variant="outlined"
                             size="small"
                             sx={{ mt: 2 }}
-                            onClick={() => (window.location.href = `/subcontractor/${subcontractor.subcontractor_Id}`)}
+                            onClick={() =>
+                              window.location.href = `/subcontractor/${subcontractor.subcontractor_Id}`
+                            }
                           >
                             View Profile
                           </Button>
                         </CardContent>
                       </Card>
                     </Grid>
-                  ))
+                  ))              
                 )}
               </Grid>
             )}
