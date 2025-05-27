@@ -35,6 +35,8 @@ public class EventService {
         return eventRepository.findAll();
     }
 
+
+
     public EventEntity getEventByEventName(String eventName) {
         return eventRepository.findByName(eventName);
     }
