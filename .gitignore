@@ -3,8 +3,7 @@
 # Environment files
 .env
 .vscode
-# Ignore application.properties
-application.properties
+
 # Logs
 logs/
 *.log
