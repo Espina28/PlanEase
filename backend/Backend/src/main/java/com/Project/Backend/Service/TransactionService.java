@@ -1,8 +1,6 @@
 package com.Project.Backend.Service;
 
-import com.Project.Backend.DTO.BookingTransactionDTO;
-import com.Project.Backend.DTO.CreateTransactionDTO;
-import com.Project.Backend.DTO.GetTransactionDTO;
+import com.Project.Backend.DTO.*;
 import com.Project.Backend.Entity.*;
 import com.Project.Backend.Repository.EventRepository;
 import com.Project.Backend.Repository.EventServiceRepository;
@@ -215,6 +213,19 @@ public class TransactionService {
         return result;
     }
 
+    public List<TransactionUserEventAndPackageDTO> findAllJoinedWithUserAndEventAndPackages() {
+        List<TransactionUserEventAndPackageDTO> existingTransactions = transactionRepo.findAllJoinedWithUserAndEventAndPackages();
+        return existingTransactions;
+    }
+
+    public List<TransactionPaymentAndSubcontractorsDTO> findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(int transcationId) {
+        List<TransactionPaymentAndSubcontractorsDTO> existingTransactions = transactionRepo.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transcationId);
+        existingTransactions.forEach(transaction -> {
+            transaction.setSubcontractors(getSubcontractors(eventServiceService.getByTransactionId(transaction.getTransaction_Id())));
+        });
+        return existingTransactions;
+    }
+
     // Delete transaction
     public void delete(int id) {
         if (!transactionRepo.existsById(id)) {
@@ -357,7 +368,6 @@ public class TransactionService {
             payment.setTransaction(savedTransaction);  // Set the saved transaction
             payment.setPaymentReceipt(paymentReceiptUrl);
             payment.setPaymentNote(bookingData.getPaymentNote());
-            payment.setPaymentStatus(PaymentEntity.STATUS.ACCEPTED);
             
             try {
                 payment.setPaymentReferenceNumber(Integer.parseInt(bookingData.getPaymentReferenceNumber()));

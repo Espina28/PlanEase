@@ -20,7 +20,6 @@ public class TransactionsEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int transaction_Id;
 
-
     @JoinColumn(name = "user_id")
     @ManyToOne
     @JsonBackReference(value = "user-transaction")
@@ -31,17 +30,17 @@ public class TransactionsEntity {
     @JsonBackReference(value = "event-transaction")
     private EventEntity event;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "package_id")
     @JsonManagedReference(value = "transaction-package")
     private PackagesEntity packages;
 
-    @OneToMany(mappedBy = "transactionsId", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "transactionsId", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @JsonManagedReference(value = "transaction-event-service")
     private List<EventServiceEntity> eventServices;
 
     //PAYMENT
-    @OneToOne(mappedBy = "transaction", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "transaction", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @JsonManagedReference(value = "transaction-payment")
     private PaymentEntity payment;
 

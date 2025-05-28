@@ -1,8 +1,6 @@
 package com.Project.Backend.Controller;
 
-import com.Project.Backend.DTO.BookingTransactionDTO;
-import com.Project.Backend.DTO.CreateTransactionDTO;
-import com.Project.Backend.DTO.GetTransactionDTO;
+import com.Project.Backend.DTO.*;
 import com.Project.Backend.Entity.TransactionsEntity;
 import com.Project.Backend.Entity.UserEntity;
 import com.Project.Backend.Repository.UserRepository;
@@ -99,7 +97,23 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
-   
+   @GetMapping("/findAllJoinedWithUserAndEvent")
+   public ResponseEntity<List<TransactionUserEventAndPackageDTO>> findAllJoinedWithUserAndEvent() {
+        List<TransactionUserEventAndPackageDTO> transactions = transactionService.findAllJoinedWithUserAndEventAndPackages();
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(transactions);
+   }
+
+    @GetMapping("/getPaymentAndSubcontractors/{transactionId}")
+    public ResponseEntity<List<TransactionPaymentAndSubcontractorsDTO>> findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(@PathVariable int transactionId) {
+        List<TransactionPaymentAndSubcontractorsDTO> transactions = transactionService.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transactionId);
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(transactions);
+    }
 
    
     @DeleteMapping("/{id}")

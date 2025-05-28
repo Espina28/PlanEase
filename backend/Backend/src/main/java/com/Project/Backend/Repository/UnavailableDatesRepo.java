@@ -16,7 +16,7 @@ public interface UnavailableDatesRepo extends JpaRepository<UnavailableDatesEnti
     @Query("SELECT u FROM UnavailableDatesEntity u WHERE u.subcontractor = :subcontractor")
     List<UnavailableDatesEntity> findBySubcontractorEntity(@Param("subcontractor") SubcontractorEntity subcontractor);
 
-    @Query("SELECT u FROM UnavailableDatesEntity u WHERE u.subcontractor.subcontractor_Id = :subcontractorId")
+    @Query("SELECT u FROM UnavailableDatesEntity u WHERE u.subcontractor.subcontractor_Id =:subcontractorId")
     List<UnavailableDatesEntity> findBySubcontractorId(@Param("subcontractorId") int subcontractorId);
 
     @Query("SELECT u FROM UnavailableDatesEntity u WHERE u.subcontractor.user.email = :email")
