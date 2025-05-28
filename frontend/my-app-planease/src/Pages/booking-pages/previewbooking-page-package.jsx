@@ -1,52 +1,82 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link, useNavigate, useLocation, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import "./styles/previewbooking-page.css"
 import Navbar from "../../Components/Navbar"
 import Footer from "../../Components/Footer"
 import BookingSidePanel from "../../Components/Booking-sidepanel"
 import { getCompleteBookingData, PACKAGES, clearBookingData } from "./utils/booking-storage"
 
-const PreviewBookingPage = () => {
+const PreviewBookingPagePackage = () => {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { eventName } = useParams()
+  const { packageName } = useParams()
 
   // Load data using the bookingStorage utility
   const [bookingData, setBookingData] = useState(getCompleteBookingData)
 
+  // At the top of the component, replace the currentPackageName logic with:
+  const currentPackageName = packageName || sessionStorage.getItem("currentPackageName") || "Package"
+
+  // Add this useEffect to ensure the package name is always stored
   useEffect(() => {
-    setBookingData(getCompleteBookingData())
-    console.log("bookingData.servicesData.activeTab: ", bookingData.servicesData.activeTab)
-  }, [])
+    if (packageName) {
+      sessionStorage.setItem("currentPackageName", packageName)
+    }
+  }, [packageName])
 
-  // Get the current event name
-  const currentEventName = eventName || sessionStorage.getItem("currentEventName") || "Event"
+  useEffect(() => {
+    const refreshedData = getCompleteBookingData()
+    setBookingData(refreshedData)
+    console.log("Package booking data:", refreshedData)
 
-  // Calculate the total price based on selected services or package
+    // Validate that we have package data
+    if (!refreshedData.servicesData.livePackageData && !refreshedData.servicesData.selectedPackage) {
+      console.warn("No package data found, redirecting to input details")
+      const validPackageName = packageName || currentPackageName
+      navigate(`/book/${encodeURIComponent(validPackageName)}/package/inputdetails`)
+    }
+  }, [packageName, currentPackageName, navigate])
+
+  // Get selected package details - UPDATED to handle live package data
+  const getSelectedPackageDetails = () => {
+    const { servicesData } = bookingData
+
+    // First check if we have live package data
+    if (servicesData.livePackageData) {
+      return {
+        id: servicesData.selectedPackage || `package-${servicesData.livePackageData.packageId}`,
+        name: servicesData.livePackageData.packageName,
+        price: servicesData.livePackageData.packagePrice,
+        icon: "📦", // Default icon for live packages
+        description: servicesData.livePackageData.packageDescription || "Custom package",
+        packageId: servicesData.livePackageData.packageId,
+        services: servicesData.livePackageData.services || [],
+      }
+    }
+
+    // Fallback to static packages for backward compatibility
+    if (servicesData.selectedPackage) {
+      return PACKAGES.find((pkg) => pkg.id === servicesData.selectedPackage)
+    }
+
+    return null
+  }
+
+  const selectedPackage = getSelectedPackageDetails()
+
+  // Calculate the total price based on selected package - UPDATED to handle live data
   const calculateSubtotal = () => {
     const { servicesData } = bookingData
 
-    if (servicesData.activeTab === "package" && servicesData.selectedPackage) {
-      // Find the selected package and return its price
-      const selectedPkg = PACKAGES.find((pkg) => pkg.id === servicesData.selectedPackage)
-      return selectedPkg ? selectedPkg.price : 0
-    } else if (servicesData.activeTab === "custom") {
-      // Calculate total from selected custom services
-      let total = 0
-      const { selectedServices, availableServices } = servicesData
+    // First check if we have live package data
+    if (servicesData.livePackageData) {
+      return servicesData.livePackageData.packagePrice || 0
+    }
 
-      Object.entries(selectedServices).forEach(([serviceId, isSelected]) => {
-        if (isSelected) {
-          const service = availableServices.find((s) => s.id.toString() === serviceId)
-          if (service) {
-            total += service.price
-          }
-        }
-      })
-
-      return total
+    // Fallback to static packages
+    if (selectedPackage) {
+      return selectedPackage.price
     }
 
     return 0
@@ -62,60 +92,28 @@ const PreviewBookingPage = () => {
     return "₱" + amount.toLocaleString()
   }
 
-  // Get selected services for display
-  const getSelectedServicesForDisplay = () => {
-    const { servicesData } = bookingData
-    const selectedServicesList = []
-
-    if (servicesData.activeTab === "package" && servicesData.selectedPackage) {
-      const selectedPkg = PACKAGES.find((pkg) => pkg.id === servicesData.selectedPackage)
-      if (selectedPkg) {
-        selectedServicesList.push({
-          id: selectedPkg.id,
-          name: selectedPkg.name,
-          price: selectedPkg.price,
-          icon: selectedPkg.icon,
-        })
-      }
-    } else if (servicesData.activeTab === "custom") {
-      Object.entries(servicesData.selectedServices).forEach(([serviceId, isSelected]) => {
-        if (isSelected) {
-          const service = servicesData.availableServices.find((s) => s.id.toString() === serviceId)
-          if (service) {
-            selectedServicesList.push({
-              id: serviceId,
-              name: service.name,
-              price: service.price,
-              icon: service.icon,
-              provider: service.subcontractorName,
-            })
-          }
-        }
-      })
-    }
-
-    return selectedServicesList
-  }
-
-  // Handle navigation to previous page
+  // Update the handlePrevious function to use the resolved package name:
   const handlePrevious = () => {
-    if (eventName) {
-      navigate(`/book/${encodeURIComponent(eventName)}/services`)
-    } else {
-      navigate("/book/services")
-    }
+    const validPackageName = packageName || currentPackageName
+    navigate(`/book/${encodeURIComponent(validPackageName)}/package/inputdetails`)
   }
 
-  // Handle navigation to payment page
+  // Update the handlePayment function to use the resolved package name:
   const handlePayment = () => {
-    if (eventName) {
-      navigate(`/book/${encodeURIComponent(eventName)}/payment`)
-    } else {
-      navigate("/book/payment")
+    if (!selectedPackage) {
+      alert("Package information is missing. Please go back and select a package.")
+      return
     }
-  }
 
-  const selectedServices = getSelectedServicesForDisplay()
+    // Ensure package ID is properly stored before proceeding
+    const { servicesData } = bookingData
+    if (servicesData.livePackageData) {
+      console.log("Proceeding with package ID:", servicesData.livePackageData.packageId)
+    }
+
+    const validPackageName = packageName || currentPackageName
+    navigate(`/book/${encodeURIComponent(validPackageName)}/package/payment`)
+  }
 
   return (
     <>
@@ -123,8 +121,11 @@ const PreviewBookingPage = () => {
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/events-dashboard" onClick={() => clearBookingData()}>Home</Link> /
-          <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> /<span>Book Now</span>
+          <Link to="/events-dashboard" onClick={() => clearBookingData()}>
+            Home
+          </Link>{" "}
+          /<Link to={`/package/${encodeURIComponent(currentPackageName)}`}>{currentPackageName}</Link> /{" "}
+          <span>Book Now</span>
         </div>
 
         <div className="booking-content">
@@ -133,32 +134,37 @@ const PreviewBookingPage = () => {
 
           {/* Main Content */}
           <div className="main-form-content">
-            {/* Step Indicator */}
+            {/* Step Indicator - Modified for package flow (3 steps instead of 4) */}
             <div className="step-indicator">
-              <div className="step">
+              <div className="step completed">
                 <div className="step-number">1</div>
                 <div className="step-label">Enter Details</div>
               </div>
-              <div className="step-line"></div>
-              <div className="step">
-                <div className="step-number">2</div>
-                <div className="step-label">Services</div>
-              </div>
-              <div className="step-line"></div>
+              <div className="step-line completed"></div>
               <div className="step active">
-                <div className="step-number">3</div>
+                <div className="step-number">2</div>
                 <div className="step-label">Preview</div>
               </div>
               <div className="step-line"></div>
               <div className="step">
-                <div className="step-number">4</div>
+                <div className="step-number">3</div>
                 <div className="step-label">Payment</div>
               </div>
             </div>
 
             {/* Preview Content */}
             <div className="preview-content">
-              <h2 className="section-title">Preview Booking for {currentEventName}</h2>
+              <h2 className="section-title">Preview Booking for {currentPackageName}</h2>
+
+              {/* Debug Info */}
+              {selectedPackage && selectedPackage.packageId && (
+                <div
+                  className="debug-info"
+                  style={{ background: "#f0f0f0", padding: "10px", margin: "10px 0", borderRadius: "5px" }}
+                >
+                  <strong>Package ID: {selectedPackage.packageId}</strong>
+                </div>
+              )}
 
               {/* Personal Information */}
               <div className="preview-section">
@@ -208,49 +214,37 @@ const PreviewBookingPage = () => {
                 </div>
               </div>
 
-              {/* Services */}
+              {/* Services - Show selected package */}
               <div className="preview-section">
-                <h3>Selected Services</h3>
+                <h3>Selected Package</h3>
                 <div className="services-preview">
-                  {selectedServices.length > 0 ? (
-                    <>
-                      {bookingData.servicesData.activeTab === "package" ? (
-                        <div className="package-preview">
-                          <p className="selection-type">Package Selection:</p>
-                          {selectedServices.map((service) => (
-                            <div key={service.id} className="preview-service">
-                              <div className="service-icon">{service.icon}</div>
-                              <div className="service-name">{service.name}</div>
-                              <div className="service-price">{formatAsPeso(service.price)}</div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="custom-services-preview">
-                          <p className="selection-type">Custom Services Selection:</p>
-                          {selectedServices.map((service) => (
-                            <div key={service.id} className="preview-service">
-                              <div className="service-icon">{service.icon}</div>
-                              <div className="service-info">
-                                <div className="service-name">{service.name}</div>
-                                {service.provider && <div className="service-provider">by {service.provider}</div>}
-                              </div>
-                              <div className="service-price">{formatAsPeso(service.price)}</div>
-                            </div>
-                          ))}
+                  {selectedPackage ? (
+                    <div className="package-preview">
+                      <p className="selection-type">Package Selection:</p>
+                      <div className="preview-service">
+                        <div className="service-icon">{selectedPackage.icon}</div>
+                        <div className="service-name">{selectedPackage.name}</div>
+                        <div className="service-price">{formatAsPeso(selectedPackage.price)}</div>
+                      </div>
+                      <div className="package-description">
+                        <p>{selectedPackage.description}</p>
+                      </div>
+                      {selectedPackage.packageId && (
+                        <div className="package-id">
+                          <small>Package ID: {selectedPackage.packageId}</small>
                         </div>
                       )}
-                    </>
+                    </div>
                   ) : (
                     <div className="no-services">
-                      <p>No services selected. Please go back and select services.</p>
+                      <p>No package selected. Please go back and select a package.</p>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Price Calculation */}
-              {selectedServices.length > 0 && (
+              {selectedPackage && (
                 <div className="price-calculation">
                   <div className="calculation-row">
                     <div className="calculation-label">Subtotal</div>
@@ -267,8 +261,8 @@ const PreviewBookingPage = () => {
 
                   <div className="payment-notice">
                     <p>
-                      The subtotal is subject to change depending on the final agreement between both parties. Customers
-                      are required to pay 10% of the partial (not final) subtotal to confirm the booking.
+                      The package price is fixed as shown. You are required to pay 10% of the total package price to
+                      confirm the booking.
                     </p>
                     <div className="to-pay">
                       <span>To pay:</span> <strong>{formatAsPeso(downpayment)}</strong>
@@ -283,11 +277,11 @@ const PreviewBookingPage = () => {
                   Previous
                 </button>
                 <button
-                  className={`payment-button ${selectedServices.length === 0 ? "disabled" : ""}`}
+                  className={`payment-button ${!selectedPackage ? "disabled" : ""}`}
                   onClick={handlePayment}
-                  disabled={selectedServices.length === 0}
+                  disabled={!selectedPackage}
                 >
-                  {selectedServices.length === 0 ? "Select Services First" : "Proceed to Payment"}
+                  {!selectedPackage ? "Select Package First" : "Proceed to Payment"}
                 </button>
               </div>
             </div>
@@ -299,4 +293,4 @@ const PreviewBookingPage = () => {
   )
 }
 
-export default PreviewBookingPage
+export default PreviewBookingPagePackage

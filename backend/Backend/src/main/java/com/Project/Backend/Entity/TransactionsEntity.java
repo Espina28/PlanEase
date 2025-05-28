@@ -1,19 +1,14 @@
- package com.Project.Backend.Entity;
+package com.Project.Backend.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import org.w3c.dom.Text;
-
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "transactions")
-//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "transaction_Id")
 public class TransactionsEntity {
 
     @Id
@@ -30,17 +25,16 @@ public class TransactionsEntity {
     @JsonBackReference(value = "event-transaction")
     private EventEntity event;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "package_id")
-    @JsonManagedReference(value = "transaction-package")
+    @JsonBackReference(value = "transaction-package")
     private PackagesEntity packages;
 
-    @OneToMany(mappedBy = "transactionsId", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "transactionsId", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     @JsonManagedReference(value = "transaction-event-service")
     private List<EventServiceEntity> eventServices;
 
-    //PAYMENT
-    @OneToOne(mappedBy = "transaction", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "transaction", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     @JsonManagedReference(value = "transaction-payment")
     private PaymentEntity payment;
 
@@ -58,9 +52,7 @@ public class TransactionsEntity {
         COMPLETED, DECLINED, CANCELLED, PENDING, ONGOING
     }
 
-    // Getters and Setters
-
-    @PrePersist //before it save to db this will run first to ensue the variables will not be empty
+    @PrePersist
     protected void onCreate() {
         this.transactionCreatedDdate = Date.valueOf(LocalDateTime.now().toLocalDate());
         this.transactionIsActive = true;
