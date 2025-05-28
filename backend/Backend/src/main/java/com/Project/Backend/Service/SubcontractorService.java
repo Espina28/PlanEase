@@ -3,6 +3,7 @@ package com.Project.Backend.Service;
 import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.Project.Backend.DTO.GetSubcontractor;
@@ -48,6 +49,14 @@ public class SubcontractorService {
                 .toList();
     }
 
+    /**
+     * Get counts of subcontractors by service category
+     * @return List of maps containing category name and count
+     */
+    public List<Map<String, Object>> getSubcontractorCountsByCategory() {
+        return subContractorRepository.countByServiceCategory();
+    }
+    
     public SubcontractorEntity getSubcontractorById(int id) {
         Optional<SubcontractorEntity> result = subContractorRepository.findById(id);
         return result.orElse(null);
