@@ -41,4 +41,11 @@ public interface SubContractorRepository extends JpaRepository<SubcontractorEnti
         GROUP BY subcontractor_service_category
     """, nativeQuery = true)
     List<Map<String, Object>> countByServiceCategory();
+
+    @Query("""
+        SELECT s FROM SubcontractorEntity s
+        INNER JOIN PackageServicesEntity ps ON s.subcontractor_Id = ps.subcontractor.subcontractor_Id
+        WHERE ps.packages.packageName =:packageName
+    """)
+    List<SubcontractorEntity> getSubcontractorsByPackageName(@Param("packageName") String packageName);
 }
