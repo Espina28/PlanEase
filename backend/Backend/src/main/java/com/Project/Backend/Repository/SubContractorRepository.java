@@ -9,6 +9,7 @@ import com.Project.Backend.Entity.SubcontractorEntity;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface SubContractorRepository extends JpaRepository<SubcontractorEntity, Integer>{
@@ -28,4 +29,16 @@ public interface SubContractorRepository extends JpaRepository<SubcontractorEnti
     )
 """, nativeQuery = true)
     List<SubcontractorEntity> findAvailableSubcontractors(@Param("eventDate") Date eventDate);
+    
+    /**
+     * Query to count subcontractors by service category
+     * Returns a list of maps with category name and count
+     */
+    @Query(value = """
+        SELECT subcontractor_service_category as category, COUNT(*) as count 
+        FROM subcontractors 
+        WHERE subcontractor_service_category IS NOT NULL 
+        GROUP BY subcontractor_service_category
+    """, nativeQuery = true)
+    List<Map<String, Object>> countByServiceCategory();
 }

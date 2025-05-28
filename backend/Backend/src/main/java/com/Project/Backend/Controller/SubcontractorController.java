@@ -1,6 +1,7 @@
 package com.Project.Backend.Controller;
 
 import java.sql.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -96,5 +97,22 @@ public class SubcontractorController {
         subcontractorService.deleteSubcontractor(id);
         return ResponseEntity.noContent().build();
     }
-
+    
+    /**
+     * Get counts of subcontractors by service category
+     * Used in the admin dashboard to display category statistics
+     * @return List of maps with category and count
+     */
+    @GetMapping("/category-counts")
+    public ResponseEntity<List<Map<String, Object>>> getSubcontractorCountsByCategory() {
+        List<Map<String, Object>> categoryCounts = subcontractorService.getSubcontractorCountsByCategory();
+        
+        // Add total count
+        Map<String, Object> totalCount = new HashMap<>();
+        totalCount.put("category", "total");
+        totalCount.put("count", subcontractorService.getAllSubcontractors().size());
+        categoryCounts.add(0, totalCount); // Add at the beginning of the list
+        
+        return ResponseEntity.ok(categoryCounts);
+    }
 }
