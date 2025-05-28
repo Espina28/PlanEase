@@ -366,7 +366,7 @@ public class TransactionService {
             payment.setTransaction(savedTransaction);  // Set the saved transaction
             payment.setPaymentReceipt(paymentReceiptUrl);
             payment.setPaymentNote(bookingData.getPaymentNote());
-            
+
             try {
                 payment.setPaymentReferenceNumber(Integer.parseInt(bookingData.getPaymentReferenceNumber()));
             } catch (NumberFormatException e) {
@@ -402,5 +402,169 @@ public class TransactionService {
         return transactions.stream().filter(t -> !t.getTransactionStatus().equals(TransactionsEntity.Status.PENDING) && !t.getTransactionStatus().equals(TransactionsEntity.Status.CANCELLED) && !t.getTransactionStatus().equals(TransactionsEntity.Status.DECLINED))
             .map(GetTransactionDTO::new)
             .collect(Collectors.toList());
+    }
+        @Transactional
+    public TransactionsEntity createPackageBooking(PackageBookingDTO packageBookingData, MultipartFile paymentProof) throws IOException {
+
+        System.out.println("=== PACKAGE BOOKING SERVICE DEBUG ===");
+        System.out.println("Creating package booking for user: " + packageBookingData.getUserEmail());
+
+        try {
+            // 1. Find the user by email
+            UserEntity user = userRepository.findByEmail(packageBookingData.getUserEmail());
+            if (user == null) {
+                System.out.println("ERROR: User not found with email: " + packageBookingData.getUserEmail());
+                throw new RuntimeException("User not found with email: " + packageBookingData.getUserEmail());
+            }
+            System.out.println("Found user: " + user.getFirstname() + " " + user.getLastname());
+
+            // // 2. Find the event by ID
+            // System.out.println("Looking for event with ID: " + packageBookingData.getEventId());
+            // EventEntity event = eventRepository.findById(packageBookingData.getEventId())
+            //     .orElseThrow(() -> new RuntimeException("Event not found with ID: " + packageBookingData.getEventId()));
+            // System.out.println("Found event: " + event.getEvent_name());
+
+            // 3. Find the package by ID
+            System.out.println("Looking for package with ID: " + packageBookingData.getPackageId());
+            PackagesEntity packageEntity = packageRepository.findById(packageBookingData.getPackageId())
+                .orElseThrow(() -> new RuntimeException("Package not found with ID: " + packageBookingData.getPackageId()));
+            System.out.println("Found package: " + packageEntity.getPackageName());
+
+            // 4. Upload payment proof to S3
+            String paymentReceiptUrl = null;
+            if (paymentProof != null && !paymentProof.isEmpty()) {
+                System.out.println("Uploading payment proof to S3...");
+                try {
+                    File convFile = File.createTempFile("payment_proof_package", paymentProof.getOriginalFilename());
+                    paymentProof.transferTo(convFile);
+                    paymentReceiptUrl = s3Service.upload(convFile, "payment_proofs/packages", paymentProof.getOriginalFilename());
+                    convFile.delete();
+                    System.out.println("Payment proof uploaded successfully: " + paymentReceiptUrl);
+                } catch (Exception e) {
+                    System.out.println("ERROR: Failed to upload payment proof: " + e.getMessage());
+                    throw new IOException("Failed to upload payment proof: " + e.getMessage());
+                }
+            }
+
+            // 5. Create Transaction for Package Booking
+            System.out.println("Creating package transaction...");
+            TransactionsEntity transaction = new TransactionsEntity();
+            transaction.setUser(user);
+            transaction.setPackages(packageEntity); // Set the package
+            transaction.setEventServices(null); // No custom services for package bookings
+            transaction.setTransactionVenue(packageBookingData.getTransactionVenue());
+            transaction.setTransactionDate(packageBookingData.getTransactionDate());
+            transaction.setTransactionNote(packageBookingData.getTransactionNote());
+            transaction.setTransactionStatus(TransactionsEntity.Status.PENDING);
+            transaction.setTransactionIsActive(true);
+            transaction.setTransactionisApprove(false);
+
+            // Save transaction first (without payment)
+            System.out.println("Saving package transaction...");
+            TransactionsEntity savedTransaction = transactionRepo.save(transaction);
+            System.out.println("Package transaction saved with ID: " + savedTransaction.getTransaction_Id());
+
+            // 6. Create and save payment
+            System.out.println("Creating payment record for package booking...");
+            PaymentEntity payment = new PaymentEntity();
+            payment.setTransaction(savedTransaction);
+            payment.setPaymentReceipt(paymentReceiptUrl);
+            payment.setPaymentNote(packageBookingData.getPaymentNote() != null ?
+                packageBookingData.getPaymentNote() :
+                "Payment for " + packageEntity.getPackageName() + " package booking");
+
+            try {
+                payment.setPaymentReferenceNumber(Integer.parseInt(packageBookingData.getPaymentReferenceNumber()));
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Invalid payment reference number format: " + packageBookingData.getPaymentReferenceNumber());
+            }
+
+            // Save payment
+            System.out.println("Saving payment for package booking...");
+            PaymentEntity savedPayment = paymentRepository.save(payment);
+            System.out.println("Payment saved with ID: " + savedPayment.getPaymentId());
+
+            // 7. Update transaction with payment
+            System.out.println("Updating package transaction with payment...");
+            savedTransaction.setPayment(savedPayment);
+            savedTransaction = transactionRepo.save(savedTransaction);
+
+            System.out.println("Package booking completed successfully with ID: " + savedTransaction.getTransaction_Id());
+            return savedTransaction;
+
+        } catch (Exception e) {
+            System.out.println("ERROR: Exception in createPackageBooking: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to create package booking: " + e.getMessage(), e);
+        }
+    }
+
+    public TransactionsEntity getPackageBookingById(int transactionId) {
+        TransactionsEntity transaction = transactionRepo.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Package booking not found with ID: " + transactionId));
+
+        if (transaction.getPackages() == null) {
+            throw new RuntimeException("Transaction with ID " + transactionId + " is not a package booking");
+        }
+
+        return transaction;
+    }
+
+    public List<TransactionsEntity> getUserPackageBookings(String userEmail) {
+        UserEntity user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found with email: " + userEmail);
+        }
+
+        List<TransactionsEntity> userTransactions = transactionRepo.findByUserId(user.getUserId());
+
+        // Filter only package bookings (transactions that have a package)
+        return userTransactions.stream()
+                .filter(transaction -> transaction.getPackages() != null)
+                .collect(Collectors.toList());
+    }
+
+    public List<TransactionsEntity> getAllPackageBookings() {
+        List<TransactionsEntity> allTransactions = transactionRepo.findAll();
+
+        // Filter only package bookings
+        return allTransactions.stream()
+                .filter(transaction -> transaction.getPackages() != null)
+                .collect(Collectors.toList());
+    }
+
+    public List<TransactionsEntity> getPackageBookingsByStatus(TransactionsEntity.Status status) {
+        List<TransactionsEntity> transactionsByStatus = transactionRepo.findByTransactionStatusAndIsActive(status, true);
+
+        // Filter only package bookings
+        return transactionsByStatus.stream()
+                .filter(transaction -> transaction.getPackages() != null)
+                .collect(Collectors.toList());
+    }
+
+    public TransactionsEntity updatePackageBookingStatus(int transactionId, String status) {
+        TransactionsEntity transaction = getPackageBookingById(transactionId);
+
+        switch (status.toUpperCase()) {
+            case "APPROVED":
+                transaction.setTransactionStatus(TransactionsEntity.Status.ONGOING);
+                transaction.setTransactionisApprove(true);
+                break;
+            case "CANCELLED":
+                transaction.setTransactionStatus(TransactionsEntity.Status.CANCELLED);
+                transaction.setTransactionisApprove(false);
+                break;
+            case "COMPLETED":
+                transaction.setTransactionStatus(TransactionsEntity.Status.COMPLETED);
+                break;
+            case "DECLINED":
+                transaction.setTransactionStatus(TransactionsEntity.Status.DECLINED);
+                transaction.setTransactionisApprove(false);
+                break;
+            default:
+                throw new RuntimeException("Invalid package booking status: " + status);
+        }
+
+        return transactionRepo.save(transaction);
     }
 }
