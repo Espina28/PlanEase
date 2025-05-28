@@ -147,7 +147,11 @@ public class TransactionService {
             getTransactionDTO.setUserName(transaction.getUser().getFirstname() + " " + transaction.getUser().getLastname());
             getTransactionDTO.setPhoneNumber(transaction.getUser().getPhoneNumber());
             getTransactionDTO.setUserAddress(transaction.getUser().getProvince() + " " + transaction.getUser().getBarangay());
-            getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+
+            if(transaction.getEvent() != null){
+                getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+            }
+
             getTransactionDTO.setTransactionVenue(transaction.getTransactionVenue());
             getTransactionDTO.setTransactionStatus(transaction.getTransactionStatus().toString());
             getTransactionDTO.setTransactionDate(transaction.getTransactionDate());
@@ -195,7 +199,9 @@ public class TransactionService {
             getTransactionDTO.setUserName(transaction.getUser().getFirstname() + " " + transaction.getUser().getLastname());
             getTransactionDTO.setPhoneNumber(transaction.getUser().getPhoneNumber());
             getTransactionDTO.setUserAddress(transaction.getUser().getProvince() + " " + transaction.getUser().getBarangay());
-            getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+            if(transaction.getEvent() != null){
+                getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+            }
             getTransactionDTO.setTransactionVenue(transaction.getTransactionVenue());
             getTransactionDTO.setTransactionStatus(transaction.getTransactionStatus().toString());
             getTransactionDTO.setTransactionDate(transaction.getTransactionDate());
