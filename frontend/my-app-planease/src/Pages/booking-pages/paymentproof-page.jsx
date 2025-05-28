@@ -6,7 +6,7 @@ import "./styles/paymentproof-page.css"
 import Navbar from "../../Components/Navbar"
 import Footer from "../../Components/Footer"
 import BookingSidePanel from "../../Components/Booking-sidepanel"
-import { getCompleteBookingData, clearBookingData } from "./utils/booking-storage"
+import { getCompleteBookingData, clearBookingData, PACKAGES } from "./utils/booking-storage"
 import axios from "axios"
 
 const PaymentProofPage = () => {

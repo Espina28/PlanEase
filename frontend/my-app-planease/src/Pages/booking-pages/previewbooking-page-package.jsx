@@ -26,26 +26,59 @@ const PreviewBookingPagePackage = () => {
   }, [packageName])
 
   useEffect(() => {
-    setBookingData(getCompleteBookingData())
-    console.log("Package booking data:", bookingData)
-  }, [])
+    const refreshedData = getCompleteBookingData()
+    setBookingData(refreshedData)
+    console.log("Package booking data:", refreshedData)
 
-  // Get selected package details
+    // Validate that we have package data
+    if (!refreshedData.servicesData.livePackageData && !refreshedData.servicesData.selectedPackage) {
+      console.warn("No package data found, redirecting to input details")
+      const validPackageName = packageName || currentPackageName
+      navigate(`/book/${encodeURIComponent(validPackageName)}/package/inputdetails`)
+    }
+  }, [packageName, currentPackageName, navigate])
+
+  // Get selected package details - UPDATED to handle live package data
   const getSelectedPackageDetails = () => {
     const { servicesData } = bookingData
+
+    // First check if we have live package data
+    if (servicesData.livePackageData) {
+      return {
+        id: servicesData.selectedPackage || `package-${servicesData.livePackageData.packageId}`,
+        name: servicesData.livePackageData.packageName,
+        price: servicesData.livePackageData.packagePrice,
+        icon: "📦", // Default icon for live packages
+        description: servicesData.livePackageData.packageDescription || "Custom package",
+        packageId: servicesData.livePackageData.packageId,
+        services: servicesData.livePackageData.services || [],
+      }
+    }
+
+    // Fallback to static packages for backward compatibility
     if (servicesData.selectedPackage) {
       return PACKAGES.find((pkg) => pkg.id === servicesData.selectedPackage)
     }
+
     return null
   }
 
   const selectedPackage = getSelectedPackageDetails()
 
-  // Calculate the total price based on selected package
+  // Calculate the total price based on selected package - UPDATED to handle live data
   const calculateSubtotal = () => {
+    const { servicesData } = bookingData
+
+    // First check if we have live package data
+    if (servicesData.livePackageData) {
+      return servicesData.livePackageData.packagePrice || 0
+    }
+
+    // Fallback to static packages
     if (selectedPackage) {
       return selectedPackage.price
     }
+
     return 0
   }
 
@@ -67,6 +100,17 @@ const PreviewBookingPagePackage = () => {
 
   // Update the handlePayment function to use the resolved package name:
   const handlePayment = () => {
+    if (!selectedPackage) {
+      alert("Package information is missing. Please go back and select a package.")
+      return
+    }
+
+    // Ensure package ID is properly stored before proceeding
+    const { servicesData } = bookingData
+    if (servicesData.livePackageData) {
+      console.log("Proceeding with package ID:", servicesData.livePackageData.packageId)
+    }
+
     const validPackageName = packageName || currentPackageName
     navigate(`/book/${encodeURIComponent(validPackageName)}/package/payment`)
   }
@@ -111,6 +155,16 @@ const PreviewBookingPagePackage = () => {
             {/* Preview Content */}
             <div className="preview-content">
               <h2 className="section-title">Preview Booking for {currentPackageName}</h2>
+
+              {/* Debug Info */}
+              {selectedPackage && selectedPackage.packageId && (
+                <div
+                  className="debug-info"
+                  style={{ background: "#f0f0f0", padding: "10px", margin: "10px 0", borderRadius: "5px" }}
+                >
+                  <strong>Package ID: {selectedPackage.packageId}</strong>
+                </div>
+              )}
 
               {/* Personal Information */}
               <div className="preview-section">
@@ -175,6 +229,11 @@ const PreviewBookingPagePackage = () => {
                       <div className="package-description">
                         <p>{selectedPackage.description}</p>
                       </div>
+                      {selectedPackage.packageId && (
+                        <div className="package-id">
+                          <small>Package ID: {selectedPackage.packageId}</small>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="no-services">

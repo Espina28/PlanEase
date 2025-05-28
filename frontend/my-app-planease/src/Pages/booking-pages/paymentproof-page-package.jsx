@@ -26,18 +26,42 @@ const PaymentProofPagePackage = () => {
   // Get booking data for payment amount
   const [bookingData, setBookingData] = useState(getCompleteBookingData)
 
-  // Refresh booking data when component mounts
+  // Refresh booking data when component mounts and validate package data
   useEffect(() => {
-    setBookingData(getCompleteBookingData())
-  }, [])
+    const refreshedData = getCompleteBookingData()
+    setBookingData(refreshedData)
 
-  // Calculate payment amount (10% of package price)
+    // Validate that we have package data
+    if (!refreshedData.servicesData.livePackageData && !refreshedData.servicesData.selectedPackage) {
+      console.warn("No package data found in payment page, redirecting to input details")
+      alert("Package information is missing. Please start the booking process again.")
+      const validPackageName = packageName || currentPackageName
+      navigate(`/book/${encodeURIComponent(validPackageName)}/package/inputdetails`)
+      return
+    }
+
+    // Log package information for debugging
+    if (refreshedData.servicesData.livePackageData) {
+      console.log("Payment page - Package ID:", refreshedData.servicesData.livePackageData.packageId)
+      console.log("Payment page - Package Data:", refreshedData.servicesData.livePackageData)
+    }
+  }, [packageName, currentPackageName, navigate])
+
+  // Calculate payment amount (10% of package price) - UPDATED to handle live data
   const calculateSubtotal = () => {
     const { servicesData } = bookingData
+
+    // First check if we have live package data
+    if (servicesData.livePackageData) {
+      return servicesData.livePackageData.packagePrice || 0
+    }
+
+    // Fallback to static packages
     if (servicesData.selectedPackage) {
       const selectedPkg = PACKAGES.find((pkg) => pkg.id === servicesData.selectedPackage)
       return selectedPkg ? selectedPkg.price : 0
     }
+
     return 0
   }
 
@@ -114,14 +138,28 @@ const PaymentProofPagePackage = () => {
     e.preventDefault()
   }
 
-  // Helper function to get package ID
-  const getPackageId = (packageName) => {
+  // Helper function to get package ID - UPDATED to handle live data with better error handling
+  const getPackageId = () => {
+    const { servicesData } = bookingData
+
+    // If we have live package data, use the actual package ID
+    if (servicesData.livePackageData && servicesData.livePackageData.packageId) {
+      // Ensure packageId is a number (not a string)
+      const packageId = Number.parseInt(servicesData.livePackageData.packageId, 10)
+      console.log("Using live package ID (numeric):", packageId)
+      return isNaN(packageId) ? null : packageId
+    }
+
+    // Fallback to static mapping
     const packageMap = {
       "cherry-blossom": 1,
       tulip: 2,
       rose: 3,
     }
-    return packageMap[packageName] || null
+
+    const staticId = packageMap[servicesData.selectedPackage]
+    console.log("Using static package ID:", staticId, "for package:", servicesData.selectedPackage)
+    return staticId || null
   }
 
   // Convert date string to SQL Date format
@@ -147,9 +185,16 @@ const PaymentProofPagePackage = () => {
       return false
     }
 
-    // Check package selection
-    if (!servicesData.selectedPackage) {
+    // Check package selection (either static or live)
+    if (!servicesData.selectedPackage && !servicesData.livePackageData) {
       alert("No package selected. Please go back and select a package.")
+      return false
+    }
+
+    // Validate package ID
+    const packageId = getPackageId()
+    if (!packageId) {
+      alert("Invalid package selection. Please go back and select a valid package.")
       return false
     }
 
@@ -205,7 +250,17 @@ const PaymentProofPagePackage = () => {
       console.log("User email:", userEmail)
       console.log("Package booking data:", bookingData)
 
-      // Prepare booking transaction data matching the exact DTO structure
+      // Get the package ID with validation
+      const packageId = getPackageId()
+      if (!packageId) {
+        alert("Error: Invalid package selection. Package ID is missing.")
+        setIsSubmitting(false)
+        return
+      }
+
+      console.log("Final package ID for submission:", packageId)
+
+      // Prepare booking transaction data for PACKAGE booking
       const transactionData = {
         // Personal Information
         firstName: bookingData.personalInfo.firstName,
@@ -215,53 +270,57 @@ const PaymentProofPagePackage = () => {
 
         // Event Details
         eventName: currentPackageName,
-        eventId: Number.parseInt(sessionStorage.getItem("currentEventId")) || 1, // Use 1 as default instead of 0
+        eventId: null, // Set to null for package bookings - backend will handle this
         transactionVenue: bookingData.eventDetails.location,
         transactionDate: convertToSqlDate(bookingData.eventDetails.eventDate),
         transactionNote: bookingData.eventDetails.note || "",
 
         // Package Information
-        serviceType: "PACKAGE",
-        packageId: getPackageId(bookingData.servicesData.selectedPackage),
-        serviceIds: null, // No custom services for packages
+        packageId: packageId, // The actual package ID from your API
 
-        // Payment Information - matching DTO fields exactly
+        // Payment Information
         paymentNote: `Payment for ${currentPackageName} package booking - Amount: ${formatAsPeso(paymentAmount)} - Ref: ${referenceNumber}`,
-        paymentReferenceNumber: referenceNumber, // Keep as string for DTO, backend will convert
-        // paymentReceipt will be set by backend after file upload
+        paymentReferenceNumber: referenceNumber,
 
         // User
         userEmail: userEmail,
       }
 
-      console.log("=== PACKAGE TRANSACTION DATA DEBUG ===")
-      console.log("Service Type:", transactionData.serviceType)
-      console.log("Package ID:", transactionData.packageId)
-      console.log("Payment Amount:", formatAsPeso(paymentAmount))
-      console.log("Transaction Date:", transactionData.transactionDate)
-      console.log("Complete transaction data:", transactionData)
+      // Add this debug code right after creating transactionData
+      console.log("FINAL TRANSACTION DATA CHECK:", {
+        packageId: transactionData.packageId,
+        eventId: transactionData.eventId,
+        typeOfPackageId: typeof transactionData.packageId,
+      })
 
-      // Validate package selection
-      if (!transactionData.packageId) {
-        alert("Error: Invalid package selection")
+      // If packageId is null or undefined, show an error and abort
+      if (transactionData.packageId === null || transactionData.packageId === undefined) {
+        alert("Error: Package ID is missing. Please go back and select a package again.")
         setIsSubmitting(false)
         return
       }
 
+      console.log("=== PACKAGE TRANSACTION DATA DEBUG ===")
+      console.log("Package ID:", transactionData.packageId)
+      console.log("Package Name:", currentPackageName)
+      console.log("Payment Amount:", formatAsPeso(paymentAmount))
+      console.log("Transaction Date:", transactionData.transactionDate)
+      console.log("Complete transaction data:", transactionData)
+
       // Create FormData for multipart request
       const formData = new FormData()
       formData.append("paymentProof", uploadedFile)
-      formData.append("bookingData", JSON.stringify(transactionData))
+      formData.append("packageBookingData", JSON.stringify(transactionData))
 
       console.log("FormData contents:")
       console.log("- paymentProof file:", uploadedFile.name, uploadedFile.type, uploadedFile.size)
       console.log("- bookingData JSON:", JSON.stringify(transactionData))
 
-      // Submit to backend
-      const response = await axios.post("http://localhost:8080/api/transactions/createBookingTransaction", formData, {
+      // Submit to the backend endpoint
+      const response = await axios.post("http://localhost:8080/api/transactions/createPackageBooking", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Add token header
         },
       })
 
@@ -342,6 +401,18 @@ const PaymentProofPagePackage = () => {
                 <div className="step-label">Payment</div>
               </div>
             </div>
+
+            {/* Debug Info */}
+            {bookingData.servicesData.livePackageData && (
+              <div
+                className="debug-info"
+                style={{ background: "#e8f5e8", padding: "10px", margin: "10px 0", borderRadius: "5px" }}
+              >
+                <strong>Package ID: {bookingData.servicesData.livePackageData.packageId}</strong>
+                <br />
+                <small>Package Name: {bookingData.servicesData.livePackageData.packageName}</small>
+              </div>
+            )}
 
             {/* Payment Content */}
             <div className="payment-content">

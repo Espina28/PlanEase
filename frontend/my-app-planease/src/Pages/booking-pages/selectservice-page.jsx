@@ -14,8 +14,9 @@ import {
   getEventDetails,
   saveServicesData,
   saveAvailableServices,
+  PACKAGES,
   clearBookingData,
-} from "./utils/booking-storage.js"
+} from "./utils/booking-storage"
 import axios from "axios"
 
 const SelectServicePage = () => {

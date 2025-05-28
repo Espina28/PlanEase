@@ -57,6 +57,7 @@ export const getServicesData = () => {
         selectedServices: {},
         selectedPackage: null,
         availableServices: [],
+        livePackageData: null, // Added for live package data
       }
 }
 
@@ -71,6 +72,11 @@ export const getSelectedServices = () => {
 
 export const getSelectedPackage = () => {
   return getServicesData().selectedPackage
+}
+
+// Get live package data
+export const getLivePackageData = () => {
+  return getServicesData().livePackageData
 }
 
 // Available Services functions
@@ -103,7 +109,7 @@ export const clearBookingData = () => {
   })
 }
 
-// Package definitions
+// Enhanced package definitions with dynamic support
 export const PACKAGES = [
   {
     id: "cherry-blossom",
@@ -127,3 +133,23 @@ export const PACKAGES = [
     description: "Includes catering, venue, photography, and hosting.",
   },
 ]
+
+// Function to get package details (supports both static and live data)
+export const getPackageDetails = (packageId) => {
+  // First check if we have live package data
+  const liveData = getLivePackageData()
+  if (liveData && (liveData.packageId === packageId || liveData.packageName === packageId)) {
+    return {
+      id: `package-${liveData.packageId}`,
+      name: liveData.packageName,
+      price: liveData.packagePrice,
+      icon: "📦",
+      description: liveData.packageDescription || "Custom package",
+      packageId: liveData.packageId,
+      services: liveData.services || [],
+    }
+  }
+
+  // Fallback to static packages
+  return PACKAGES.find((pkg) => pkg.id === packageId)
+}

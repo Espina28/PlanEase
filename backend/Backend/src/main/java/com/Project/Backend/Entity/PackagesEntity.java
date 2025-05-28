@@ -19,15 +19,16 @@ public class PackagesEntity {
     private String packageName;
     private double packagePrice;
     private String packageDescription;
+    private String packageImage;
 
     @OneToMany(mappedBy = "packages")
     @JsonManagedReference("package-service")
     private List<PackageServicesEntity> packageServices;
 
 
-    @OneToOne(mappedBy = "packages")
+    @OneToMany(mappedBy = "packages")
     @JsonBackReference("transaction-package")
-    private TransactionsEntity transactionsEntity;
+    private List<TransactionsEntity> transactionsEntity;
 
     public int getPackageId() {
         return packageId;
@@ -61,11 +62,11 @@ public class PackagesEntity {
         this.packageServices = packageServices;
     }
 
-    public TransactionsEntity getTransactionsEntity() {
+    public List<TransactionsEntity> getTransactionsEntity() {
         return transactionsEntity;
     }
 
-    public void setTransactionsEntity(TransactionsEntity transactionsEntity) {
+    public void setTransactionsEntity(List<TransactionsEntity> transactionsEntity) {
         this.transactionsEntity = transactionsEntity;
     }
 
@@ -76,5 +77,14 @@ public class PackagesEntity {
     public void setPackageDescription(String packageDescription) {
         this.packageDescription = packageDescription;
     }
+
+    public String getPackageImage() {
+        return packageImage;
+    }
+
+    public void setPackageImage(String packageImage) {
+        this.packageImage = packageImage;
+    }
+    
     
 }

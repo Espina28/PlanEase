@@ -9,7 +9,12 @@ import Footer from "../../Components/Footer"
 import DatePickerWithRestriction from "../../Components/DatePickerWithRestriction"
 import { getPersonalInfo, getEventDetails, savePersonalInfo, saveEventDetails, clearBookingData } from "./utils/booking-storage"
 import axios from "axios"
-
+import {
+  getActiveTab,
+  getSelectedServices,
+  getSelectedPackage,
+  PACKAGES,
+} from "../booking-pages/utils/booking-storage"
 
 const InputDetailsPage = () => {
   const navigate = useNavigate()
