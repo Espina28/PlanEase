@@ -28,12 +28,14 @@ public class EventService {
 
     public EventEntity readById(int id) {
         return eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(() -> new RuntimeException("Event not found!"));
     }
 
     public List<EventEntity> readAll() {
         return eventRepository.findAll();
     }
+
+
 
     public EventEntity getEventByEventName(String eventName) {
         return eventRepository.findByName(eventName);

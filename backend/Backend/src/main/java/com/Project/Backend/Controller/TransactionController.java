@@ -100,7 +100,23 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
-   
+   @GetMapping("/findAllJoinedWithUserAndEvent")
+   public ResponseEntity<List<TransactionUserEventAndPackageDTO>> findAllJoinedWithUserAndEvent() {
+        List<TransactionUserEventAndPackageDTO> transactions = transactionService.findAllJoinedWithUserAndEventAndPackages();
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(transactions);
+   }
+
+    @GetMapping("/getPaymentAndSubcontractors/{transactionId}")
+    public ResponseEntity<TransactionPaymentAndSubcontractorsDTO> findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(@PathVariable int transactionId) {
+        TransactionPaymentAndSubcontractorsDTO transactions = transactionService.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transactionId);
+        if (transactions != null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(transactions);
+    }
 
    
     @DeleteMapping("/{id}")
@@ -246,12 +262,12 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
             @RequestParam("paymentProof") MultipartFile paymentProof,
             @RequestParam("packageBookingData") String packageBookingDataJson,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
-        
+
         try {
             System.out.println("=== CREATE PACKAGE BOOKING DEBUG ===");
             System.out.println("Received paymentProof: " + (paymentProof != null ? paymentProof.getOriginalFilename() : "null"));
             System.out.println("Received packageBookingData JSON: " + packageBookingDataJson);
-            
+
             // Validate Authorization header
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 System.out.println("ERROR: Invalid or missing authorization header");
@@ -285,7 +301,7 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
                     "message", "Payment proof file is required"
                 ));
             }
-            
+
             if (packageBookingDataJson == null || packageBookingDataJson.trim().isEmpty()) {
                 System.out.println("ERROR: Package booking data is missing");
                 return ResponseEntity.badRequest().body(Map.of(
@@ -293,12 +309,12 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
                     "message", "Package booking data is required"
                 ));
             }
-            
+
             // Parse the package booking data JSON
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            
+
             PackageBookingDTO packageBookingData;
             try {
                 packageBookingData = objectMapper.readValue(packageBookingDataJson, PackageBookingDTO.class);
@@ -312,10 +328,10 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
                     "message", "Invalid package booking data format: " + e.getMessage()
                 ));
             }
-            
+
             // Set user email from token
             packageBookingData.setUserEmail(userEmail);
-            
+
             // Validate required fields
             // Remove eventId validation for package booking
             String validationError = validatePackageBookingData(packageBookingData);
@@ -330,12 +346,12 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
                     ));
                 }
             }
-            
+
             // Create the package booking transaction
             TransactionsEntity createdTransaction = transactionService.createPackageBooking(packageBookingData, paymentProof);
-            
+
             System.out.println("Package booking created successfully with ID: " + createdTransaction.getTransaction_Id());
-            
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Package booking submitted successfully!",
@@ -343,7 +359,7 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
                 "packageName", createdTransaction.getPackages().getPackageName(),
                 "eventName", createdTransaction.getEvent() != null ? createdTransaction.getEvent().getEvent_name() : ""
             ));
-            
+
         } catch (Exception e) {
             System.out.println("ERROR: Exception occurred: " + e.getMessage());
             e.printStackTrace();
@@ -359,19 +375,19 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
     public ResponseEntity<?> getPackageBooking(@PathVariable int transactionId) {
         try {
             TransactionsEntity transaction = transactionService.getPackageBookingById(transactionId);
-            
+
             if (transaction.getPackages() == null) {
                 return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", "Transaction is not a package booking"
                 ));
             }
-            
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "transaction", transaction
             ));
-            
+
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                 "success", false,
@@ -392,14 +408,14 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
 
             String token = authHeader.substring(7);
             String userEmail = tokenService.extractEmail(token);
-            
+
             var packageBookings = transactionService.getUserPackageBookings(userEmail);
-            
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "packageBookings", packageBookings
             ));
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "success", false,
@@ -422,7 +438,7 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
         if (packageBookingData.getContact() == null || packageBookingData.getContact().trim().isEmpty()) {
             return "Contact is required";
         }
-        
+
         // Event Details validation
         if (packageBookingData.getEventName() == null || packageBookingData.getEventName().trim().isEmpty()) {
             return "Event name is required";
@@ -437,22 +453,22 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
         if (packageBookingData.getTransactionDate() == null) {
             return "Transaction date is required";
         }
-        
+
         // Package validation
         if (packageBookingData.getPackageId() == null || packageBookingData.getPackageId() <= 0) {
             return "Valid package ID is required";
         }
-        
+
         // Payment validation
         if (packageBookingData.getPaymentReferenceNumber() == null || packageBookingData.getPaymentReferenceNumber().trim().isEmpty()) {
             return "Payment reference number is required";
         }
-        
+
         // User validation
         if (packageBookingData.getUserEmail() == null || packageBookingData.getUserEmail().trim().isEmpty()) {
             return "User email is required";
         }
-        
+
         return null; // No validation errors
     }
 }
