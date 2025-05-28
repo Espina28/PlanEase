@@ -1,9 +1,6 @@
 package com.Project.Backend.Controller;
 
-import com.Project.Backend.DTO.BookingTransactionDTO;
-import com.Project.Backend.DTO.CreateTransactionDTO;
-import com.Project.Backend.DTO.GetTransactionDTO;
-import com.Project.Backend.DTO.PackageBookingDTO;
+import com.Project.Backend.DTO.*;
 import com.Project.Backend.Entity.TransactionsEntity;
 import com.Project.Backend.Entity.UserEntity;
 import com.Project.Backend.Repository.UserRepository;
@@ -100,14 +97,14 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
-   @GetMapping("/findAllJoinedWithUserAndEvent")
-   public ResponseEntity<List<TransactionUserEventAndPackageDTO>> findAllJoinedWithUserAndEvent() {
+    @GetMapping("/findAllJoinedWithUserAndEvent")
+    public ResponseEntity<List<TransactionUserEventAndPackageDTO>> findAllJoinedWithUserAndEvent() {
         List<TransactionUserEventAndPackageDTO> transactions = transactionService.findAllJoinedWithUserAndEventAndPackages();
         if (transactions.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
         return ResponseEntity.ok(transactions);
-   }
+    }
 
     @GetMapping("/getPaymentAndSubcontractors/{transactionId}")
     public ResponseEntity<TransactionPaymentAndSubcontractorsDTO> findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(@PathVariable int transactionId) {
@@ -256,7 +253,7 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
 
     return ResponseEntity.ok(userTransactions);
 }
-//package area
+    //package area
     @PostMapping("/createPackageBooking")
     public ResponseEntity<?> createPackageBooking(
             @RequestParam("paymentProof") MultipartFile paymentProof,
@@ -272,8 +269,8 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 System.out.println("ERROR: Invalid or missing authorization header");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "success", false,
-                    "message", "Authorization token is required"
+                        "success", false,
+                        "message", "Authorization token is required"
                 ));
             }
 
@@ -288,8 +285,8 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
             } catch (Exception e) {
                 System.out.println("ERROR: Token validation failed: " + e.getMessage());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "success", false,
-                    "message", "Invalid or expired token"
+                        "success", false,
+                        "message", "Invalid or expired token"
                 ));
             }
 
@@ -297,16 +294,16 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
             if (paymentProof == null || paymentProof.isEmpty()) {
                 System.out.println("ERROR: Payment proof is missing");
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Payment proof file is required"
+                        "success", false,
+                        "message", "Payment proof file is required"
                 ));
             }
 
             if (packageBookingDataJson == null || packageBookingDataJson.trim().isEmpty()) {
                 System.out.println("ERROR: Package booking data is missing");
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Package booking data is required"
+                        "success", false,
+                        "message", "Package booking data is required"
                 ));
             }
 
@@ -324,8 +321,8 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
             } catch (JsonProcessingException e) {
                 System.out.println("ERROR: Failed to parse JSON: " + e.getMessage());
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Invalid package booking data format: " + e.getMessage()
+                        "success", false,
+                        "message", "Invalid package booking data format: " + e.getMessage()
                 ));
             }
 
@@ -341,8 +338,8 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
                     // Skip this error
                 } else {
                     return ResponseEntity.badRequest().body(Map.of(
-                        "success", false,
-                        "message", validationError
+                            "success", false,
+                            "message", validationError
                     ));
                 }
             }
@@ -353,21 +350,21 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
             System.out.println("Package booking created successfully with ID: " + createdTransaction.getTransaction_Id());
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Package booking submitted successfully!",
-                "transactionId", createdTransaction.getTransaction_Id(),
-                "packageName", createdTransaction.getPackages().getPackageName(),
-                "eventName", createdTransaction.getEvent() != null ? createdTransaction.getEvent().getEvent_name() : ""
+                    "success", true,
+                    "message", "Package booking submitted successfully!",
+                    "transactionId", createdTransaction.getTransaction_Id(),
+                    "packageName", createdTransaction.getPackages().getPackageName(),
+                    "eventName", createdTransaction.getEvent() != null ? createdTransaction.getEvent().getEvent_name() : ""
             ));
 
         } catch (Exception e) {
             System.out.println("ERROR: Exception occurred: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(
-                    "success", false,
-                    "message", "Failed to create package booking: " + e.getMessage()
-                ));
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Failed to create package booking: " + e.getMessage()
+                    ));
         }
     }
 
@@ -378,20 +375,20 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
 
             if (transaction.getPackages() == null) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Transaction is not a package booking"
+                        "success", false,
+                        "message", "Transaction is not a package booking"
                 ));
             }
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "transaction", transaction
+                    "success", true,
+                    "transaction", transaction
             ));
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                "success", false,
-                "message", e.getMessage()
+                    "success", false,
+                    "message", e.getMessage()
             ));
         }
     }
@@ -401,8 +398,8 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "success", false,
-                    "message", "Authorization token is required"
+                        "success", false,
+                        "message", "Authorization token is required"
                 ));
             }
 
@@ -412,14 +409,14 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
             var packageBookings = transactionService.getUserPackageBookings(userEmail);
 
             return ResponseEntity.ok(Map.of(
-                "success", true,
-                "packageBookings", packageBookings
+                    "success", true,
+                    "packageBookings", packageBookings
             ));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                "success", false,
-                "message", "Failed to fetch package bookings: " + e.getMessage()
+                    "success", false,
+                    "message", "Failed to fetch package bookings: " + e.getMessage()
             ));
         }
     }
