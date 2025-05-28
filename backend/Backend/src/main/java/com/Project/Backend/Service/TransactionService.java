@@ -218,11 +218,9 @@ public class TransactionService {
         return existingTransactions;
     }
 
-    public List<TransactionPaymentAndSubcontractorsDTO> findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(int transcationId) {
-        List<TransactionPaymentAndSubcontractorsDTO> existingTransactions = transactionRepo.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transcationId);
-        existingTransactions.forEach(transaction -> {
-            transaction.setSubcontractors(getSubcontractors(eventServiceService.getByTransactionId(transaction.getTransaction_Id())));
-        });
+    public TransactionPaymentAndSubcontractorsDTO findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(int transcationId) {
+        TransactionPaymentAndSubcontractorsDTO existingTransactions = transactionRepo.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transcationId);
+        existingTransactions.setSubcontractors(getSubcontractors(eventServiceService.getByTransactionId(transcationId)));
         return existingTransactions;
     }
 

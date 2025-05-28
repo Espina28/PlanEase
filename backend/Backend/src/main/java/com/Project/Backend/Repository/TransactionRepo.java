@@ -57,7 +57,7 @@ public interface TransactionRepo extends JpaRepository<TransactionsEntity, Integ
     List<TransactionUserEventAndPackageDTO> findAllJoinedWithUserAndEventAndPackages();
 
     @Query("""
-    SELECT new com.Project.Backend.DTO.TransactionPaymentAndSubcontractorsDTO(
+    SELECT DISTINCT new com.Project.Backend.DTO.TransactionPaymentAndSubcontractorsDTO(
         t.transaction_Id, p.paymentReferenceNumber,
         p.paymentNote, p.paymentReceipt,null
     )
@@ -67,6 +67,6 @@ public interface TransactionRepo extends JpaRepository<TransactionsEntity, Integ
     LEFT JOIN e.subcontractor s
     WHERE t.transaction_Id = :transactionId
 """)
-    List<TransactionPaymentAndSubcontractorsDTO> findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(@Param("transactionId") int transactionId);
+    TransactionPaymentAndSubcontractorsDTO findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(@Param("transactionId") int transactionId);
 
 }

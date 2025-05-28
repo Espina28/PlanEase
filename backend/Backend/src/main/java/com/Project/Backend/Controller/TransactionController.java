@@ -107,9 +107,9 @@ public class TransactionController {
    }
 
     @GetMapping("/getPaymentAndSubcontractors/{transactionId}")
-    public ResponseEntity<List<TransactionPaymentAndSubcontractorsDTO>> findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(@PathVariable int transactionId) {
-        List<TransactionPaymentAndSubcontractorsDTO> transactions = transactionService.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transactionId);
-        if (transactions.isEmpty()) {
+    public ResponseEntity<TransactionPaymentAndSubcontractorsDTO> findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(@PathVariable int transactionId) {
+        TransactionPaymentAndSubcontractorsDTO transactions = transactionService.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transactionId);
+        if (transactions != null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
         return ResponseEntity.ok(transactions);
