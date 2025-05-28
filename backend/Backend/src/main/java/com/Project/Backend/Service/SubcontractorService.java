@@ -56,6 +56,10 @@ public class SubcontractorService {
     public List<Map<String, Object>> getSubcontractorCountsByCategory() {
         return subContractorRepository.countByServiceCategory();
     }
+
+    public List<SubcontractorEntity> getSubcontractorByPackageName(String packageName) {
+        return subContractorRepository.getSubcontractorsByPackageName(packageName);
+    }
     
     public SubcontractorEntity getSubcontractorById(int id) {
         Optional<SubcontractorEntity> result = subContractorRepository.findById(id);

@@ -18,6 +18,7 @@ public class PackagesEntity {
     private int packageId;
     private String packageName;
     private double packagePrice;
+    @Column(columnDefinition = "TEXT")
     private String packageDescription;
     private String packageImage;
 
