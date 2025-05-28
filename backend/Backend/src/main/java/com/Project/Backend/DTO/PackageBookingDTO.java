@@ -1,9 +1,8 @@
 package com.Project.Backend.DTO;
 
 import java.sql.Date;
-import java.util.List;
 
-public class BookingTransactionDTO {
+public class PackageBookingDTO {
     
     // Personal Information
     private String firstName;
@@ -18,21 +17,37 @@ public class BookingTransactionDTO {
     private Date transactionDate;
     private String transactionNote;
     
-    // Services
-    private String serviceType; // "PACKAGE" or "CUSTOM"
-    private Integer packageId; // if package selected
-    private List<Integer> serviceIds; // if custom services selected
+    // Package Information (specific to package bookings)
+    private Integer packageId;
+    private String packageName; // Optional, for display purposes
     
-    // Payment
+    // Payment Information
     private String paymentReceipt; // URL of uploaded payment proof
     private String paymentNote;
-    private String paymentReferenceNumber; // Reference number from user's payment
+    private String paymentReferenceNumber;
     
-    // User
-    private String userEmail; // to identify the user
+    // User Information
+    private String userEmail;
 
     // Constructors
-    public BookingTransactionDTO() {}
+    public PackageBookingDTO() {}
+
+    public PackageBookingDTO(String firstName, String lastName, String email, String contact, 
+                           String eventName, Integer eventId, String transactionVenue, 
+                           Date transactionDate, Integer packageId, String paymentReferenceNumber, 
+                           String userEmail) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.contact = contact;
+        this.eventName = eventName;
+        this.eventId = eventId;
+        this.transactionVenue = transactionVenue;
+        this.transactionDate = transactionDate;
+        this.packageId = packageId;
+        this.paymentReferenceNumber = paymentReferenceNumber;
+        this.userEmail = userEmail;
+    }
 
     // Getters and Setters
     public String getFirstName() {
@@ -107,14 +122,6 @@ public class BookingTransactionDTO {
         this.transactionNote = transactionNote;
     }
 
-    public String getServiceType() {
-        return serviceType;
-    }
-
-    public void setServiceType(String serviceType) {
-        this.serviceType = serviceType;
-    }
-
     public Integer getPackageId() {
         return packageId;
     }
@@ -123,12 +130,12 @@ public class BookingTransactionDTO {
         this.packageId = packageId;
     }
 
-    public List<Integer> getServiceIds() {
-        return serviceIds;
+    public String getPackageName() {
+        return packageName;
     }
 
-    public void setServiceIds(List<Integer> serviceIds) {
-        this.serviceIds = serviceIds;
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
 
     public String getPaymentReceipt() {
@@ -147,6 +154,14 @@ public class BookingTransactionDTO {
         this.paymentNote = paymentNote;
     }
 
+    public String getPaymentReferenceNumber() {
+        return paymentReferenceNumber;
+    }
+
+    public void setPaymentReferenceNumber(String paymentReferenceNumber) {
+        this.paymentReferenceNumber = paymentReferenceNumber;
+    }
+
     public String getUserEmail() {
         return userEmail;
     }
@@ -155,11 +170,22 @@ public class BookingTransactionDTO {
         this.userEmail = userEmail;
     }
 
-    public String getPaymentReferenceNumber() {
-        return paymentReferenceNumber;
-    }
-
-    public void setPaymentReferenceNumber(String paymentReferenceNumber) {
-        this.paymentReferenceNumber = paymentReferenceNumber;
+    @Override
+    public String toString() {
+        return "PackageBookingDTO{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", contact='" + contact + '\'' +
+                ", eventName='" + eventName + '\'' +
+                ", eventId=" + eventId +
+                ", transactionVenue='" + transactionVenue + '\'' +
+                ", transactionDate=" + transactionDate +
+                ", transactionNote='" + transactionNote + '\'' +
+                ", packageId=" + packageId +
+                ", packageName='" + packageName + '\'' +
+                ", paymentReferenceNumber='" + paymentReferenceNumber + '\'' +
+                ", userEmail='" + userEmail + '\'' +
+                '}';
     }
 }

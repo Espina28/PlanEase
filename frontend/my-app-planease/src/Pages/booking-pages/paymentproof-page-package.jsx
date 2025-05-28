@@ -9,13 +9,13 @@ import BookingSidePanel from "../../Components/Booking-sidepanel"
 import { getCompleteBookingData, clearBookingData, PACKAGES } from "./utils/booking-storage"
 import axios from "axios"
 
-const PaymentProofPage = () => {
+const PaymentProofPagePackage = () => {
   const navigate = useNavigate()
-  const { eventName } = useParams()
+  const { packageName } = useParams()
   const fileInputRef = useRef(null)
 
-  // Get event name from params or sessionStorage as fallback
-  const currentEventName = eventName || sessionStorage.getItem("currentEventName") || "Event"
+  // Get package name from params or sessionStorage as fallback
+  const currentPackageName = packageName || sessionStorage.getItem("currentPackageName") || "Package"
 
   const [uploadedFile, setUploadedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -26,34 +26,40 @@ const PaymentProofPage = () => {
   // Get booking data for payment amount
   const [bookingData, setBookingData] = useState(getCompleteBookingData)
 
-  // Refresh booking data when component mounts
+  // Refresh booking data when component mounts and validate package data
   useEffect(() => {
-    setBookingData(getCompleteBookingData())
-  }, [])
+    const refreshedData = getCompleteBookingData()
+    setBookingData(refreshedData)
 
-  // Calculate payment amount (10% of subtotal) using actual service prices
+    // Validate that we have package data
+    if (!refreshedData.servicesData.livePackageData && !refreshedData.servicesData.selectedPackage) {
+      console.warn("No package data found in payment page, redirecting to input details")
+      alert("Package information is missing. Please start the booking process again.")
+      const validPackageName = packageName || currentPackageName
+      navigate(`/book/${encodeURIComponent(validPackageName)}/package/inputdetails`)
+      return
+    }
+
+    // Log package information for debugging
+    if (refreshedData.servicesData.livePackageData) {
+      console.log("Payment page - Package ID:", refreshedData.servicesData.livePackageData.packageId)
+      console.log("Payment page - Package Data:", refreshedData.servicesData.livePackageData)
+    }
+  }, [packageName, currentPackageName, navigate])
+
+  // Calculate payment amount (10% of package price) - UPDATED to handle live data
   const calculateSubtotal = () => {
     const { servicesData } = bookingData
 
-    if (servicesData.activeTab === "package" && servicesData.selectedPackage) {
-      // Find the selected package and return its price
+    // First check if we have live package data
+    if (servicesData.livePackageData) {
+      return servicesData.livePackageData.packagePrice || 0
+    }
+
+    // Fallback to static packages
+    if (servicesData.selectedPackage) {
       const selectedPkg = PACKAGES.find((pkg) => pkg.id === servicesData.selectedPackage)
       return selectedPkg ? selectedPkg.price : 0
-    } else if (servicesData.activeTab === "custom") {
-      // Calculate total from selected custom services
-      let total = 0
-      const { selectedServices, availableServices } = servicesData
-
-      Object.entries(selectedServices).forEach(([serviceId, isSelected]) => {
-        if (isSelected) {
-          const service = availableServices.find((s) => s.id.toString() === serviceId)
-          if (service) {
-            total += service.price
-          }
-        }
-      })
-
-      return total
     }
 
     return 0
@@ -132,35 +138,28 @@ const PaymentProofPage = () => {
     e.preventDefault()
   }
 
-  // Helper function to get selected service IDs (subcontractor IDs)
-  const getSelectedServiceIds = (selectedServices) => {
-    const selectedIds = []
+  // Helper function to get package ID - UPDATED to handle live data with better error handling
+  const getPackageId = () => {
+    const { servicesData } = bookingData
 
-    console.log("Processing selected services:", selectedServices)
+    // If we have live package data, use the actual package ID
+    if (servicesData.livePackageData && servicesData.livePackageData.packageId) {
+      // Ensure packageId is a number (not a string)
+      const packageId = Number.parseInt(servicesData.livePackageData.packageId, 10)
+      console.log("Using live package ID (numeric):", packageId)
+      return isNaN(packageId) ? null : packageId
+    }
 
-    // selectedServices is an object with subcontractor IDs as keys and boolean values
-    Object.entries(selectedServices).forEach(([serviceId, isSelected]) => {
-      if (isSelected) {
-        // Convert string ID to number (subcontractor_Id)
-        const numericId = Number.parseInt(serviceId)
-        if (!isNaN(numericId)) {
-          selectedIds.push(numericId)
-        }
-      }
-    })
-
-    console.log("Selected service IDs to send:", selectedIds)
-    return selectedIds.length > 0 ? selectedIds : null
-  }
-
-  // Helper function to get package ID
-  const getPackageId = (packageName) => {
+    // Fallback to static mapping
     const packageMap = {
       "cherry-blossom": 1,
       tulip: 2,
       rose: 3,
     }
-    return packageMap[packageName] || null
+
+    const staticId = packageMap[servicesData.selectedPackage]
+    console.log("Using static package ID:", staticId, "for package:", servicesData.selectedPackage)
+    return staticId || null
   }
 
   // Convert date string to SQL Date format
@@ -186,18 +185,17 @@ const PaymentProofPage = () => {
       return false
     }
 
-    // Check services selection
-    if (servicesData.activeTab === "package") {
-      if (!servicesData.selectedPackage) {
-        alert("No package selected. Please go back and select a package.")
-        return false
-      }
-    } else if (servicesData.activeTab === "custom") {
-      const hasSelectedServices = Object.values(servicesData.selectedServices).some((selected) => selected)
-      if (!hasSelectedServices) {
-        alert("No services selected. Please go back and select at least one service.")
-        return false
-      }
+    // Check package selection (either static or live)
+    if (!servicesData.selectedPackage && !servicesData.livePackageData) {
+      alert("No package selected. Please go back and select a package.")
+      return false
+    }
+
+    // Validate package ID
+    const packageId = getPackageId()
+    if (!packageId) {
+      alert("Invalid package selection. Please go back and select a valid package.")
+      return false
     }
 
     return true
@@ -228,7 +226,7 @@ const PaymentProofPage = () => {
     }
 
     if (paymentAmount <= 0) {
-      alert("Invalid payment amount. Please check your service selection.")
+      alert("Invalid payment amount. Please check your package selection.")
       return
     }
 
@@ -250,9 +248,19 @@ const PaymentProofPage = () => {
       const userEmail = userResponse.data.email
 
       console.log("User email:", userEmail)
-      console.log("Booking data:", bookingData)
+      console.log("Package booking data:", bookingData)
 
-      // Prepare booking transaction data matching the exact DTO structure
+      // Get the package ID with validation
+      const packageId = getPackageId()
+      if (!packageId) {
+        alert("Error: Invalid package selection. Package ID is missing.")
+        setIsSubmitting(false)
+        return
+      }
+
+      console.log("Final package ID for submission:", packageId)
+
+      // Prepare booking transaction data for PACKAGE booking
       const transactionData = {
         // Personal Information
         firstName: bookingData.personalInfo.firstName,
@@ -261,67 +269,58 @@ const PaymentProofPage = () => {
         contact: bookingData.personalInfo.contact,
 
         // Event Details
-        eventName: currentEventName,
-        eventId: Number.parseInt(sessionStorage.getItem("currentEventId")) || 1, // Use 1 as default instead of 0
+        eventName: currentPackageName,
+        eventId: null, // Set to null for package bookings - backend will handle this
         transactionVenue: bookingData.eventDetails.location,
         transactionDate: convertToSqlDate(bookingData.eventDetails.eventDate),
         transactionNote: bookingData.eventDetails.note || "",
 
-        // Services - Use serviceIds (subcontractor IDs) for custom services
-        serviceType: bookingData.servicesData.activeTab === "package" ? "PACKAGE" : "CUSTOM",
-        packageId:
-          bookingData.servicesData.activeTab === "package"
-            ? getPackageId(bookingData.servicesData.selectedPackage)
-            : null,
-        serviceIds:
-          bookingData.servicesData.activeTab === "custom"
-            ? getSelectedServiceIds(bookingData.servicesData.selectedServices)
-            : null,
+        // Package Information
+        packageId: packageId, // The actual package ID from your API
 
-        // Payment Information - matching DTO fields exactly
-        paymentNote: `Payment for ${currentEventName} booking - Amount: ${formatAsPeso(paymentAmount)} - Ref: ${referenceNumber}`,
-        paymentReferenceNumber: referenceNumber, // Keep as string for DTO, backend will convert
-        // paymentReceipt will be set by backend after file upload
+        // Payment Information
+        paymentNote: `Payment for ${currentPackageName} package booking - Amount: ${formatAsPeso(paymentAmount)} - Ref: ${referenceNumber}`,
+        paymentReferenceNumber: referenceNumber,
 
         // User
         userEmail: userEmail,
       }
 
-      console.log("=== TRANSACTION DATA DEBUG ===")
-      console.log("Service Type:", transactionData.serviceType)
+      // Add this debug code right after creating transactionData
+      console.log("FINAL TRANSACTION DATA CHECK:", {
+        packageId: transactionData.packageId,
+        eventId: transactionData.eventId,
+        typeOfPackageId: typeof transactionData.packageId,
+      })
+
+      // If packageId is null or undefined, show an error and abort
+      if (transactionData.packageId === null || transactionData.packageId === undefined) {
+        alert("Error: Package ID is missing. Please go back and select a package again.")
+        setIsSubmitting(false)
+        return
+      }
+
+      console.log("=== PACKAGE TRANSACTION DATA DEBUG ===")
       console.log("Package ID:", transactionData.packageId)
-      console.log("Service IDs (subcontractor IDs):", transactionData.serviceIds)
+      console.log("Package Name:", currentPackageName)
       console.log("Payment Amount:", formatAsPeso(paymentAmount))
       console.log("Transaction Date:", transactionData.transactionDate)
       console.log("Complete transaction data:", transactionData)
 
-      // Validate that we have either package OR services, not both or neither
-      if (transactionData.packageId && transactionData.serviceIds) {
-        alert("Error: Cannot have both package and custom services selected")
-        setIsSubmitting(false)
-        return
-      }
-
-      if (!transactionData.packageId && (!transactionData.serviceIds || transactionData.serviceIds.length === 0)) {
-        alert("Error: Must select either a package or custom services")
-        setIsSubmitting(false)
-        return
-      }
-
       // Create FormData for multipart request
       const formData = new FormData()
       formData.append("paymentProof", uploadedFile)
-      formData.append("bookingData", JSON.stringify(transactionData))
+      formData.append("packageBookingData", JSON.stringify(transactionData))
 
       console.log("FormData contents:")
       console.log("- paymentProof file:", uploadedFile.name, uploadedFile.type, uploadedFile.size)
       console.log("- bookingData JSON:", JSON.stringify(transactionData))
 
-      // Submit to backend
-      const response = await axios.post("http://localhost:8080/api/transactions/createBookingTransaction", formData, {
+      // Submit to the backend endpoint
+      const response = await axios.post("http://localhost:8080/api/transactions/createPackageBooking", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Add token header
         },
       })
 
@@ -336,19 +335,19 @@ const PaymentProofPage = () => {
         // Show success message and redirect
         setTimeout(() => {
           alert(
-            `Booking submitted successfully! Your transaction ID is: ${response.data.transactionId}. Subcontractors will be assigned by our admin team.`,
+            `Package booking submitted successfully! Your transaction ID is: ${response.data.transactionId}. Our team will contact you to finalize the details.`,
           )
           navigate("/user-reservations")
         }, 2000)
       }
     } catch (error) {
-      console.error("Error submitting booking:", error)
+      console.error("Error submitting package booking:", error)
       console.error("Error response:", error.response?.data)
       console.error("Error status:", error.response?.status)
 
       // Show more specific error message
       const errorMessage =
-        error.response?.data?.message || error.response?.data || "Failed to submit booking. Please try again."
+        error.response?.data?.message || error.response?.data || "Failed to submit package booking. Please try again."
       alert(`Error: ${errorMessage}`)
     } finally {
       setIsSubmitting(false)
@@ -357,11 +356,8 @@ const PaymentProofPage = () => {
 
   // Handle previous button click
   const handlePrevious = () => {
-    if (eventName) {
-      navigate(`/book/${encodeURIComponent(eventName)}/preview`)
-    } else {
-      navigate("/book/preview")
-    }
+    const validPackageName = packageName || currentPackageName
+    navigate(`/book/${encodeURIComponent(validPackageName)}/package/preview`)
   }
 
   // Check if form is ready for submission
@@ -375,8 +371,11 @@ const PaymentProofPage = () => {
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/">Home</Link> /{" "}
-          <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> / <span>Book Now</span>
+          <Link to="/events-dashboard" onClick={() => clearBookingData()}>
+            Home
+          </Link>{" "}
+          /<Link to={`/package/${encodeURIComponent(currentPackageName)}`}>{currentPackageName}</Link> /{" "}
+          <span>Book Now</span>
         </div>
 
         <div className="booking-content">
@@ -385,33 +384,40 @@ const PaymentProofPage = () => {
 
           {/* Main Content */}
           <div className="main-form-content">
-            {/* Step Indicator */}
+            {/* Step Indicator - Modified for package flow (3 steps instead of 4) */}
             <div className="step-indicator">
-              <div className="step">
+              <div className="step completed">
                 <div className="step-number">1</div>
                 <div className="step-label">Enter Details</div>
               </div>
-              <div className="step-line"></div>
-              <div className="step">
+              <div className="step-line completed"></div>
+              <div className="step completed">
                 <div className="step-number">2</div>
-                <div className="step-label">Services</div>
-              </div>
-              <div className="step-line"></div>
-              <div className="step">
-                <div className="step-number">3</div>
                 <div className="step-label">Preview</div>
               </div>
-              <div className="step-line"></div>
+              <div className="step-line completed"></div>
               <div className="step active">
-                <div className="step-number">4</div>
+                <div className="step-number">3</div>
                 <div className="step-label">Payment</div>
               </div>
             </div>
 
+            {/* Debug Info */}
+            {bookingData.servicesData.livePackageData && (
+              <div
+                className="debug-info"
+                style={{ background: "#e8f5e8", padding: "10px", margin: "10px 0", borderRadius: "5px" }}
+              >
+                <strong>Package ID: {bookingData.servicesData.livePackageData.packageId}</strong>
+                <br />
+                <small>Package Name: {bookingData.servicesData.livePackageData.packageName}</small>
+              </div>
+            )}
+
             {/* Payment Content */}
             <div className="payment-content">
               <h2 className="section-title">
-                Payment for {currentEventName} <span className="info-icon">ⓘ</span>
+                Payment for {currentPackageName} <span className="info-icon">ⓘ</span>
               </h2>
 
               {/* Payment Amount Summary */}
@@ -517,7 +523,7 @@ const PaymentProofPage = () => {
                 {/* Validation Messages */}
                 {paymentAmount <= 0 && (
                   <div className="validation-error">
-                    <p>⚠️ Invalid payment amount. Please go back and select services.</p>
+                    <p>⚠️ Invalid payment amount. Please go back and select a package.</p>
                   </div>
                 )}
 
@@ -544,4 +550,4 @@ const PaymentProofPage = () => {
   )
 }
 
-export default PaymentProofPage
+export default PaymentProofPagePackage

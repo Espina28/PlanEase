@@ -26,7 +26,10 @@ import AdminPendingRequest from './Pages/admin-pages/admin-pendingrequest.jsx'
 import AdminBookings from "./Pages/admin-pages/admin-bookings.jsx";
 import AdminSubContractors from './Pages/admin-pages/admin-subcontractors.jsx'
 import UserReservations from './Pages/reservations-pages/user-reservations.jsx'
-
+import InputDetailsPagePackage from './Pages/booking-pages/inputdetails-page-package.jsx'
+import PaymentProofPagePackage from './Pages/booking-pages/paymentproof-page-package.jsx'
+import PreviewBookingPagePackage from './Pages/booking-pages/previewbooking-page-package.jsx'
+import AdminPackages from './Pages/admin-pages/admin-your-packages.jsx'
 
 function App() {
   return (
@@ -47,6 +50,10 @@ function App() {
           <Route path="/book/:eventName/services" element={<SelectServicePage />} />
           <Route path="/book/:eventName/preview" element={<PreviewBookingPage />} />
           <Route path="/book/:eventName/payment" element={<PaymentProofPage />} />
+
+          <Route path="/book/:packageName/package/inputdetails" element={<InputDetailsPagePackage />} />
+          <Route path="/book/:packageName/package/preview" element={<PreviewBookingPagePackage />} />
+          <Route path="/book/:packageName/package/payment" element={<PaymentProofPagePackage />} />
 
           <Route path="/notifications" element={
             <ProtectedRoute>
@@ -71,7 +78,7 @@ function App() {
           }
           />
 
-            <Route path="/package/:package_name" element={
+            <Route path="/package/:package_id" element={
                 <>
                     <ProtectedRoute>
                         <Navbar />
@@ -132,7 +139,11 @@ function App() {
                 <AdminSubContractors/>
                  </AdminProtectedRoute>
             }/>
-
+              <Route path="/admin/packages" element={
+                 <AdminProtectedRoute>
+                < AdminPackages/>
+                 </AdminProtectedRoute>
+            }/>
           
           <Route path="/home" element={
               <>
