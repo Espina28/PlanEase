@@ -1,9 +1,6 @@
 package com.Project.Backend.Service;
 
-import com.Project.Backend.DTO.BookingTransactionDTO;
-import com.Project.Backend.DTO.CreateTransactionDTO;
-import com.Project.Backend.DTO.GetTransactionDTO;
-import com.Project.Backend.DTO.PackageBookingDTO;
+import com.Project.Backend.DTO.*;
 import com.Project.Backend.Entity.*;
 import com.Project.Backend.Repository.EventRepository;
 import com.Project.Backend.Repository.EventServiceRepository;
@@ -150,7 +147,11 @@ public class TransactionService {
             getTransactionDTO.setUserName(transaction.getUser().getFirstname() + " " + transaction.getUser().getLastname());
             getTransactionDTO.setPhoneNumber(transaction.getUser().getPhoneNumber());
             getTransactionDTO.setUserAddress(transaction.getUser().getProvince() + " " + transaction.getUser().getBarangay());
-            getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+
+            if(transaction.getEvent() != null){
+                getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+            }
+
             getTransactionDTO.setTransactionVenue(transaction.getTransactionVenue());
             getTransactionDTO.setTransactionStatus(transaction.getTransactionStatus().toString());
             getTransactionDTO.setTransactionDate(transaction.getTransactionDate());
@@ -177,8 +178,8 @@ public class TransactionService {
 
                    Map<String, Object> subcontractorDetails = new HashMap<>();
                    subcontractorDetails.put("subcontractorId", subcontractor.getSubcontractor_Id());
-                   subcontractorDetails.put("subcontractorName", subcontractor.getUserId().getFirstname() + " " + subcontractor.getUserId().getLastname());
-                   subcontractorDetails.put("subcontractorEmail", subcontractor.getUserId().getEmail());
+                   subcontractorDetails.put("subcontractorName", subcontractor.getUser().getFirstname() + " " + subcontractor.getUser().getLastname());
+                   subcontractorDetails.put("subcontractorEmail", subcontractor.getUser().getEmail());
                    subcontractorDetails.put("serviceName", subcontractor.getSubcontractor_serviceName());
                    subcontractorDetails.put("serviceCategory", subcontractor.getSubcontractor_serviceCategory());
                    //add the category here
@@ -198,7 +199,9 @@ public class TransactionService {
             getTransactionDTO.setUserName(transaction.getUser().getFirstname() + " " + transaction.getUser().getLastname());
             getTransactionDTO.setPhoneNumber(transaction.getUser().getPhoneNumber());
             getTransactionDTO.setUserAddress(transaction.getUser().getProvince() + " " + transaction.getUser().getBarangay());
-            getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+            if(transaction.getEvent() != null){
+                getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+            }
             getTransactionDTO.setTransactionVenue(transaction.getTransactionVenue());
             getTransactionDTO.setTransactionStatus(transaction.getTransactionStatus().toString());
             getTransactionDTO.setTransactionDate(transaction.getTransactionDate());
@@ -214,6 +217,17 @@ public class TransactionService {
             result.add(getTransactionDTO);
         }
         return result;
+    }
+
+    public List<TransactionUserEventAndPackageDTO> findAllJoinedWithUserAndEventAndPackages() {
+        List<TransactionUserEventAndPackageDTO> existingTransactions = transactionRepo.findAllJoinedWithUserAndEventAndPackages();
+        return existingTransactions;
+    }
+
+    public TransactionPaymentAndSubcontractorsDTO findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(int transcationId) {
+        TransactionPaymentAndSubcontractorsDTO existingTransactions = transactionRepo.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transcationId);
+        existingTransactions.setSubcontractors(getSubcontractors(eventServiceService.getByTransactionId(transcationId)));
+        return existingTransactions;
     }
 
     // Delete transaction
@@ -234,7 +248,7 @@ public class TransactionService {
         return transactionRepo.findByTransactionStatusAndIsActive(TransactionsEntity.Status.valueOf(status), true);
     }
 
-    // MODIFIED METHOD 
+    // MODIFIED METHOD - Solution 1 Implementation
     @Transactional
     public TransactionsEntity createBookingTransaction(BookingTransactionDTO bookingData, MultipartFile paymentProof) throws IOException {
         
@@ -358,8 +372,7 @@ public class TransactionService {
             payment.setTransaction(savedTransaction);  // Set the saved transaction
             payment.setPaymentReceipt(paymentReceiptUrl);
             payment.setPaymentNote(bookingData.getPaymentNote());
-            payment.setPaymentStatus(PaymentEntity.STATUS.ACCEPTED);
-            
+
             try {
                 payment.setPaymentReferenceNumber(Integer.parseInt(bookingData.getPaymentReferenceNumber()));
             } catch (NumberFormatException e) {
@@ -398,10 +411,10 @@ public class TransactionService {
     }
         @Transactional
     public TransactionsEntity createPackageBooking(PackageBookingDTO packageBookingData, MultipartFile paymentProof) throws IOException {
-        
+
         System.out.println("=== PACKAGE BOOKING SERVICE DEBUG ===");
         System.out.println("Creating package booking for user: " + packageBookingData.getUserEmail());
-        
+
         try {
             // 1. Find the user by email
             UserEntity user = userRepository.findByEmail(packageBookingData.getUserEmail());
@@ -410,19 +423,19 @@ public class TransactionService {
                 throw new RuntimeException("User not found with email: " + packageBookingData.getUserEmail());
             }
             System.out.println("Found user: " + user.getFirstname() + " " + user.getLastname());
-            
+
             // // 2. Find the event by ID
             // System.out.println("Looking for event with ID: " + packageBookingData.getEventId());
             // EventEntity event = eventRepository.findById(packageBookingData.getEventId())
             //     .orElseThrow(() -> new RuntimeException("Event not found with ID: " + packageBookingData.getEventId()));
             // System.out.println("Found event: " + event.getEvent_name());
-            
+
             // 3. Find the package by ID
             System.out.println("Looking for package with ID: " + packageBookingData.getPackageId());
             PackagesEntity packageEntity = packageRepository.findById(packageBookingData.getPackageId())
                 .orElseThrow(() -> new RuntimeException("Package not found with ID: " + packageBookingData.getPackageId()));
             System.out.println("Found package: " + packageEntity.getPackageName());
-            
+
             // 4. Upload payment proof to S3
             String paymentReceiptUrl = null;
             if (paymentProof != null && !paymentProof.isEmpty()) {
@@ -438,7 +451,7 @@ public class TransactionService {
                     throw new IOException("Failed to upload payment proof: " + e.getMessage());
                 }
             }
-            
+
             // 5. Create Transaction for Package Booking
             System.out.println("Creating package transaction...");
             TransactionsEntity transaction = new TransactionsEntity();
@@ -451,41 +464,40 @@ public class TransactionService {
             transaction.setTransactionStatus(TransactionsEntity.Status.PENDING);
             transaction.setTransactionIsActive(true);
             transaction.setTransactionisApprove(false);
-            
+
             // Save transaction first (without payment)
             System.out.println("Saving package transaction...");
             TransactionsEntity savedTransaction = transactionRepo.save(transaction);
             System.out.println("Package transaction saved with ID: " + savedTransaction.getTransaction_Id());
-            
+
             // 6. Create and save payment
             System.out.println("Creating payment record for package booking...");
             PaymentEntity payment = new PaymentEntity();
             payment.setTransaction(savedTransaction);
             payment.setPaymentReceipt(paymentReceiptUrl);
-            payment.setPaymentNote(packageBookingData.getPaymentNote() != null ? 
-                packageBookingData.getPaymentNote() : 
+            payment.setPaymentNote(packageBookingData.getPaymentNote() != null ?
+                packageBookingData.getPaymentNote() :
                 "Payment for " + packageEntity.getPackageName() + " package booking");
-            payment.setPaymentStatus(PaymentEntity.STATUS.ACCEPTED);
-            
+
             try {
                 payment.setPaymentReferenceNumber(Integer.parseInt(packageBookingData.getPaymentReferenceNumber()));
             } catch (NumberFormatException e) {
                 throw new RuntimeException("Invalid payment reference number format: " + packageBookingData.getPaymentReferenceNumber());
             }
-            
+
             // Save payment
             System.out.println("Saving payment for package booking...");
             PaymentEntity savedPayment = paymentRepository.save(payment);
             System.out.println("Payment saved with ID: " + savedPayment.getPaymentId());
-            
+
             // 7. Update transaction with payment
             System.out.println("Updating package transaction with payment...");
             savedTransaction.setPayment(savedPayment);
             savedTransaction = transactionRepo.save(savedTransaction);
-            
+
             System.out.println("Package booking completed successfully with ID: " + savedTransaction.getTransaction_Id());
             return savedTransaction;
-            
+
         } catch (Exception e) {
             System.out.println("ERROR: Exception in createPackageBooking: " + e.getMessage());
             e.printStackTrace();
@@ -496,11 +508,11 @@ public class TransactionService {
     public TransactionsEntity getPackageBookingById(int transactionId) {
         TransactionsEntity transaction = transactionRepo.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Package booking not found with ID: " + transactionId));
-        
+
         if (transaction.getPackages() == null) {
             throw new RuntimeException("Transaction with ID " + transactionId + " is not a package booking");
         }
-        
+
         return transaction;
     }
 
@@ -509,9 +521,9 @@ public class TransactionService {
         if (user == null) {
             throw new RuntimeException("User not found with email: " + userEmail);
         }
-        
+
         List<TransactionsEntity> userTransactions = transactionRepo.findByUserId(user.getUserId());
-        
+
         // Filter only package bookings (transactions that have a package)
         return userTransactions.stream()
                 .filter(transaction -> transaction.getPackages() != null)
@@ -520,7 +532,7 @@ public class TransactionService {
 
     public List<TransactionsEntity> getAllPackageBookings() {
         List<TransactionsEntity> allTransactions = transactionRepo.findAll();
-        
+
         // Filter only package bookings
         return allTransactions.stream()
                 .filter(transaction -> transaction.getPackages() != null)
@@ -529,7 +541,7 @@ public class TransactionService {
 
     public List<TransactionsEntity> getPackageBookingsByStatus(TransactionsEntity.Status status) {
         List<TransactionsEntity> transactionsByStatus = transactionRepo.findByTransactionStatusAndIsActive(status, true);
-        
+
         // Filter only package bookings
         return transactionsByStatus.stream()
                 .filter(transaction -> transaction.getPackages() != null)
@@ -538,7 +550,7 @@ public class TransactionService {
 
     public TransactionsEntity updatePackageBookingStatus(int transactionId, String status) {
         TransactionsEntity transaction = getPackageBookingById(transactionId);
-        
+
         switch (status.toUpperCase()) {
             case "APPROVED":
                 transaction.setTransactionStatus(TransactionsEntity.Status.ONGOING);
@@ -558,7 +570,7 @@ public class TransactionService {
             default:
                 throw new RuntimeException("Invalid package booking status: " + status);
         }
-        
+
         return transactionRepo.save(transaction);
     }
 }

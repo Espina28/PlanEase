@@ -1,8 +1,6 @@
 package com.Project.Backend.Entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -33,7 +31,7 @@ public class SubcontractorEntity {
 
     @OneToMany(mappedBy = "subcontractor", fetch = FetchType.LAZY)
     @JsonManagedReference(value = "subcontractor-unavailable-dates")
-    private List<UnavailableDates> unavailableDates;
+    private List<UnavailableDatesEntity> unavailableDates;
 
     @OneToMany(mappedBy = "subcontractor")
     @JsonManagedReference("subcontractor-eventservice")
@@ -67,13 +65,6 @@ public class SubcontractorEntity {
         this.subcontractor_serviceName = subcontractor_serviceName;
     }
 
-    public UserEntity getUserId() {
-        return user;
-    }
-
-    public void setUserId(UserEntity user) {
-        this.user = user;
-    }
 
     public List<ShowcaseEntity> getShowcase() {
         return showcase;
@@ -83,11 +74,11 @@ public class SubcontractorEntity {
         this.showcase = showcase;
     }
 
-    public List<UnavailableDates> getUnavailableDates() {
+    public List<UnavailableDatesEntity> getUnavailableDates() {
         return unavailableDates;
     }
 
-    public void setUnavailableDates(List<UnavailableDates> unavailableDates) {
+    public void setUnavailableDates(List<UnavailableDatesEntity> unavailableDates) {
         this.unavailableDates = unavailableDates;
     }
 

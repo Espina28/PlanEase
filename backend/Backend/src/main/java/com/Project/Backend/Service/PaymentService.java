@@ -24,7 +24,6 @@ public class PaymentService {
         paymentEntity.setPaymentNote(payment.getPaymentNote());
         paymentEntity.setPaymentReceipt(payment.getPaymentReceipt());
         paymentEntity.setPaymentReferenceNumber(payment.getPaymentReferenceNumber());
-        paymentEntity.setPaymentStatus(PaymentEntity.STATUS.PENDING);
         return paymentRepository.save(paymentEntity);
     }
 
