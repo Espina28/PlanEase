@@ -333,6 +333,29 @@ const PaymentProofPage = () => {
         // Clear booking data from sessionStorage
         clearBookingData()
 
+        // Send notification to admins using new endpoint
+        await axios.post(
+          "http://localhost:8080/api/notifications/notify-admins",
+          null,
+          {
+            params: { message: `New event booking submitted: ${currentEventName}` },
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        // Send notification to subcontractors using new endpoint by subcontractor ID
+        const selectedServiceIds = transactionData.serviceIds || [];
+        for (const subcontractorId of selectedServiceIds) {
+          await axios.post(
+            "http://localhost:8080/api/notifications/notify-subcontractors-by-id",
+            null,
+            {
+              params: { subcontractorId: subcontractorId.toString(), message: `New event booking submitted: ${currentEventName}` },
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
+        }
+
         // Show success message and redirect
         setTimeout(() => {
           alert(

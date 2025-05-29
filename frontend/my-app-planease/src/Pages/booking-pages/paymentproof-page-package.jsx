@@ -332,6 +332,26 @@ const PaymentProofPagePackage = () => {
         // Clear booking data from sessionStorage
         clearBookingData()
 
+        // Send notification to admins
+        await axios.post(
+          "http://localhost:8080/api/notifications/notify-admins",
+          null,
+          {
+            params: { message: `New package booking submitted: ${currentPackageName}` },
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        // Send notification to subcontractors related to the package
+        await axios.post(
+          "http://localhost:8080/api/notifications/notify-subcontractors",
+          null,
+          {
+            params: { packageId: packageId, message: `New package booking submitted: ${currentPackageName}` },
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
         // Show success message and redirect
         setTimeout(() => {
           alert(
