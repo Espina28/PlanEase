@@ -64,7 +64,7 @@ public class TransactionService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    // Create a new transaction
+
     public TransactionsEntity create(CreateTransactionDTO createTransactionDTO) {
         try{
             TransactionsEntity transactions = new TransactionsEntity();
@@ -123,6 +123,8 @@ public class TransactionService {
             case "COMPLETED":
                     transaction.setTransactionStatus(TransactionsEntity.Status.COMPLETED);
                     break;
+            case "DECLINED":
+                    transaction.setTransactionStatus(TransactionsEntity.Status.DECLINED);
             default:
                     throw new RuntimeException("Invalid transaction status: " + status);
         }
@@ -148,8 +150,17 @@ public class TransactionService {
             getTransactionDTO.setPhoneNumber(transaction.getUser().getPhoneNumber());
             getTransactionDTO.setUserAddress(transaction.getUser().getProvince() + " " + transaction.getUser().getBarangay());
 
-            if(transaction.getEvent() != null){
+            //true if its a custom
+            if (transaction.getEventServices() != null && transaction.getEvent() != null) {
+                System.out.println("EVENT SERVICES: " + transaction.getEventServices().size());
+                System.out.println("EVENT: " + transaction.getEvent().getEvent_name());
                 getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+                getTransactionDTO.setSubcontractors(getSubcontractorsOfEvent(transaction.getEventServices()));
+            }else{
+                List<SubcontractorEntity> subcontractor = subcontractorService.getSubcontractorByPackageName(transaction.getPackages().getPackageName());
+                System.out.println("SUBCONTRACTORS: " + subcontractor.size());
+                getTransactionDTO.setPackages(transaction.getPackages().getPackageName());
+                getTransactionDTO.setSubcontractors(getSubcontractorsOfPackages(subcontractor));
             }
 
             getTransactionDTO.setTransactionVenue(transaction.getTransactionVenue());
@@ -157,19 +168,14 @@ public class TransactionService {
             getTransactionDTO.setTransactionDate(transaction.getTransactionDate());
             getTransactionDTO.setTransactionNote(transaction.getTransactionNote());
             getTransactionDTO.setPayment(transaction.getPayment());
-            if(transaction.getPackages() != null){
-                getTransactionDTO.setPackages(transaction.getPackages().getPackageName());
-            }
 
-            if (transaction.getEventServices() != null) {
-                getTransactionDTO.setSubcontractors(getSubcontractors(transaction.getEventServices()));
-            }
             result.add(getTransactionDTO);
         }
         return result;
     }
 
-    private List<Map<String, Object>>  getSubcontractors(List<EventServiceEntity> eventServices){
+    //helper function for the eventService entity
+    private List<Map<String, Object>>  getSubcontractorsOfEvent(List<EventServiceEntity> eventServices){
        return eventServices.stream()
                .map(eventService -> {
                    SubcontractorEntity subcontractor = subcontractorService.getSubcontractorById(
@@ -188,6 +194,21 @@ public class TransactionService {
                .collect(Collectors.toList());
     }
 
+    //helper function for the eventService entity
+    private List<Map<String, Object>>  getSubcontractorsOfPackages(List<SubcontractorEntity> subcontractors){
+        return subcontractors.stream().map(
+                subcontractor -> {
+                    Map<String, Object> subcontractorDetails = new HashMap<>();
+                    subcontractorDetails.put("subcontractorId", subcontractor.getSubcontractor_Id());
+                    subcontractorDetails.put("subcontractorName", subcontractor.getUser().getFirstname() + " " + subcontractor.getUser().getLastname());
+                    subcontractorDetails.put("subcontractorEmail", subcontractor.getUser().getEmail());
+                    subcontractorDetails.put("serviceName", subcontractor.getSubcontractor_serviceName());
+                    subcontractorDetails.put("serviceCategory", subcontractor.getSubcontractor_serviceCategory());
+
+                    return subcontractorDetails;
+                }).toList();
+    }
+
     public List<GetTransactionDTO>getAllTransactions() {
         List<TransactionsEntity> existingTransactions = transactionRepo.findAll();
         List<GetTransactionDTO> result = new ArrayList<>();
@@ -199,21 +220,26 @@ public class TransactionService {
             getTransactionDTO.setUserName(transaction.getUser().getFirstname() + " " + transaction.getUser().getLastname());
             getTransactionDTO.setPhoneNumber(transaction.getUser().getPhoneNumber());
             getTransactionDTO.setUserAddress(transaction.getUser().getProvince() + " " + transaction.getUser().getBarangay());
-            if(transaction.getEvent() != null){
+
+            //true if its a custom
+            if (transaction.getEventServices() != null && transaction.getEvent() != null) {
+                System.out.println("EVENT SERVICES: " + transaction.getEventServices().size());
+                System.out.println("EVENT: " + transaction.getEvent().getEvent_name());
                 getTransactionDTO.setEventName(transaction.getEvent().getEvent_name());
+                getTransactionDTO.setSubcontractors(getSubcontractorsOfEvent(transaction.getEventServices()));
+            }else{
+                List<SubcontractorEntity> subcontractor = subcontractorService.getSubcontractorByPackageName(transaction.getPackages().getPackageName());
+                System.out.println("SUBCONTRACTORS: " + subcontractor.size());
+                getTransactionDTO.setPackages(transaction.getPackages().getPackageName());
+                getTransactionDTO.setSubcontractors(getSubcontractorsOfPackages(subcontractor));
             }
+
             getTransactionDTO.setTransactionVenue(transaction.getTransactionVenue());
             getTransactionDTO.setTransactionStatus(transaction.getTransactionStatus().toString());
             getTransactionDTO.setTransactionDate(transaction.getTransactionDate());
             getTransactionDTO.setTransactionNote(transaction.getTransactionNote());
             getTransactionDTO.setPayment(transaction.getPayment());
-            if(transaction.getPackages() != null){
-                getTransactionDTO.setPackages(transaction.getPackages().getPackageName());
-            }
 
-            if (transaction.getEventServices() != null) {
-                getTransactionDTO.setSubcontractors(getSubcontractors(transaction.getEventServices()));
-            }
             result.add(getTransactionDTO);
         }
         return result;
@@ -224,9 +250,10 @@ public class TransactionService {
         return existingTransactions;
     }
 
+    //revise this, it must accomodate the subcontactors of packages
     public TransactionPaymentAndSubcontractorsDTO findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(int transcationId) {
         TransactionPaymentAndSubcontractorsDTO existingTransactions = transactionRepo.findAllJoinedWIthPaymentAndSubcontractorsByTransactionId(transcationId);
-        existingTransactions.setSubcontractors(getSubcontractors(eventServiceService.getByTransactionId(transcationId)));
+        existingTransactions.setSubcontractors(getSubcontractorsOfEvent(eventServiceService.getByTransactionId(transcationId)));
         return existingTransactions;
     }
 

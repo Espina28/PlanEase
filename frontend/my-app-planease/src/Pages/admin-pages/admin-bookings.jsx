@@ -76,7 +76,12 @@ const AdminBookings = () => {
                                 <tr key={req.transaction_Id} className="hover:bg-gray-100 cursor-pointer" onClick={() => setSelectedRequest(req)}>
                                     <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">{req.userName}</td>
                                     <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">{req.transactionDate.split(' - ')[0]}</td>
-                                    <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">{req.eventName}</td>
+                                    {
+                                        req.eventName != null ? (
+                                                <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">{req.eventName}</td>
+                                            ):
+                                            <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">{"Wedding"}</td>
+                                    }
                                     <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">
                                         <div className={`inline-block px-4 py-1 rounded-full font-semibold text-sm text-center
                                             ${req.transactionStatus === 'CANCELLED' ? 'bg-[#FFB8B2] text-[#912018]'
@@ -128,23 +133,37 @@ const AdminBookings = () => {
                                     <h4 className="font-semibold mt-6 mb-2 text-[#FFB22C]">Event Detail</h4>
                                     <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-2 w-auto">
                                         <div className="flex flex-col gap-2 w-auto">
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-500 block mb-1">Event Type</label>
-                                                <input type="text" className="border p-2 rounded w-full" value={selectedRequest.eventName} readOnly />
-                                            </div>
-                                            {
-                                                selectedRequest.packages!=null?(
-                                                        <div>
-                                                            <label className="text-sm font-medium text-gray-500 block mb-1">Package Type</label>
-                                                            <input type="text" className="border p-2 rounded w-full" value={selectedRequest.packageType} readOnly />
-                                                        </div>
-                                                    ):
-
+                                            {selectedRequest.packages != null ? (
+                                                <>
                                                     <div>
-                                                        <label className="text-sm font-medium text-gray-500 block mb-1">Package Type</label>
-                                                        <input type="text" className="border p-2 rounded w-full" value={"N/A"} readOnly />
+                                                        <label className="text-sm font-medium text-gray-500 block mb-1">Event
+                                                            Type</label>
+                                                        <input type="text" className="border p-2 rounded w-full"
+                                                               value={"Wedding"} readOnly/>
                                                     </div>
-                                            }
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-500 block mb-1">Package
+                                                            Type</label>
+                                                        <input type="text" className="border p-2 rounded w-full"
+                                                               value={selectedRequest.packages} readOnly/>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-500 block mb-1">Event
+                                                            Type</label>
+                                                        <input type="text" className="border p-2 rounded w-full"
+                                                               value={selectedRequest.eventName} readOnly/>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-500 block mb-1">Package
+                                                            Type</label>
+                                                        <input type="text" className="border p-2 rounded w-full"
+                                                               value={"N/A"} readOnly/>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                         <div className="flex flex-col gap-2 w-auto">
                                             <div>
