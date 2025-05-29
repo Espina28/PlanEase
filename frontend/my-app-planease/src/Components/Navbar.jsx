@@ -47,7 +47,7 @@ const Navbar = () => {
       })
 
       // Fetch unread notification count after getting user data
-      fetchUnreadCount(data.userId, token)
+      fetchUnreadCount(data.email, token)
 
       setLoading(false)
     } catch (error) {
@@ -56,9 +56,9 @@ const Navbar = () => {
     }
   }
 
-  const fetchUnreadCount = async (userId, token) => {
+  const fetchUnreadCount = async (userEmail, token) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/notifications/count?userId=${userId}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/notifications/count?userEmail=${userEmail}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       setUnreadCount(response.data.count)
