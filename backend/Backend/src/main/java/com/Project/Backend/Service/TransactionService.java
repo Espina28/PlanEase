@@ -608,4 +608,20 @@ public class TransactionService {
 
         return transactionRepo.save(transaction);
     }
+
+
+    public List<Map<String, Object>> getAllTransactionsDates() {
+        List<TransactionsEntity> transactions = transactionRepo.findAll();
+        return transactions.stream()
+                .filter(t -> t.getTransactionIsActive() &&
+                        (t.getTransactionStatus() == TransactionsEntity.Status.ONGOING ||
+                                t.getTransactionStatus() == TransactionsEntity.Status.PENDING))
+                .map(t -> {
+                    Map<String, Object> transactionData = new HashMap<>();
+                    transactionData.put("transactionId", t.getTransaction_Id());
+                    transactionData.put("transactionDate", t.getTransactionDate());
+                    return transactionData;
+                })
+                .collect(Collectors.toList());
+    }
 }
