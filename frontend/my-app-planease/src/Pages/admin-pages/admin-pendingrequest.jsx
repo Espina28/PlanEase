@@ -31,6 +31,29 @@ const AdminPendingRequest = () => {
         axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`)
             .then((response) => {
                 console.log(response.data);
+                // After validating transaction, create notification for user by email
+                if (validate === "APPROVED") {
+                    axios.post(`http://localhost:8080/api/notifications/booking-approved`, null, {
+                        params: {
+                            userEmail: selectedRequest?.userEmail,
+                            amount: selectedRequest?.downpaymentAmount || "0"
+                        }
+                    }).then(() => {
+                        console.log("Booking approval notification sent.");
+                    }).catch((err) => {
+                        console.error("Failed to send booking approval notification:", err);
+                    });
+                } else if (validate === "DECLINED") {
+                    axios.post(`http://localhost:8080/api/notifications/booking-rejected`, null, {
+                        params: {
+                            userEmail: selectedRequest?.userEmail
+                        }
+                    }).then(() => {
+                        console.log("Booking rejection notification sent.");
+                    }).catch((err) => {
+                        console.error("Failed to send booking rejection notification:", err);
+                    });
+                }
                 fetchData();
             })
             .catch((err) => {
