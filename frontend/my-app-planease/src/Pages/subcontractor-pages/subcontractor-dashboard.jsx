@@ -156,10 +156,11 @@ const SubcontractorDashboard = () => {
             .then((response) => {
                 console.log("response", response);
 
-                const user = response.data.userId;
+                const user = response.data.user;
 
                 setShowcase(response.data.showcase);
                 setAbout(response.data.subcontractor_description);
+                console.log(user)
                 setUserDetails({
                     fullname: `${user.firstname} ${user.lastname}`,
                     email: user.email,
