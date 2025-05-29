@@ -38,6 +38,10 @@ public class TransactionsEntity {
     @JsonManagedReference(value = "transaction-payment")
     private PaymentEntity payment;
 
+    @OneToOne(mappedBy = "transaction", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @JsonManagedReference(value = "transaction-rejection")
+    private BookingRejectionNoteEntity rejection;
+
     private String transactionVenue;
     private Status transactionStatus;
     private Date transactionDate;
@@ -58,6 +62,14 @@ public class TransactionsEntity {
         this.transactionIsActive = true;
         this.transactionisApprove = false;
         this.transactionStatus = Status.PENDING;
+    }
+
+    public BookingRejectionNoteEntity getRejection() {
+        return rejection;
+    }
+
+    public void setRejection(BookingRejectionNoteEntity rejection) {
+        this.rejection = rejection;
     }
 
     public Date getTransactionCreatedDdate() {

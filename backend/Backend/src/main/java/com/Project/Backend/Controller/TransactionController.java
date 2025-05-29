@@ -18,10 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -54,8 +51,9 @@ public class TransactionController {
 
     @PutMapping("/validateTransaction")
     public ResponseEntity<?> validateTransaction(@RequestParam int transactionId,
-                                                 @RequestParam String status) {
-        TransactionsEntity transactionsEntity = transactionService.validateTransaction(transactionId, status);
+                                                 @RequestParam String status,
+                                                 @RequestBody CreateBookingRejectionNoteDTO reason) {
+        TransactionsEntity transactionsEntity = transactionService.validateTransaction(transactionId, status, reason);
         if(transactionsEntity == null) {
             return ResponseEntity.notFound().build();
         }
@@ -467,5 +465,14 @@ public ResponseEntity<?> getCurrentUserReservations(@RequestHeader("Authorizatio
         }
 
         return null; // No validation errors
+    }
+
+    @GetMapping("/getAllActiveTransactions")
+    public ResponseEntity<List<Map<String, Object>>> getAllActiveTransactionsDates(){
+        List<Map<String, Object>> dates = transactionService.getAllTransactionsDates();
+        if(dates.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(dates);
     }
 }
