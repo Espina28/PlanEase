@@ -60,9 +60,11 @@ public class TransactionService {
     @Autowired
     private EventServiceRepository EventServiceRepository;
 
-    // ADD THIS - PaymentRepository injection
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private BookingRejectionNoteService bookingRejectionNoteService;
 
 
     public TransactionsEntity create(CreateTransactionDTO createTransactionDTO) {
@@ -108,7 +110,7 @@ public class TransactionService {
         return subcontractors;
     };
 
-    public TransactionsEntity validateTransaction(int id, String status){
+    public TransactionsEntity validateTransaction(int id, String status, CreateBookingRejectionNoteDTO reason){
         TransactionsEntity transaction = transactionRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Transaction with id " + id + " not found"));
         switch (status){
@@ -119,12 +121,18 @@ public class TransactionService {
             case "CANCELLED":
                     transaction.setTransactionStatus(TransactionsEntity.Status.CANCELLED);
                     transaction.setTransactionisApprove(false);
+                    transaction.setTransactionIsActive(false);
+                    bookingRejectionNoteService.createRejectionNote(transaction, reason);
                     break;
             case "COMPLETED":
                     transaction.setTransactionStatus(TransactionsEntity.Status.COMPLETED);
+                    transaction.setTransactionIsActive(false);
                     break;
             case "DECLINED":
                     transaction.setTransactionStatus(TransactionsEntity.Status.DECLINED);
+                    transaction.setTransactionisApprove(false);
+                    bookingRejectionNoteService.createRejectionNote(transaction, reason);
+                    break;
             default:
                     throw new RuntimeException("Invalid transaction status: " + status);
         }

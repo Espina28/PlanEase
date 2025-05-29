@@ -79,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/serviceoffering/**").authenticated()
                         .requestMatchers("/package/**").authenticated()
                         .requestMatchers("/payment/**").authenticated()
+                        .requestMatchers("/bookingrejectionnote/**").authenticated()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
