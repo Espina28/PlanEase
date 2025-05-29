@@ -132,6 +132,15 @@ const AdminPendingRequest = () => {
                 console.log(response.data);
                 setDeclineSuccess(true);
                 setDeclineStep(4); // Move to success message
+                axios.post(`http://localhost:8080/api/notifications/booking-rejected`, null, {
+                    params: {
+                        userEmail: selectedRequest?.userEmail
+                    }
+                }).then(() => {
+                    console.log("Booking rejection notification sent.");
+                }).catch((err) => {
+                    console.error("Failed to send booking rejection notification:", err);
+                });
                 fetchData(); // Refresh the list
             })
             .catch((err) => {
@@ -157,7 +166,12 @@ const AdminPendingRequest = () => {
         }
         
         // For approve or other actions, continue with the original flow
-        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`,null)
+        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`,{},
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                    }
+                })
             .then((response) => {
                 console.log(response.data);
                 // After validating transaction, create notification for user by email
