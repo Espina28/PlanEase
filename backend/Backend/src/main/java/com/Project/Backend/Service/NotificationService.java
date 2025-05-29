@@ -189,6 +189,7 @@ public class NotificationService {
             notification.setUser(subcontractor);
             notification.setNotificationMessage(message);
             notification.setNotificationType("system");
+            notification.setNotificationRecipientType("SubContractor");
             notification.setRead(false);
             notificationRepository.save(notification);
         }

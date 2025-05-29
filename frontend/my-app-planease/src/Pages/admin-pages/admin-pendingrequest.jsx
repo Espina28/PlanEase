@@ -132,6 +132,15 @@ const AdminPendingRequest = () => {
                 console.log(response.data);
                 setDeclineSuccess(true);
                 setDeclineStep(4); // Move to success message
+                axios.post(`http://localhost:8080/api/notifications/booking-rejected`, null, {
+                    params: {
+                        userEmail: selectedRequest?.userEmail
+                    }
+                }).then(() => {
+                    console.log("Booking rejection notification sent.");
+                }).catch((err) => {
+                    console.error("Failed to send booking rejection notification:", err);
+                });
                 fetchData(); // Refresh the list
             })
             .catch((err) => {
@@ -155,9 +164,15 @@ const AdminPendingRequest = () => {
             handleDeclineClick();
             return;
         }
+        console.log(selectedRequest)
         
         // For approve or other actions, continue with the original flow
-        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`,null)
+        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`,{},
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                    }
+                })
             .then((response) => {
                 console.log(response.data);
                 // After validating transaction, create notification for user by email
@@ -168,7 +183,34 @@ const AdminPendingRequest = () => {
                             amount: selectedRequest?.downpaymentAmount || "0"
                         }
                     }).then(() => {
-                        console.log("Booking approval notification sent.");
+                        console.log(selectedRequest?.subcontractors);
+
+                        // Ensure there are subcontractors before running the loop
+                        if (selectedRequest?.subcontractors?.length > 0) {
+                            (async () => {
+                                for (const subcontractor of selectedRequest.subcontractors) {
+                                    try {
+                                        axios.post(
+                                            `http://localhost:8080/api/notifications/notify-subcontractors-by-id`,
+                                            null,
+                                            {
+                                                params: {
+                                                    subcontractorId: subcontractor?.subcontractorId,
+                                                    message: `You have been chosen as a subcontractor for ${selectedRequest?.eventName} by ${selectedRequest.userName}`
+                                                }
+                                            }
+                                        ).then(response => {
+                                            console.log(response.data);
+                                        });
+
+                                    } catch (error) {
+                                        console.error(`Failed to notify subcontractor (id: ${subcontractor?.subcontractorId}):`, error);
+                                    }
+                                }
+                            })();
+                        } else {
+                            console.log("No subcontractors to notify.");
+                        }
                     }).catch((err) => {
                         console.error("Failed to send booking approval notification:", err);
                     });
@@ -223,7 +265,9 @@ const AdminPendingRequest = () => {
                             <tbody>
                             {transactions?.map((req) => (
                                 <tr key={req.transaction_Id} className="hover:bg-gray-100 cursor-pointer" onClick={() => setSelectedRequest(req)}>
-                                    <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">{req.userName}</td>
+                                <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">{req.userName}</td>
+
+
                                     <td className="p-3 sm:p-4 whitespace-nowrap text-[#667085]">{req.transactionDate.split(' - ')[0]}</td>
                                     {
                                         req.eventName != null ? (
