@@ -76,49 +76,77 @@ const AdminPendingRequest = () => {
     };
     
     // Function to handle submitting the final decline with reason
-    const handleSubmitDecline = () => {
+    const handleSubmitDecline = async () => {
         setSubmittingDecline(true);
-        
+
         // Create form data to send receipt image
-        const formData = new FormData();
+        const reason = new FormData();
         if (refundReceipt) {
-            formData.append('refundReceipt', refundReceipt);
+            const presignedResponse = await axios.get(
+                `http://localhost:8080/bookingrejectionnote/generate-PresignedUrl`,
+                {
+                    params: {
+                        file_name: refundReceipt.name,
+                        user_name: selectedRequest.userName
+                    },
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+
+            const presignedUrl = presignedResponse.data.presignedURL;
+            const baseUrl = presignedUrl.split('?')[0];
+
+            /*Determine the final reason text*/
+            const finalReason = declineReason === 'Other' ? otherReason : declineReason;
+            reason.append('rejectionNote', finalReason);
+            reason.append('imageUrl', baseUrl);
+
+            try {
+                await axios.put(presignedUrl, refundReceipt, {
+                    headers: {
+                        'Content-Type': refundReceipt.file.type,
+                        'Authorization': undefined
+                    }
+                });
+            }catch(err) {
+                console.log(err)
+            }
+            console.log(refundReceipt);
+            console.log(selectedRequest);
         }
-        
-        // Determine the final reason text
-        const finalReason = declineReason === 'Other' ? otherReason : declineReason;
-        
+
+
         // Make the API call to decline the transaction
         axios.put(
             `http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=DECLINED`,
-            formData,
+            reason,
             {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
-                },
-                params: {
-                    reason: finalReason
+                    'Content-Type': 'application/json'
                 }
             }
         )
-        .then((response) => {
-            console.log(response.data);
-            setDeclineSuccess(true);
-            setDeclineStep(4); // Move to success message
-            fetchData(); // Refresh the list
-        })
-        .catch((err) => {
-            if (err.response) {
-                console.log(`[ERROR] Status: ${err.response.status}, Message: ${err.response.data?.message || 'No message'}`);
-            } else if (err.request) {
-                console.log('[ERROR] No response from server');
-            } else {
-                console.log(`[ERROR] ${err.message}`);
-            }
-        })
-        .finally(() => {
-            setSubmittingDecline(false);
-        });
+            .then((response) => {
+                console.log(response.data);
+                setDeclineSuccess(true);
+                setDeclineStep(4); // Move to success message
+                fetchData(); // Refresh the list
+            })
+            .catch((err) => {
+                if (err.response) {
+                    console.log(`[ERROR] Status: ${err.response.status}, Message: ${err.response.data?.message || 'No message'}`);
+                } else if (err.request) {
+                    console.log('[ERROR] No response from server');
+                } else {
+                    console.log(`[ERROR] ${err.message}`);
+                }
+            })
+            .finally(() => {
+                setSubmittingDecline(false);
+                fetchData();
+            });
     };
     
     const ValidateTransaction = (validate) => {
@@ -129,7 +157,7 @@ const AdminPendingRequest = () => {
         }
         
         // For approve or other actions, continue with the original flow
-        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`)
+        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`,null)
             .then((response) => {
                 console.log(response.data);
                 // After validating transaction, create notification for user by email
