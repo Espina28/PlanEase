@@ -122,7 +122,7 @@ public class TransactionService {
                     transaction.setTransactionStatus(TransactionsEntity.Status.CANCELLED);
                     transaction.setTransactionisApprove(false);
                     transaction.setTransactionIsActive(false);
-                    bookingRejectionNoteService.createRejectionNote(transaction, reason);
+//                    bookingRejectionNoteService.createRejectionNote(transaction, reason);
                     break;
             case "COMPLETED":
                     transaction.setTransactionStatus(TransactionsEntity.Status.COMPLETED);
