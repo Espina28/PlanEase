@@ -34,7 +34,12 @@ const AdminBookings = () => {
     }
 
     const ValidateTransaction = (validate) => {
-        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`)
+        axios.put(`http://localhost:8080/api/transactions/validateTransaction?transactionId=${selectedRequest?.transaction_Id}&status=${validate}`,{},
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
             .then((response) => {
                 console.log(response.data);
                 fetchData();
