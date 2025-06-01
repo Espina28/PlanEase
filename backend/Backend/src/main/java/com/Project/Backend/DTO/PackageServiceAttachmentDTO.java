@@ -7,18 +7,21 @@ public class PackageServiceAttachmentDTO {
     private double packagePrice;
     private int subcontractorId;
     private String subcontractorServiceName;
+    private String subcontractorServiceCategory;
     private String subcontractorEmail;
 
     // Constructor
     public PackageServiceAttachmentDTO(int packageServiceId, int packageId, String packageName, 
                                      double packagePrice, int subcontractorId, 
-                                     String subcontractorServiceName, String subcontractorEmail) {
+                                     String subcontractorServiceName, String subcontractorServiceCategory,
+                                       String subcontractorEmail) {
         this.packageServiceId = packageServiceId;
         this.packageId = packageId;
         this.packageName = packageName;
         this.packagePrice = packagePrice;
         this.subcontractorId = subcontractorId;
         this.subcontractorServiceName = subcontractorServiceName;
+        this.subcontractorServiceCategory = subcontractorServiceCategory;
         this.subcontractorEmail = subcontractorEmail;
     }
 
@@ -69,6 +72,14 @@ public class PackageServiceAttachmentDTO {
 
     public void setSubcontractorServiceName(String subcontractorServiceName) {
         this.subcontractorServiceName = subcontractorServiceName;
+    }
+
+    public String getSubcontractorServiceCategory() {
+        return subcontractorServiceCategory;
+    }
+
+    public void setSubcontractorServiceCategory(String subcontractorServiceCategory) {
+        this.subcontractorServiceCategory = subcontractorServiceCategory;
     }
 
     public String getSubcontractorEmail() {

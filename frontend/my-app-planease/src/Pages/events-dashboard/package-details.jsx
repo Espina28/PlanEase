@@ -40,7 +40,7 @@ const PackageDetails = () => {
           setLoading(false)
           return
         }
-
+      
         setPackageData(packageResponse.data)
 
         // Always use the serviceAttachments endpoint for detailed service information
@@ -50,6 +50,7 @@ const PackageDetails = () => {
               Authorization: `Bearer ${token}`,
             },
           })
+          console.log("serviceAttachmentsResponse", serviceAttachmentsResponse.data)
           setPackageServices(serviceAttachmentsResponse.data || [])
         } catch (attachmentError) {
           console.error("Error fetching service attachments:", attachmentError)
@@ -176,6 +177,42 @@ const PackageDetails = () => {
     }
   }
 
+  // Additional services arrays for each package (updated based on green arrows)
+  const cherryBlossomAdditionalServices = [
+    { name: "Bridal Gown (Rental)" },
+    { name: "Groom Suit (Rental)" },
+    { name: "Bridal Entourage gown, suit and flowers." },
+    { name: "Wine for toasting" },
+  ]
+  const tulipAdditionalServices = [
+    { name: "Bridal Gown (Owned)" },
+    { name: "Groom Suit (Owned)" },
+    { name: "Bridal Entourage gown, suit and flowers." },
+    { name: "Wine for toasting" },
+    { name: "Doves" },
+    { name: "1 Lechon" },
+  ]
+  const roseAdditionalServices = [
+    { name: "Bridal Gown (1st Use)" },
+    { name: "Groom Suit (1st Use)" },
+    { name: "Bridal Entourage gown, suit and flowers." },
+    { name: "Wine for toasting" },
+    { name: "Doves" },
+  ]
+
+  // Determine which additional services to use based on package name
+  let additionalServices = []
+  const packageName = packageData?.packageName?.toLowerCase() || ""
+  if (packageName.includes("cherry")) additionalServices = cherryBlossomAdditionalServices
+  else if (packageName.includes("tulip")) additionalServices = tulipAdditionalServices
+  else if (packageName.includes("rose")) additionalServices = roseAdditionalServices
+
+  // Combine additional services and backend services for display
+  const allServicesToDisplay = [
+    ...additionalServices,
+    ...packageServices.map((s) => ({ name: s.subcontractorServiceCategory || `Service` })),
+  ]
+
   if (loading) {
     return (
       <div className="p-6 bg-gray-100 font-sans p-20">
@@ -268,13 +305,13 @@ const PackageDetails = () => {
           {/* Services Section */}
           <p className="font-semibold mb-2">What's Included</p>
           <div className="flex flex-wrap gap-2">
-            {packageServices.length > 0 ? (
-              packageServices.map((service, index) => (
+            {allServicesToDisplay.length > 0 ? (
+              allServicesToDisplay.map((service, index) => (
                 <span
-                  key={service.packageServiceId || index}
+                  key={index}
                   className="bg-[#FFE1AC] text-sm px-3 py-1 rounded-full hover:cursor-pointer"
                 >
-                  {service.subcontractorServiceName || `Service ${index + 1}`}
+                  {service.name}
                 </span>
               ))
             ) : (

@@ -33,7 +33,7 @@ public interface PackagesRepository extends JpaRepository<PackagesEntity, Intege
 
     @Query("SELECT new com.Project.Backend.DTO.PackageServiceAttachmentDTO(" +
         "ps.package_service_id, p.packageId, p.packageName, p.packagePrice, " +
-        "sc.subcontractor_Id, sc.subcontractor_serviceName, sc.user.email) " +
+        "sc.subcontractor_Id,sc.subcontractor_serviceName ,sc.subcontractor_serviceCategory, sc.user.email) " +
         "FROM PackageServicesEntity ps " +
         "JOIN ps.subcontractor sc " +
         "JOIN ps.packages p " +
