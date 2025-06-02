@@ -181,8 +181,12 @@ public class NotificationController {
      * Notify subcontractors by subcontractor ID
      */
     @PostMapping("/notify-subcontractors-by-id")
-    public ResponseEntity<Void> notifySubcontractorsById(@RequestParam int subcontractorId, @RequestParam String message) {
-        notificationService.notifySubcontractorById(subcontractorId, message);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<NotificationEntity> notifySubcontractorsById(@RequestParam int subcontractorId, @RequestParam String message) {
+        System.out.println("subcontractorId" + subcontractorId + "message" + message);
+        NotificationEntity notification = notificationService.notifySubcontractorById(subcontractorId, message);
+        if (notification != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(notification);
+        }
+        return ResponseEntity.badRequest().build();
     }
 }
