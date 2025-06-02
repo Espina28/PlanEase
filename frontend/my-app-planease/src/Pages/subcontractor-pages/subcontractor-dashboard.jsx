@@ -57,7 +57,8 @@ const SubcontractorDashboard = () => {
     const [userdetails, setUserDetails] = useState({
         fullname: '',
         email: '',
-        service_name: ''
+        service_name: '',
+        profile_image: ''
     });
     const [imageUrl, setImageUrl] = useState([]);
 
@@ -164,7 +165,8 @@ const SubcontractorDashboard = () => {
                 setUserDetails({
                     fullname: `${user.firstname} ${user.lastname}`,
                     email: user.email,
-                    service_name: response.data.subcontractor_serviceName
+                    service_name: response.data.subcontractor_serviceName,
+                    profile_image: user.profilePicture
                 });
             })
             .catch((error) => {
@@ -562,7 +564,7 @@ const SubcontractorDashboard = () => {
                 <div className="flex flex-col direct rounded-lg gap-4 bg-gray-100 md:px-10 md:py-10">
                     <div className="flex items-center bg-white p-5 md:p-10 shadow-lg">
                         <img
-                            src=""
+                            src={userdetails.profile_image}
                             alt="Profile"
                             className="w-20 h-20 rounded-full object-cover"
                         />

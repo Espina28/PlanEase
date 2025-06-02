@@ -182,16 +182,22 @@ public class NotificationService {
     /**
      * Notify subcontractor by subcontractor ID
      */
-    public void notifySubcontractorById(int subcontractorId, String message) {
-        UserEntity subcontractor = userRepository.findById(subcontractorId).orElse(null);
-        if (subcontractor != null) {
-            NotificationEntity notification = new NotificationEntity();
-            notification.setUser(subcontractor);
-            notification.setNotificationMessage(message);
-            notification.setNotificationType("system");
-            notification.setNotificationRecipientType("SubContractor");
-            notification.setRead(false);
-            notificationRepository.save(notification);
+    public NotificationEntity notifySubcontractorById(int subcontractorId, String message) {
+        NotificationEntity notification = null;
+        try{
+            UserEntity subcontractor = userRepository.findById(subcontractorId).orElse(null);
+            if (subcontractor != null) {
+                notification = new NotificationEntity();
+                notification.setUser(subcontractor);
+                notification.setNotificationMessage(message);
+                notification.setNotificationType("system");
+                notification.setNotificationRecipientType("SubContractor");
+                notification.setRead(false);
+                notification =  notificationRepository.save(notification);
+            }
+        }catch (Exception e) {
+            return null;
         }
+        return notification;
     }
 }
