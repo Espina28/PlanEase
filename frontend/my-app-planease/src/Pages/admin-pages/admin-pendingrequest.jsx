@@ -190,19 +190,18 @@ const AdminPendingRequest = () => {
                             (async () => {
                                 for (const subcontractor of selectedRequest.subcontractors) {
                                     try {
-                                        axios.post(
-                                            `http://localhost:8080/api/notifications/notify-subcontractors-by-id`,
-                                            null,
+                                        console.log(subcontractor.subcontractorUserId);
+                                        console.log(selectedRequest.eventName);
+                                        const response = await axios.post(
+                                            `http://localhost:8080/api/notifications/notify-subcontractors-by-id`, null,
                                             {
                                                 params: {
-                                                    subcontractorId: subcontractor?.subcontractorId,
-                                                    message: `You have been chosen as a subcontractor for ${selectedRequest?.eventName} by ${selectedRequest.userName}`
-                                                }
+                                                    subcontractorId: subcontractor.subcontractorUserId,
+                                                    message: `You have been chosen as a subcontractor for ${selectedRequest.eventName? selectedRequest.eventName : "Wedding"} for Customer ${selectedRequest.userName}`
+                                                }  
                                             }
-                                        ).then(response => {
-                                            console.log(response.data);
-                                        });
-
+                                        );
+                                        console.log(response.data);
                                     } catch (error) {
                                         console.error(`Failed to notify subcontractor (id: ${subcontractor?.subcontractorId}):`, error);
                                     }
