@@ -7,7 +7,9 @@ import Navbar from "../../Components/Navbar"
 import Footer from "../../Components/Footer"
 import BookingSidePanel from "../../Components/Booking-sidepanel"
 import { getCompleteBookingData, clearBookingData, PACKAGES } from "./utils/booking-storage"
+import MessageModal from "../../Components/MessageModal"
 import axios from "axios"
+
 
 const PaymentProofPagePackage = () => {
   const navigate = useNavigate()
@@ -26,17 +28,24 @@ const PaymentProofPagePackage = () => {
   // Get booking data for payment amount
   const [bookingData, setBookingData] = useState(getCompleteBookingData)
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [pendingNavigation, setPendingNavigation] = useState(false);
+
+  const showModal = (message, navigateAfter = false) => {
+    setModalMessage(message);
+    setModalOpen(true);
+    setPendingNavigation(navigateAfter);
+  };
+
   // Refresh booking data when component mounts and validate package data
   useEffect(() => {
     const refreshedData = getCompleteBookingData()
     setBookingData(refreshedData)
 
-    // Validate that we have package data
     if (!refreshedData.servicesData.livePackageData && !refreshedData.servicesData.selectedPackage) {
       console.warn("No package data found in payment page, redirecting to input details")
-      alert("Package information is missing. Please start the booking process again.")
-      const validPackageName = packageName || currentPackageName
-      navigate(`/book/${encodeURIComponent(validPackageName)}/package/inputdetails`)
+      showModal("Package information is missing. Please start the booking process again.", true)
       return
     }
 
@@ -79,13 +88,13 @@ const PaymentProofPagePackage = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file (JPG, PNG, etc.)")
+        showModal("Please upload an image file (JPG, PNG, etc.)");
         return
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB")
+        showModal("File size must be less than 5MB");
         return
       }
 
@@ -112,13 +121,13 @@ const PaymentProofPagePackage = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file (JPG, PNG, etc.)")
+        showModal("Please upload an image file (JPG, PNG, etc.)");
         return
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB")
+        showModal("File size must be less than 5MB");
         return
       }
 
@@ -175,26 +184,26 @@ const PaymentProofPagePackage = () => {
 
     // Check personal info
     if (!personalInfo.firstName || !personalInfo.lastName || !personalInfo.email || !personalInfo.contact) {
-      alert("Missing personal information. Please go back and complete all required fields.")
+      showModal("Missing personal information. Please go back and complete all required fields.");
       return false
     }
 
     // Check event details
     if (!eventDetails.location || !eventDetails.eventDate) {
-      alert("Missing event details. Please go back and complete all required fields.")
+      showModal("Missing event details. Please go back and complete all required fields.");
       return false
     }
 
     // Check package selection (either static or live)
     if (!servicesData.selectedPackage && !servicesData.livePackageData) {
-      alert("No package selected. Please go back and select a package.")
+      showModal("No package selected. Please go back and select a package.");
       return false
     }
 
     // Validate package ID
     const packageId = getPackageId()
     if (!packageId) {
-      alert("Invalid package selection. Please go back and select a valid package.")
+      showModal("Invalid package selection. Please go back and select a valid package.");
       return false
     }
 
@@ -206,18 +215,18 @@ const PaymentProofPagePackage = () => {
     e.preventDefault()
 
     if (!uploadedFile) {
-      alert("Please upload your payment proof before submitting")
+      showModal("Please upload your payment proof before submitting");
       return
     }
 
     if (!referenceNumber.trim()) {
-      alert("Please enter your payment reference number")
+      showModal("Please enter your payment reference number");
       return
     }
 
     // Validate that reference number is numeric (since backend expects int)
     if (!/^\d+$/.test(referenceNumber.trim())) {
-      alert("Payment reference number must contain only numbers")
+      showModal("Payment reference number must contain only numbers");
       return
     }
 
@@ -226,7 +235,7 @@ const PaymentProofPagePackage = () => {
     }
 
     if (paymentAmount <= 0) {
-      alert("Invalid payment amount. Please check your package selection.")
+      showModal("Invalid payment amount. Please check your package selection.");
       return
     }
 
@@ -236,7 +245,7 @@ const PaymentProofPagePackage = () => {
       // Get user token and email
       const token = localStorage.getItem("token")
       if (!token) {
-        alert("Please log in to continue")
+        showModal("Please log in to continue");
         setIsSubmitting(false)
         return
       }
@@ -253,7 +262,7 @@ const PaymentProofPagePackage = () => {
       // Get the package ID with validation
       const packageId = getPackageId()
       if (!packageId) {
-        alert("Error: Invalid package selection. Package ID is missing.")
+        showModal("Error: Invalid package selection. Package ID is missing.");
         setIsSubmitting(false)
         return
       }
@@ -295,7 +304,7 @@ const PaymentProofPagePackage = () => {
 
       // If packageId is null or undefined, show an error and abort
       if (transactionData.packageId === null || transactionData.packageId === undefined) {
-        alert("Error: Package ID is missing. Please go back and select a package again.")
+        showModal("Error: Package ID is missing. Please go back and select a package again.");
         setIsSubmitting(false)
         return
       }
@@ -354,10 +363,7 @@ const PaymentProofPagePackage = () => {
 
         // Show success message and redirect
         setTimeout(() => {
-          alert(
-            `Package booking submitted successfully! Your transaction ID is: ${response.data.transactionId}. Our team will contact you to finalize the details.`,
-          )
-          navigate("/user-reservations")
+          showModal("Your package booking was submitted successfully! Our team will contact you to finalize the details.", true);
         }, 2000)
       }
     } catch (error) {
@@ -368,7 +374,7 @@ const PaymentProofPagePackage = () => {
       // Show more specific error message
       const errorMessage =
         error.response?.data?.message || error.response?.data || "Failed to submit package booking. Please try again."
-      alert(`Error: ${errorMessage}`)
+      showModal(`Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false)
     }
@@ -564,8 +570,20 @@ const PaymentProofPagePackage = () => {
             </div>
           </div>
         </div>
+        
       </div>
       <Footer />
+      <MessageModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          if (pendingNavigation) {
+            setPendingNavigation(false);
+            navigate("/user-reservations");
+          }
+        }}
+        message={modalMessage}
+      />
     </>
   )
 }
