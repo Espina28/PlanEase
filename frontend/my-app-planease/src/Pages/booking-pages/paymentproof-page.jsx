@@ -8,6 +8,7 @@ import Footer from "../../Components/Footer"
 import BookingSidePanel from "../../Components/Booking-sidepanel"
 import { getCompleteBookingData, clearBookingData, PACKAGES } from "./utils/booking-storage"
 import axios from "axios"
+import MessageModal from "../../Components/MessageModal"
 
 const PaymentProofPage = () => {
   const navigate = useNavigate()
@@ -25,6 +26,10 @@ const PaymentProofPage = () => {
 
   // Get booking data for payment amount
   const [bookingData, setBookingData] = useState(getCompleteBookingData)
+
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalMessage, setModalMessage] = useState("")
+  const [pendingNavigation, setPendingNavigation] = useState(false)
 
   // Refresh booking data when component mounts
   useEffect(() => {
@@ -73,13 +78,13 @@ const PaymentProofPage = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file (JPG, PNG, etc.)")
+        showModal("Please upload an image file (JPG, PNG, etc.)")
         return
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB")
+        showModal("File size must be less than 5MB")
         return
       }
 
@@ -106,13 +111,13 @@ const PaymentProofPage = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file (JPG, PNG, etc.)")
+        showModal("Please upload an image file (JPG, PNG, etc.)")
         return
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB")
+        showModal("File size must be less than 5MB")
         return
       }
 
@@ -174,32 +179,26 @@ const PaymentProofPage = () => {
   const validateBookingData = () => {
     const { personalInfo, eventDetails, servicesData } = bookingData
 
-    // Check personal info
     if (!personalInfo.firstName || !personalInfo.lastName || !personalInfo.email || !personalInfo.contact) {
-      alert("Missing personal information. Please go back and complete all required fields.")
+      showModal("Missing personal information. Please go back and complete all required fields.")
       return false
     }
-
-    // Check event details
     if (!eventDetails.location || !eventDetails.eventDate) {
-      alert("Missing event details. Please go back and complete all required fields.")
+      showModal("Missing event details. Please go back and complete all required fields.")
       return false
     }
-
-    // Check services selection
     if (servicesData.activeTab === "package") {
       if (!servicesData.selectedPackage) {
-        alert("No package selected. Please go back and select a package.")
+        showModal("No package selected. Please go back and select a package.")
         return false
       }
     } else if (servicesData.activeTab === "custom") {
       const hasSelectedServices = Object.values(servicesData.selectedServices).some((selected) => selected)
       if (!hasSelectedServices) {
-        alert("No services selected. Please go back and select at least one service.")
+        showModal("No services selected. Please go back and select at least one service.")
         return false
       }
     }
-
     return true
   }
 
@@ -208,37 +207,29 @@ const PaymentProofPage = () => {
     e.preventDefault()
 
     if (!uploadedFile) {
-      alert("Please upload your payment proof before submitting")
+      showModal("Please upload your payment proof before submitting")
       return
     }
-
     if (!referenceNumber.trim()) {
-      alert("Please enter your payment reference number")
+      showModal("Please enter your payment reference number")
       return
     }
-
-    // Validate that reference number is numeric (since backend expects int)
     if (!/^\d+$/.test(referenceNumber.trim())) {
-      alert("Payment reference number must contain only numbers")
+      showModal("Payment reference number must contain only numbers")
       return
     }
-
     if (!validateBookingData()) {
       return
     }
-
     if (paymentAmount <= 0) {
-      alert("Invalid payment amount. Please check your service selection.")
+      showModal("Invalid payment amount. Please check your service selection.")
       return
     }
-
     setIsSubmitting(true)
-
     try {
-      // Get user token and email
       const token = localStorage.getItem("token")
       if (!token) {
-        alert("Please log in to continue")
+        showModal("Please log in to continue")
         setIsSubmitting(false)
         return
       }
@@ -297,13 +288,13 @@ const PaymentProofPage = () => {
 
       // Validate that we have either package OR services, not both or neither
       if (transactionData.packageId && transactionData.serviceIds) {
-        alert("Error: Cannot have both package and custom services selected")
+        showModal("Error: Cannot have both package and custom services selected")
         setIsSubmitting(false)
         return
       }
 
       if (!transactionData.packageId && (!transactionData.serviceIds || transactionData.serviceIds.length === 0)) {
-        alert("Error: Must select either a package or custom services")
+        showModal("Error: Must select either a package or custom services")
         setIsSubmitting(false)
         return
       }
@@ -341,27 +332,11 @@ const PaymentProofPage = () => {
             params: { message: `New event booking submitted: ${currentEventName}` },
             headers: { Authorization: `Bearer ${token}` },
           }
-        );
-
-        // Send notification to subcontractors using new endpoint by subcontractor ID
-        // const selectedServiceIds = transactionData.serviceIds || [];
-        // for (const subcontractorId of selectedServiceIds) {
-        //   await axios.post(
-        //     "http://localhost:8080/api/notifications/notify-subcontractors-by-id",
-        //     null,
-        //     {
-        //       params: { subcontractorId: subcontractorId.toString(), message: `New event booking submitted: ${currentEventName}` },
-        //       headers: { Authorization: `Bearer ${token}` },
-        //     }
-        //   )
-        // }
+        )
 
         // Show success message and redirect
         setTimeout(() => {
-          alert(
-            `Booking submitted successfully! Your transaction ID is: ${response.data.transactionId}. Subcontractors will be assigned by our admin team.`,
-          )
-          navigate("/user-reservations")
+          showModal("You successfully booked your request!", true)
         }, 2000)
       }
     } catch (error) {
@@ -372,7 +347,7 @@ const PaymentProofPage = () => {
       // Show more specific error message
       const errorMessage =
         error.response?.data?.message || error.response?.data || "Failed to submit booking. Please try again."
-      alert(`Error: ${errorMessage}`)
+      showModal(`Error: ${errorMessage}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -392,13 +367,20 @@ const PaymentProofPage = () => {
     return referenceNumber.trim() && uploadedFile && !isSubmitting && !submitSuccess && paymentAmount > 0
   }
 
+  // Replace all alert() usages with modal
+  const showModal = (message, navigateAfter = false) => {
+    setModalMessage(message)
+    setModalOpen(true)
+    setPendingNavigation(navigateAfter)
+  }
+
   return (
     <>
       <Navbar />
       <div className="booking-container">
         {/* Breadcrumb Navigation */}
         <div className="breadcrumb">
-          <Link to="/">Home</Link> /{" "}
+          <Link to="/home">Home</Link> /{" "}
           <Link to={`/event/${encodeURIComponent(currentEventName)}`}>{currentEventName}</Link> / <span>Book Now</span>
         </div>
 
@@ -563,6 +545,17 @@ const PaymentProofPage = () => {
         </div>
       </div>
       <Footer />
+      <MessageModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false)
+          if (pendingNavigation) {
+            setPendingNavigation(false)
+            navigate("/home")
+          }
+        }}
+        message={modalMessage}
+      />
     </>
   )
 }
