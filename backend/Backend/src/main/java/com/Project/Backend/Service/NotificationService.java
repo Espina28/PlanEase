@@ -140,11 +140,11 @@ public class NotificationService {
     /**
      * Create a booking rejection notification
      */
-    public NotificationEntity createBookingRejectionNotification(String userEmail) {
+    public NotificationEntity createBookingRejectionNotification(String userEmail, String reason) {
         return createNotification(
             userEmail,
             "User",
-            "Your booking has been rejected by the event contractor.",
+                reason,
             "booking-rejected"
         );
     }

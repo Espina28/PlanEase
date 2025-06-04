@@ -23,6 +23,7 @@ public class GetTransactionDTO {
     private String packages;
     private PaymentEntity payment;
     private List<Map<String, Object>>subcontractors;
+    private RejectNoteDTO rejectedNote;
 
     public GetTransactionDTO() {
         this.subcontractors = new ArrayList<>();
@@ -64,6 +65,14 @@ public class GetTransactionDTO {
                 return subcontractorMap;
             })
             .collect(Collectors.toList());
+    }
+
+    public RejectNoteDTO getRejectedNote() {
+        return rejectedNote;
+    }
+
+    public void setRejectedNote(RejectNoteDTO rejectedNote) {
+        this.rejectedNote = rejectedNote;
     }
 
     public String getTransactionNote() {

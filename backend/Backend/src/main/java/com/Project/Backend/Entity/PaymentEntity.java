@@ -18,6 +18,7 @@ public class PaymentEntity {
     @JoinColumn(name = "transaction_id")
     @JsonBackReference("transaction-payment")
     private TransactionsEntity transaction;
+    private double amountPaid;
     private Date paymentDatePaid;
     private String paymentNote;
     private String paymentReceipt; // Added this field to match ERD
@@ -30,6 +31,14 @@ public class PaymentEntity {
 
     public enum STATUS {
         ACCEPTED, REJECTED, RETURNED, PENDING
+    }
+
+    public double getAmountPaid() {
+        return amountPaid;
+    }
+
+    public void setAmountPaid(double amountPaid) {
+        this.amountPaid = amountPaid;
     }
 
     // Getters and Setters
