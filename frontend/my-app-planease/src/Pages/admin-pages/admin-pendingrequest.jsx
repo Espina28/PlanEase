@@ -81,6 +81,7 @@ const AdminPendingRequest = () => {
 
         // Create form data to send receipt image
         const reason = new FormData();
+        const finalReason = declineReason === 'Other' ? otherReason : declineReason;
         if (refundReceipt) {
             const presignedResponse = await axios.get(
                 `http://localhost:8080/bookingrejectionnote/generate-PresignedUrl`,
@@ -99,7 +100,6 @@ const AdminPendingRequest = () => {
             const baseUrl = presignedUrl.split('?')[0];
 
             /*Determine the final reason text*/
-            const finalReason = declineReason === 'Other' ? otherReason : declineReason;
             reason.append('rejectionNote', finalReason);
             reason.append('imageUrl', baseUrl);
 
@@ -134,7 +134,8 @@ const AdminPendingRequest = () => {
                 setDeclineStep(4); // Move to success message
                 axios.post(`http://localhost:8080/api/notifications/booking-rejected`, null, {
                     params: {
-                        userEmail: selectedRequest?.userEmail
+                        userEmail: selectedRequest?.userEmail,
+                        reason: `Your booking has been declined, Due to ${finalReason}, your payment will be refunded via GCash.`
                     }
                 }).then(() => {
                     console.log("Booking rejection notification sent.");
@@ -393,7 +394,7 @@ const AdminPendingRequest = () => {
                 <div className="flex items-center justify-center min-h-screen px-4">
                     <Dialog.Panel className="bg-white w-full max-w-md rounded-lg shadow-lg p-6">
                         {/* Step 1: Confirmation */}
-                        {declineStep === 1 && (
+                        {declineStep === 1 && ( 
                             <>
                                 <div className="flex justify-between items-center border-b pb-3">
                                     <h3 className="text-xl font-semibold text-red-600">Decline Booking</h3>

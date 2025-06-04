@@ -10,6 +10,7 @@ const AdminBookings = () => {
     const [viewServicesModal, setViewServicesModal] = useState(false);
     const [viewPaymentModal, setViewPaymentModal] = useState(false);
     const [transactions, setTransactions] = useState([])
+    const [viewReasonModal, setViewReasonModal] = useState(false);
 
 
     useEffect(() => {
@@ -191,6 +192,9 @@ const AdminBookings = () => {
                                         <div className="flex ml-auto gap-2">
                                             <button className="text-[#FFB22C] hover:underline" onClick={() => setViewPaymentModal(true)}>View Payment</button>
                                             <button className="text-[#FFB22C] hover:underline" onClick={() => setViewServicesModal(true)}>View Chosen Services</button>
+                                            {selectedRequest?.rejectedNote && (
+                                                <button className="text-[#FFB22C] hover:underline" onClick={() => setViewReasonModal(true)}>View Reason</button>
+                                            )}
                                         </div>
                                     </div>
                                     <div>
@@ -263,6 +267,38 @@ const AdminBookings = () => {
                         </div>
                         <div className="flex justify-end pt-6">
                             <button onClick={() => setViewPaymentModal(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded">Close</button>
+                        </div>
+                    </Dialog.Panel>
+                </div>
+            </Dialog>
+
+            <Dialog open={!!selectedRequest && viewReasonModal} onClose={() => setViewReasonModal(false)} className="fixed z-1150 shadow-md inset-0 overflow-y-auto hover:cursor-pointer">
+                <div className="flex items-center justify-center min-h-screen px-4">
+                    <Dialog.Panel className="bg-white w-full max-w-2xl rounded-lg shadow-lg p-4 sm:p-6">
+                        <div className="flex justify-between items-center border-b pb-2">
+                            <h3 className="text-xl font-semibold">Rejection Reason</h3>
+                            <button onClick={() => setViewReasonModal(false)} className="text-xl">×</button>
+                        </div>
+                        <div className="mt-6 space-y-4">
+                            <div>
+                                <h4 className="text-[#F79009] font-semibold mb-2">Reason</h4>
+                                <p className="text-gray-700 text-base">{selectedRequest?.rejectedNote?.rejectionNote}</p>
+                            </div>
+                            {selectedRequest?.rejectedNote?.imageUrl && (
+                                <div>
+                                    <h4 className="text-[#F79009] font-semibold mb-2">Image</h4>
+                                    <div className="flex justify-center items-center bg-gray-100 p-4 rounded">
+                                        <img src={selectedRequest.rejectedNote.imageUrl} alt="Rejection Proof" className="max-h-[300px] rounded" />
+                                    </div>
+                                </div>
+                            )}
+                            <div>
+                                <h4 className="text-[#F79009] font-semibold mb-2">Date</h4>
+                                <p className="text-gray-700 text-base">{selectedRequest?.rejectedNote?.rejectedDate}</p>
+                            </div>
+                        </div>
+                        <div className="flex justify-end pt-6">
+                            <button onClick={() => setViewReasonModal(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded">Close</button>
                         </div>
                     </Dialog.Panel>
                 </div>
