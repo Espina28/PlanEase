@@ -149,8 +149,8 @@ public class NotificationController {
      * Create a booking rejection notification
      */
     @PostMapping("/booking-rejected")
-    public ResponseEntity<NotificationEntity> createBookingRejectionNotification(@RequestParam String userEmail) {
-        NotificationEntity notification = notificationService.createBookingRejectionNotification(userEmail);
+    public ResponseEntity<NotificationEntity> createBookingRejectionNotification(@RequestParam String userEmail, @RequestParam String reason) {
+        NotificationEntity notification = notificationService.createBookingRejectionNotification(userEmail, reason);
         
         if (notification != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(notification);

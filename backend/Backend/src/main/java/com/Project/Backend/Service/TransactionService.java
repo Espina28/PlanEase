@@ -242,6 +242,15 @@ public class TransactionService {
                 getTransactionDTO.setSubcontractors(getSubcontractorsOfPackages(subcontractor));
             }
 
+            //if transaction is declined get the reason
+            if(transaction.getRejection() != null){
+                RejectNoteDTO rejectNoteDTO = new RejectNoteDTO();
+                rejectNoteDTO.setRejectionNote(transaction.getRejection().getRejectionNote());
+                rejectNoteDTO.setRejectedDate(transaction.getRejection().getRejectedDate());
+                rejectNoteDTO.setImageUrl(transaction.getRejection().getImageUrl());
+                getTransactionDTO.setRejectedNote(rejectNoteDTO);
+            }
+
             getTransactionDTO.setTransactionVenue(transaction.getTransactionVenue());
             getTransactionDTO.setTransactionStatus(transaction.getTransactionStatus().toString());
             getTransactionDTO.setTransactionDate(transaction.getTransactionDate());
