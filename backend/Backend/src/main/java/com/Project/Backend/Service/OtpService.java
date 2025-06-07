@@ -14,7 +14,7 @@ public class OtpService {
 
     public String generateOtp(String email) {
         String otp = String.valueOf(new Random().nextInt(900000) + 100000); // 6-digit OTP
-        otpStorage.put(email, new OtpRecord(otp, Instant.now().plus(Duration.ofMinutes(1))));
+        otpStorage.put(email, new OtpRecord(otp, Instant.now().plus(Duration.ofMinutes(5))));
         return otp;
     }
 
