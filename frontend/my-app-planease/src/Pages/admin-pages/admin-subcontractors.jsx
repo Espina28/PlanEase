@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography"
 import AddIcon from "@mui/icons-material/Add"
 import CloseIcon from "@mui/icons-material/Close"
 import EditIcon from "@mui/icons-material/Edit"
+import DeleteIcon from "@mui/icons-material/Delete"
 import CloudUploadIcon from "@mui/icons-material/CloudUpload"
 import AdminSideBar from '../../Components/admin-sidebar.jsx';
 import "../../index.css"
@@ -806,6 +807,11 @@ const AdminSubContractors = () => {
     setSelectedSubcontractor(null)
   };
 
+  // State for delete confirmation
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+  // Removed name matching function - no longer needed
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -1141,11 +1147,74 @@ const AdminSubContractors = () => {
             </Typography>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal} color="primary">
+        <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
+          <Button 
+            onClick={() => {
+              if (selectedSubcontractor) {
+                setConfirmDeleteId(selectedSubcontractor.subcontractor_Id);
+              }
+            }} 
+            color="error"
+            variant="outlined"
+            startIcon={<DeleteIcon />}
+          >
+            Delete
+          </Button>
+          <Button onClick={handleCloseModal} color="primary" variant="contained">
             Close
           </Button>
         </DialogActions>
+        {/* Confirm Delete Dialog */}
+        <Dialog
+          open={Boolean(confirmDeleteId)}
+          onClose={() => setConfirmDeleteId(null)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title" sx={{ color: 'error.main' }}>
+            {"Confirm Delete"}
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Are you sure you want to delete this subcontractor?
+            </Typography>
+            <Typography variant="body2" color="error.main" fontWeight="bold">
+              This action cannot be undone.
+            </Typography>
+            {selectedSubcontractor?.user && (
+              <Typography variant="body1" sx={{ mt: 3 }}>
+                <span style={{ fontWeight: "bold" }}>Name: </span>
+                {`${selectedSubcontractor.user.firstname} ${selectedSubcontractor.user.lastname}`}
+              </Typography>
+            )}
+            <Typography variant="body1" sx={{ mt: 1 }}>
+              <span style={{ fontWeight: "bold" }}>Service: </span>
+              {selectedSubcontractor?.subcontractor_serviceName}
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={() => setConfirmDeleteId(null)}
+              variant="outlined"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (confirmDeleteId) {
+                  handleDeleteSubcontractor(confirmDeleteId);
+                  setConfirmDeleteId(null);
+                  handleCloseModal();
+                }
+              }} 
+              color="error" 
+              variant="contained"
+              autoFocus
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Dialog>
 
       {/* Add Subcontractor Modal */}
